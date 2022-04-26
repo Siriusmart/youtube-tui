@@ -1,0 +1,15 @@
+[package]
+name = "youtube-tui"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tui = "0.17"
+crossterm = "0.23"
+invidious = "0.1.0"
+rand = "0.8.5"
+
+[profile.dev.package."*"]
+opt-level = 3
