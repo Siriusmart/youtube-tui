@@ -1,10 +1,3 @@
-mod update;
-mod ui;
-pub use ui::*;
-pub use update::*;
-
-use youtube_tui::*;
-
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
@@ -19,8 +12,11 @@ use tui::{
     widgets::{Block, BorderType, Borders},
     Frame, Terminal,
 };
+use youtube_tui::app::app::App;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let app = App::new();
+
     // setup terminal
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -28,41 +24,27 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    // create app and run it
-    let res = run_app(&mut terminal);
+    let res = run_app(&mut terminal, app);
 
-    // restore terminal
+    execute!(terminal.backend_mut(), LeaveAlternateScreen, DisableMouseCapture)?;
     disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
-    )?;
-    terminal.show_cursor()?;
 
-    if let Err(err) = res {
-        println!("{:?}", err)
+    res
+}
+
+fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: App) -> Result<(), Box<dyn Error>> {
+    loop {
+        terminal.draw(|mut frame| {
+            app.render(&mut frame);
+        })?;
+
+        if let event::Event::Key(key) = event::read()? {
+            match key.code {
+                KeyCode::Char('q') => break,
+                _ => {}
+            }
+        }
     }
 
     Ok(())
 }
-
-fn run_app<B: Backend>(terminal: &mut Terminal<B>) -> Result<(), Box<dyn Error>> {
-    let mut app = App::new();
-    loop {
-        
-        let mut res = Ok(());
-        terminal.draw(|f|{res = ui(f, &mut app)})?;
-
-        res?;
-
-        if let Event::Key(key) = event::read()? {
-            if let KeyCode::Char('q') = key.code {
-                return Ok(());
-            } else {
-                res = update(&mut app, key.code);
-            }
-        }
-    }
-}
-

@@ -9,7 +9,6 @@ edition = "2021"
 tui = "0.17"
 crossterm = "0.23"
 invidious = "0.1.0"
-rand = "0.8.5"
 
 [profile.dev.package."*"]
 opt-level = 3
