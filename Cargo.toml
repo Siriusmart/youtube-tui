@@ -6,9 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tui = "0.17"
+tui = "0.18"
 crossterm = "0.23"
 invidious = "0.1.0"
+futures = "0.3"
+hrtime = "0.2"
 
 [profile.dev.package."*"]
 opt-level = 3

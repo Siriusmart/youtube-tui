@@ -1,3 +1,2 @@
-mod main_menu;
+mod pages;
 mod render;
-mod global;
