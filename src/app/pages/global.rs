@@ -1,5 +1,5 @@
 use crossterm::event::KeyCode;
-use invidious::structs::{hidden::TrendingVideo, video::Video};
+use invidious::structs::{hidden::{TrendingVideo, PopularItem}, video::Video};
 
 use crate::{
     app::app::App,
@@ -81,6 +81,22 @@ impl From<TrendingVideo> for MiniVideo {
             author_url: original.authorUrl,
             published: original.publishedText,
             description: original.description,
+        }
+    }
+}
+
+impl From<PopularItem> for MiniVideo {
+    fn from(original: PopularItem) -> Self {
+        MiniVideo {
+            title: original.title,
+            video_id: original.videoId,
+            video_thumbnail: original.videoThumbnails[0].url.clone(),
+            length: hrtime::from_sec(original.lengthSeconds as u64),
+            view_count: original.viewCount,
+            author: original.author,
+            author_url: original.authorUrl,
+            published: original.publishedText,
+            description: String::new(),
         }
     }
 }

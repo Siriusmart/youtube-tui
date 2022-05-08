@@ -3,7 +3,7 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use std::{error::Error, io};
+use std::{error::Error, fs, io, path::Path};
 use tui::{
     backend::{Backend, CrosstermBackend},
     Terminal,
@@ -14,6 +14,8 @@ use youtube_tui::{
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
+    init()?;
+
     let app = App::new();
 
     enable_raw_mode()?;
@@ -31,7 +33,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     )?;
     disable_raw_mode()?;
 
-    res
+    res?;
+
+    Ok(())
 }
 
 fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(), Box<dyn Error>> {
@@ -108,6 +112,49 @@ fn ui<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> Result<(), Box<d
     terminal.draw(|mut frame| {
         app.render(&mut frame);
     })?;
+
+    Ok(())
+}
+
+fn init() -> Result<(), Box<dyn Error>> {
+    let mut dir = home::home_dir().expect("Cannot get your home directory");
+
+    dir.push(".siriusmart");
+    if !dir.exists() {
+        fs::create_dir(&dir)?;
+    }
+
+    dir.push("youtube-tui");
+    if !dir.exists() {
+        fs::create_dir(&dir)?;
+    }
+
+    dir.push("cache");
+
+    if dir.exists() {
+        fs::remove_dir_all(&dir)?;
+    }
+    fs::create_dir(&dir)?;
+
+    dir.push("thumbnails");
+
+    if !dir.exists() {
+        fs::create_dir(&dir)?;
+    }
+
+    dir.push("videos");
+
+    if !dir.exists() {
+        fs::create_dir(&dir)?;
+    }
+
+    dir.pop();
+
+    dir.push("playlists");
+
+    if !dir.exists() {
+        fs::create_dir(&dir)?;
+    }
 
     Ok(())
 }

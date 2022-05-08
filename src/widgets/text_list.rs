@@ -15,6 +15,8 @@ pub struct TextList {
     pub selected: usize,
     pub scroll: usize,
     pub area: Option<Rect>,
+    pub style: Style,
+    pub selected_style: Style,
 }
 
 impl Widget for TextList {
@@ -26,6 +28,8 @@ impl Widget for TextList {
         let width_minus_2 = (area.width - 2) as usize;
         let width_minus_5 = (area.width - 5) as usize;
         let mut y = area.y;
+
+        buf.set_style(area, self.style);
 
         for (i, mut item) in self
             .items
@@ -55,15 +59,13 @@ impl Widget for TextList {
                     ROUNDED_BOTTOM_RIGHT,
                 );
 
-                let color = Color::LightYellow;
-
                 let mut rect = Rect {
                     x: area.x,
                     y: y,
                     width: area.width,
                     height: 1,
                 };
-                buf.set_style(rect, Style::default().fg(color));
+                buf.set_style(rect, self.selected_style);
 
                 rect = Rect {
                     x: area.x,
@@ -71,7 +73,7 @@ impl Widget for TextList {
                     width: 1,
                     height: 1,
                 };
-                buf.set_style(rect, Style::default().fg(color));
+                buf.set_style(rect, self.selected_style);
 
                 rect = Rect {
                     x: area.x + area.width - 1,
@@ -79,7 +81,7 @@ impl Widget for TextList {
                     width: 1,
                     height: 1,
                 };
-                buf.set_style(rect, Style::default().fg(color));
+                buf.set_style(rect, self.selected_style);
 
                 rect = Rect {
                     x: area.x,
@@ -87,7 +89,7 @@ impl Widget for TextList {
                     width: area.width,
                     height: 1,
                 };
-                buf.set_style(rect, Style::default().fg(color));
+                buf.set_style(rect, self.selected_style);
 
                 for line in lines.lines() {
                     for (x, c) in (0..area.width).zip(line.chars()) {
@@ -112,6 +114,8 @@ impl Default for TextList {
             selected: 0,
             scroll: 0,
             area: None,
+            style: Style::default(),
+            selected_style: Style::default().fg(Color::Yellow),
         }
     }
 }
@@ -145,5 +149,13 @@ impl TextList {
                 self.scroll = self.selected;
             }
         }
+    }
+
+    pub fn style(&mut self, style: Style) {
+        self.style = style;
+    }
+
+    pub fn selected_style(&mut self, style: Style) {
+        self.selected_style = style;
     }
 }

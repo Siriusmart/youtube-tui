@@ -1,24 +1,26 @@
 use crate::{
-    app::{pages::main_menu::{MainMenuItem, MainMenuSelector}, app::App},
+    app::{pages::main_menu::{MainMenuItem, MainMenuSelector}, app::Page},
     traits::RenderItem,
+    widgets::horizontal_split::HorizontalSplit,
 };
 use tui::{
     backend::Backend,
-    layout::{Alignment, Constraint, Layout, Rect, Direction},
+    layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     widgets::{Block, BorderType, Borders, Paragraph},
     Frame,
 };
 
-impl RenderItem for MainMenuItem {
-    fn render_item<B: Backend>(
+impl MainMenuItem {
+    pub fn render_item<B: Backend>(
         &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
         selected: bool,
         hover: bool,
+        page: &Page
     ) {
-        let style = Style::default().fg(if selected {
+        let mut style = Style::default().fg(if selected {
             Color::LightBlue
         } else if hover {
             Color::LightRed
@@ -28,6 +30,9 @@ impl RenderItem for MainMenuItem {
 
         match self {
             MainMenuItem::SeletorTab(selector) => {
+                if !hover && page == &(Page::MainMenu { tab: *selector }){
+                    style = style.fg(Color::LightYellow);
+                }
                 let text = match selector {
                     MainMenuSelector::Trending => "Trending",
                     MainMenuSelector::Popular => "Popular",
@@ -45,28 +50,30 @@ impl RenderItem for MainMenuItem {
                 frame.render_widget(paragraph, rect);
             }
             MainMenuItem::VideoList(data) => {
-                let chunks = Layout::default()
-                    .constraints([Constraint::Percentage(40), Constraint::Percentage(60)].as_ref())
-                    .direction(Direction::Horizontal)
-                    .split(rect);
+                let split = HorizontalSplit::default()
+                    .percentages(vec![40, 60])
+                    .border_style(Style::default().fg(if selected {
+                        Color::LightBlue
+                    } else if hover {
+                        Color::LightRed
+                    } else {
+                        Color::Reset
+                    }));
 
-                let block = Block::default()
-                    .border_type(BorderType::Rounded)
-                    .borders(Borders::ALL)
-                    .border_style(style);
+                let chunks = split.inner(rect);
 
-                let inner = block.inner(chunks[0]);
-
-                frame.render_widget(block, chunks[0]);
-
-                let block = Block::default()
-                    .border_type(BorderType::Rounded)
-                    .borders(Borders::ALL);
-                frame.render_widget(block, chunks[1]);
+                frame.render_widget(split, rect);
 
                 if let Some((videos, list, _)) = data {
-                    list.area(inner);
-                    frame.render_widget(list.clone(), inner);
+                    list.area(chunks[0]);
+                    let mut list = list.clone();
+
+                    if selected {
+                        list.selected_style(Style::default().fg(Color::LightRed));
+                    } else {
+                        list.selected_style(Style::default().fg(Color::LightYellow));
+                    }
+                    frame.render_widget(list, chunks[0]);
                 }
             }
         }

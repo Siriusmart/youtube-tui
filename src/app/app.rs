@@ -64,7 +64,11 @@ impl App {
                         self = item.key_input(key, self);
                         self.state[y].items[x].item = Item::Global(item);
                     }
-                    _ => {}
+                    Item::MainMenu(item) => {
+                        let mut item = item.clone();
+                        self = item.key_input(key, self);
+                        self.state[y].items[x].item = Item::MainMenu(item);
+                    }
                 }
 
                 return self;
@@ -175,7 +179,7 @@ impl App {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Page {
     MainMenu { tab: MainMenuSelector },
 }

@@ -88,7 +88,7 @@ impl App {
                         i.render_item(frame, chunk, selected, hover, &self.message);
                     }
                     Item::MainMenu(i) => {
-                        i.render_item(frame, chunk, selected, hover);
+                        i.render_item(frame, chunk, selected, hover, &self.page);
                     }
                 }
             }

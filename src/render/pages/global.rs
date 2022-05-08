@@ -1,4 +1,7 @@
-use crate::{app::{pages::global::GlobalItem, app::App}, traits::RenderItem};
+use crate::{
+    app::{app::App, pages::global::GlobalItem},
+    traits::RenderItem,
+};
 use tui::{
     backend::Backend,
     layout::{Alignment, Rect},
@@ -19,17 +22,16 @@ impl GlobalItem {
     ) {
         match self {
             GlobalItem::SearchBar(search) => {
-                let style = Style::default().fg(if selected {
-                    Color::LightBlue
-                } else if hover {
-                    Color::LightRed
-                } else {
-                    Color::Reset
-                });
                 let block = Block::default()
                     .border_type(BorderType::Rounded)
                     .borders(Borders::ALL)
-                    .style(style)
+                    .border_style(Style::default().fg(if selected {
+                        Color::LightBlue
+                    } else if hover {
+                        Color::LightRed
+                    } else {
+                        Color::Reset
+                    }))
                     .title("Search YouTube")
                     .title_alignment(Alignment::Center);
                 let paragraph = Paragraph::new(search.clone()).block(block);
@@ -39,7 +41,12 @@ impl GlobalItem {
                 // let color = Color::LightYellow;
                 let block = Block::default()
                     .border_type(BorderType::Rounded)
-                    .borders(Borders::ALL);
+                    .borders(Borders::ALL)
+                    .border_style(Style::default().fg(if message.is_some() {
+                        Color::LightRed
+                    } else {
+                        Color::Reset
+                    }));
                 let paragraph =
                     Paragraph::new(message.clone().unwrap_or(String::from("All good :)")))
                         .block(block);

@@ -1,20 +1,21 @@
 use std::{collections::LinkedList, error::Error};
 
+use futures::{executor::block_on, future::join_all};
+
 use crate::{
     app::{
         app::{App, Item, Page, Row, RowItem},
-        pages::global::{GlobalItem, ListItem, MiniVideo},
+        pages::global::{GlobalItem, ListItem},
     },
     traits::{KeyInput, LoadItem, SelectItem},
     widgets::text_list::TextList,
 };
 use crossterm::event::KeyCode;
-use invidious::{blocking::Client, structs::video::Video};
 use tui::layout::Constraint;
 #[derive(Debug, Clone)]
 pub enum MainMenuItem {
     SeletorTab(MainMenuSelector),
-    VideoList(Option<(LinkedList<ListItem>, TextList, usize)>), // Videos, List, page
+    VideoList(Option<(LinkedList<ListItem>, TextList, Option<usize>)>), // Videos, List, page
 }
 
 // app.client.trending(None)
@@ -23,7 +24,12 @@ impl SelectItem for MainMenuItem {
     fn select(&mut self, mut app: App) -> (App, bool) {
         let selected = match self {
             MainMenuItem::SeletorTab(selector) => {
+                if app.page == (Page::MainMenu { tab: *selector }) {
+                    return (app, false);
+                }
                 app.page = Page::MainMenu { tab: *selector };
+                app.load = true;
+                app.message = Some(String::from("Loading videos..."));
                 false
             }
 
@@ -41,6 +47,13 @@ impl SelectItem for MainMenuItem {
 impl KeyInput for MainMenuItem {
     fn key_input(&mut self, key: KeyCode, app: App) -> App {
         match self {
+            MainMenuItem::VideoList(Some((_, list, _))) => match key {
+                KeyCode::Up => list.up(),
+                KeyCode::Down => list.down(),
+                KeyCode::PageUp => list.selected = 0,
+                KeyCode::PageDown => list.selected = list.items.len() - 1,
+                _ => {}
+            },
             _ => {}
         }
 
@@ -56,7 +69,7 @@ impl LoadItem for MainMenuItem {
             MainMenuItem::VideoList(enum_items) => match app.page {
                 Page::MainMenu { tab } => match tab {
                     MainMenuSelector::Trending => {
-                        let mut list: LinkedList<ListItem> = app
+                        let list: LinkedList<ListItem> = app
                             .client
                             .trending(None)?
                             .videos
@@ -64,26 +77,41 @@ impl LoadItem for MainMenuItem {
                             .map(|t| ListItem::Video(t.into()))
                             .collect();
 
-                        list.push_back(ListItem::PageTurner(true));
-
                         let mut text_list = TextList::default();
 
-                        if let Some((video_list, text_list, page)) = enum_items {
-                            if *page > 0 {
-                                list.push_front(ListItem::PageTurner(false));
-                            }
-
+                        if let Some((video_list, text_list, _)) = enum_items {
                             *text_list = TextList::default();
                             text_list.items(textlist_from_video_list(&list));
 
                             *video_list = list;
                         } else {
                             text_list.items(textlist_from_video_list(&list));
-                            *enum_items = Some((list, text_list, 0));
+                            *enum_items = Some((list, text_list, None));
                         };
-
-                        //let text_list = TextList::default().items();
                     }
+
+                    MainMenuSelector::Popular => {
+                        let list: LinkedList<ListItem> = app
+                            .client
+                            .popular(None)?
+                            .items
+                            .into_iter()
+                            .map(|t| ListItem::Video(t.into()))
+                            .collect();
+
+                        let mut text_list = TextList::default();
+
+                        if let Some((video_list, text_list, _)) = enum_items {
+                            *text_list = TextList::default();
+                            text_list.items(textlist_from_video_list(&list));
+
+                            *video_list = list;
+                        } else {
+                            text_list.items(textlist_from_video_list(&list));
+                            *enum_items = Some((list, text_list, None));
+                        };
+                    }
+
                     _ => {}
                 },
             },
@@ -104,18 +132,14 @@ fn textlist_from_video_list(original: &LinkedList<ListItem>) -> Vec<String> {
                 .chars()
                 .map(|c| if c.is_ascii() { c } else { '?' })
                 .collect(),
-            ListItem::PageTurner(b) => {
-                if *b {
-                    "Next Page".to_string()
-                } else {
-                    "Previous Page".to_string()
-                }
+            _ => {
+                unreachable!()
             }
         })
         .collect()
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MainMenuSelector {
     Trending,
     Popular,
