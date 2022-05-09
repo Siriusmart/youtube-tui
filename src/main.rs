@@ -3,7 +3,7 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use std::{error::Error, fs, io, path::Path};
+use std::{error::Error, fs, io};
 use tui::{
     backend::{Backend, CrosstermBackend},
     Terminal,
@@ -34,6 +34,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     disable_raw_mode()?;
 
     res?;
+    exit()?;
 
     Ok(())
 }
@@ -61,13 +62,13 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                                     ..*row_item
                                 });
                             }
-                            _ => {
+                            Err(e) => {
                                 row_vec.push(RowItem {
                                     item: Item::MainMenu(item.clone()),
                                     ..*row_item
                                 });
-                                app.message =
-                                    Some(String::from("An error occurred while loading videos"));
+                                //app.message = Some(String::from("An error occurred while loading videos"));
+                                app.message = Some(e.to_string());
                             }
                         },
                         _ => {
@@ -154,6 +155,20 @@ fn init() -> Result<(), Box<dyn Error>> {
 
     if !dir.exists() {
         fs::create_dir(&dir)?;
+    }
+
+    Ok(())
+}
+
+fn exit() -> Result<(), Box<dyn Error>>{
+    let mut dir = home::home_dir().expect("Cannot get your home directory");
+
+    dir.push(".siriusmart");
+    dir.push("youtube-tui");
+    dir.push("cache");
+
+    if dir.exists() {
+        fs::remove_dir_all(&dir)?;
     }
 
     Ok(())

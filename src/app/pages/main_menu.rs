@@ -1,12 +1,11 @@
 use std::{collections::LinkedList, error::Error};
 
-use futures::{executor::block_on, future::join_all};
-
 use crate::{
     app::{
         app::{App, Item, Page, Row, RowItem},
         pages::global::{GlobalItem, ListItem},
     },
+    functions::download_all_thumbnails,
     traits::{KeyInput, LoadItem, SelectItem},
     widgets::text_list::TextList,
 };
@@ -77,6 +76,8 @@ impl LoadItem for MainMenuItem {
                             .map(|t| ListItem::Video(t.into()))
                             .collect();
 
+                        download_all_thumbnails(list.clone())?;
+
                         let mut text_list = TextList::default();
 
                         if let Some((video_list, text_list, _)) = enum_items {
@@ -98,6 +99,8 @@ impl LoadItem for MainMenuItem {
                             .into_iter()
                             .map(|t| ListItem::Video(t.into()))
                             .collect();
+
+                            download_all_thumbnails(list.clone())?;
 
                         let mut text_list = TextList::default();
 

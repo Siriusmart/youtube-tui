@@ -1,7 +1,4 @@
-use crate::{
-    app::{app::App, pages::global::GlobalItem},
-    traits::RenderItem,
-};
+use crate::app::pages::global::GlobalItem;
 use tui::{
     backend::Backend,
     layout::{Alignment, Rect},

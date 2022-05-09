@@ -1,6 +1,5 @@
 use crate::{
     app::app::{App, Item},
-    traits::RenderItem,
 };
 use std::collections::LinkedList;
 use tui::{

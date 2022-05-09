@@ -12,7 +12,10 @@ invidious = "0.1.0"
 futures = "0.3"
 hrtime = "0.2"
 home = "0.5"
-reqwest = "0.11"
+reqwest = {version = "0.11", features = ["blocking"]}
+tokio = { version = "1.18", features = ["full"] }
+viuer = "0.6"
+thousands = "0.2"
 
 [profile.dev.package."*"]
 opt-level = 3

@@ -1,6 +1,3 @@
-mod render_item;
-pub use render_item::*;
-
 mod select_item;
 pub use select_item::*;
 

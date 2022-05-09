@@ -1,5 +1,5 @@
 use crossterm::event::KeyCode;
-use invidious::structs::{hidden::{TrendingVideo, PopularItem}, video::Video};
+use invidious::structs::hidden::{PopularItem, TrendingVideo};
 
 use crate::{
     app::app::App,
@@ -74,7 +74,7 @@ impl From<TrendingVideo> for MiniVideo {
         MiniVideo {
             title: original.title,
             video_id: original.videoId,
-            video_thumbnail: original.videoThumbnails[0].url.clone(),
+            video_thumbnail: original.videoThumbnails[4].url.clone(),
             length: hrtime::from_sec(original.lengthSeconds as u64),
             view_count: original.viewCount,
             author: original.author,
@@ -90,7 +90,7 @@ impl From<PopularItem> for MiniVideo {
         MiniVideo {
             title: original.title,
             video_id: original.videoId,
-            video_thumbnail: original.videoThumbnails[0].url.clone(),
+            video_thumbnail: original.videoThumbnails[5].url.clone(),
             length: hrtime::from_sec(original.lengthSeconds as u64),
             view_count: original.viewCount,
             author: original.author,

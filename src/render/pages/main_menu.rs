@@ -1,11 +1,13 @@
 use crate::{
-    app::{pages::main_menu::{MainMenuItem, MainMenuSelector}, app::Page},
-    traits::RenderItem,
-    widgets::horizontal_split::HorizontalSplit,
+    app::{
+        app::Page,
+        pages::main_menu::{MainMenuItem, MainMenuSelector},
+    },
+    widgets::{horizontal_split::HorizontalSplit, item_info::ItemInfo},
 };
 use tui::{
     backend::Backend,
-    layout::{Alignment, Constraint, Direction, Layout, Rect},
+    layout::{Alignment, Rect},
     style::{Color, Style},
     widgets::{Block, BorderType, Borders, Paragraph},
     Frame,
@@ -18,7 +20,7 @@ impl MainMenuItem {
         rect: Rect,
         selected: bool,
         hover: bool,
-        page: &Page
+        page: &Page,
     ) {
         let mut style = Style::default().fg(if selected {
             Color::LightBlue
@@ -30,7 +32,7 @@ impl MainMenuItem {
 
         match self {
             MainMenuItem::SeletorTab(selector) => {
-                if !hover && page == &(Page::MainMenu { tab: *selector }){
+                if !hover && page == &(Page::MainMenu { tab: *selector }) {
                     style = style.fg(Color::LightYellow);
                 }
                 let text = match selector {
@@ -51,7 +53,7 @@ impl MainMenuItem {
             }
             MainMenuItem::VideoList(data) => {
                 let split = HorizontalSplit::default()
-                    .percentages(vec![40, 60])
+                    .percentages(vec![60, 40])
                     .border_style(Style::default().fg(if selected {
                         Color::LightBlue
                     } else if hover {
@@ -73,7 +75,16 @@ impl MainMenuItem {
                     } else {
                         list.selected_style(Style::default().fg(Color::LightYellow));
                     }
+
+                    let item_info = ItemInfo {
+                        item: videos.iter().nth(list.selected).unwrap().clone(),
+                    };
+
+                    frame.render_widget(item_info, chunks[1]);
+
                     frame.render_widget(list, chunks[0]);
+
+                    
                 }
             }
         }
