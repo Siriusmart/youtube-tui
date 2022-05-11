@@ -21,7 +21,7 @@ pub struct TextList {
 
 impl Widget for TextList {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        if self.items.len() == 0 {
+        if self.items.len() == 0 || area.height < 3{
             return;
         }
 

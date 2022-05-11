@@ -40,13 +40,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(), Box<dyn Error>> {
-    let mut render = true;
     app.message = Some(String::from("Loading videos..."));
     loop {
-        if render {
+        
+
+        if app.render {
             ui(&mut terminal, &mut app)?;
             app.message = None;
-            render = false;
+            app.render = false;
         }
 
         if app.load {
@@ -71,6 +72,24 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                                 app.message = Some(e.to_string());
                             }
                         },
+                        Item::ItemInfo(item) => {
+                            match item.load_item(&app) {
+                                Ok(new) => {
+                                    row_vec.push(RowItem {
+                                        item: Item::ItemInfo(*new),
+                                        ..*row_item
+                                    });
+                                }
+                                Err(e) => {
+                                    row_vec.push(RowItem {
+                                        item: Item::ItemInfo(item.clone()),
+                                        ..*row_item
+                                    });
+                                    //app.message = Some(String::from("An error occurred while loading videos"));
+                                    app.message = Some(e.to_string());
+                                }
+                            }
+                        },
                         _ => {
                             row_vec.push(RowItem {
                                 item: row_item.item.clone(),
@@ -89,19 +108,33 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
             app.state = new_state;
 
             app.load = false;
-            render = true;
+            app.render = true;
         } else {
             match event::read()? {
                 event::Event::Key(key) => {
-                    if KeyCode::Char('q') == key.code && app.selected.is_none() {
-                        return Ok(());
-                    } else {
-                        app = app.key_input(key.code);
-                        render = true;
+                    if app.selected.is_none() {
+                        match key.code {
+                            KeyCode::Char('q') => {
+                                return Ok(());
+                            }
+                            KeyCode::Backspace => {
+                                app.pop();
+                                app.render = true;
+                                continue;
+                            }
+                            KeyCode::End => {
+                                app.history = Vec::new();
+                                continue;
+                            }
+                            _ => {}
+                        }
                     }
+
+                    app = app.key_input(key.code);
+                        app.render = true;
                 }
                 event::Event::Resize(_, _) => {
-                    render = true;
+                    app.render = true;
                 }
                 _ => {}
             }
@@ -160,7 +193,7 @@ fn init() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn exit() -> Result<(), Box<dyn Error>>{
+fn exit() -> Result<(), Box<dyn Error>> {
     let mut dir = home::home_dir().expect("Cannot get your home directory");
 
     dir.push(".siriusmart");
