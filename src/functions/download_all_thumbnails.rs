@@ -3,41 +3,31 @@ use std::{collections::LinkedList, error::Error, io::Cursor, thread};
 use futures::future::join_all;
 use tokio::runtime::Runtime;
 
-use crate::app::pages::global::ListItem;
-
 pub enum ItemType {
     Video,
     Playlist,
 }
 
-pub fn download_all_thumbnails(list: LinkedList<ListItem>) -> Result<(), Box<dyn Error>> {
+pub fn download_all_thumbnails(
+    list: LinkedList<(String, String, ItemType)>,
+) -> Result<(), Box<dyn Error>> {
     thread::spawn(move || {
         let rt: Runtime = tokio::runtime::Runtime::new().unwrap();
-        let mut urls: Vec<(&str, &str, ItemType)> = Vec::new();
-        for i in list.iter() {
-            match i {
-                ListItem::Video(video) => {
-                    urls.push((&video.video_thumbnail, &video.video_id, ItemType::Video));
-                }
-                _ => {}
-            }
-        }
 
-        let _ = rt.block_on(download_items(urls));
+        let _ = rt.block_on(download_items(list));
     });
 
     Ok(())
 }
 
-pub async fn download_items(urls: Vec<(&str, &str, ItemType)>) -> Result<(), Box<dyn Error>> {
+pub async fn download_items(urls: LinkedList<(String, String, ItemType)>) -> Result<(), Box<dyn Error>> {
     let mut actions = Vec::new();
     let mut path = home::home_dir().expect("Cannot get your home directory");
-    path.push(".siriusmart");
+    path.push(".cache");
     path.push("youtube-tui");
-    path.push("cache");
     path.push("thumbnails");
 
-    for (url, video_id, item_type) in urls {
+    for (url, video_id, item_type) in urls.iter() {
         path.push(match item_type {
             ItemType::Video => "videos",
             ItemType::Playlist => "playlists",
@@ -47,7 +37,7 @@ pub async fn download_items(urls: Vec<(&str, &str, ItemType)>) -> Result<(), Box
 
         if !path.exists() {
             actions.push(fetch_url(
-                url,
+                url.as_str(),
                 path.clone().into_os_string().into_string().unwrap(),
             ));
         }

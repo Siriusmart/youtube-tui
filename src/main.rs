@@ -9,14 +9,18 @@ use tui::{
     Terminal,
 };
 use youtube_tui::{
-    app::app::{App, Item, Row, RowItem},
+    app::{
+        app::App,
+        pages::{item_info::ItemInfo, main_menu::MainMenu},
+    },
+    structs::{Item, Page, Row, RowItem},
     traits::LoadItem,
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
     init()?;
 
-    let app = App::new();
+    let app = App::default();
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -40,17 +44,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(), Box<dyn Error>> {
-    app.message = Some(String::from("Loading videos..."));
     loop {
-        
-
         if app.render {
             ui(&mut terminal, &mut app)?;
-            app.message = None;
-            app.render = false;
         }
 
         if app.load {
+            *app.message.lock().unwrap() = Some(match app.page {
+                Page::MainMenu(_) => MainMenu::message(),
+                Page::ItemDisplay(_) => ItemInfo::message(),
+            });
+            terminal.clear()?;
+            ui(&mut terminal, &mut app)?;
             let mut new_state = Vec::new();
             for row in app.state.iter() {
                 let mut row_vec = Vec::new();
@@ -68,26 +73,22 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                                     item: Item::MainMenu(item.clone()),
                                     ..*row_item
                                 });
-                                //app.message = Some(String::from("An error occurred while loading videos"));
-                                app.message = Some(e.to_string());
+                                *app.message.lock().unwrap() = Some(e.to_string());
                             }
                         },
-                        Item::ItemInfo(item) => {
-                            match item.load_item(&app) {
-                                Ok(new) => {
-                                    row_vec.push(RowItem {
-                                        item: Item::ItemInfo(*new),
-                                        ..*row_item
-                                    });
-                                }
-                                Err(e) => {
-                                    row_vec.push(RowItem {
-                                        item: Item::ItemInfo(item.clone()),
-                                        ..*row_item
-                                    });
-                                    //app.message = Some(String::from("An error occurred while loading videos"));
-                                    app.message = Some(e.to_string());
-                                }
+                        Item::ItemInfo(item) => match item.load_item(&app) {
+                            Ok(new) => {
+                                row_vec.push(RowItem {
+                                    item: Item::ItemInfo(*new),
+                                    ..*row_item
+                                });
+                            }
+                            Err(e) => {
+                                row_vec.push(RowItem {
+                                    item: Item::ItemInfo(item.clone()),
+                                    ..*row_item
+                                });
+                                *app.message.lock().unwrap() = Some(e.to_string());
                             }
                         },
                         _ => {
@@ -108,7 +109,8 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
             app.state = new_state;
 
             app.load = false;
-            app.render = true;
+            terminal.clear()?;
+            ui(&mut terminal, &mut app)?;
         } else {
             match event::read()? {
                 event::Event::Key(key) => {
@@ -118,7 +120,9 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                                 return Ok(());
                             }
                             KeyCode::Backspace => {
-                                app.pop();
+                                if app.pop() {
+                                    terminal.clear()?;
+                                }
                                 app.render = true;
                                 continue;
                             }
@@ -126,12 +130,17 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                                 app.history = Vec::new();
                                 continue;
                             }
+                            KeyCode::Home => {
+                                terminal.clear()?;
+                                app.home();
+                                continue;
+                            }
                             _ => {}
                         }
                     }
 
                     app = app.key_input(key.code);
-                        app.render = true;
+                    app.render = true;
                 }
                 event::Event::Resize(_, _) => {
                     app.render = true;
@@ -147,13 +156,16 @@ fn ui<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> Result<(), Box<d
         app.render(&mut frame);
     })?;
 
+    *app.message.lock().unwrap() = None;
+    app.render = false;
+
     Ok(())
 }
 
 fn init() -> Result<(), Box<dyn Error>> {
     let mut dir = home::home_dir().expect("Cannot get your home directory");
 
-    dir.push(".siriusmart");
+    dir.push(".cache");
     if !dir.exists() {
         fs::create_dir(&dir)?;
     }
@@ -162,13 +174,6 @@ fn init() -> Result<(), Box<dyn Error>> {
     if !dir.exists() {
         fs::create_dir(&dir)?;
     }
-
-    dir.push("cache");
-
-    if dir.exists() {
-        fs::remove_dir_all(&dir)?;
-    }
-    fs::create_dir(&dir)?;
 
     dir.push("thumbnails");
 
@@ -196,7 +201,7 @@ fn init() -> Result<(), Box<dyn Error>> {
 fn exit() -> Result<(), Box<dyn Error>> {
     let mut dir = home::home_dir().expect("Cannot get your home directory");
 
-    dir.push(".siriusmart");
+    dir.push(".cache");
     dir.push("youtube-tui");
     dir.push("cache");
 

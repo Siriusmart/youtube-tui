@@ -1,13 +1,12 @@
-use std::{collections::LinkedList, error::Error, fs};
+use std::{collections::LinkedList, error::Error};
 
 use crate::{
     app::{
-        app::{App, Item, Page, Row, RowItem},
-        pages::{global::*, item_info::*},
+        pages::{global::*, item_info::*}, app::App,
     },
-    functions::download_all_thumbnails,
+    functions::{download_all_thumbnails, ItemType},
     traits::{KeyInput, LoadItem, SelectItem},
-    widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
+    widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList}, structs::{Page, Row, RowItem, Item, ListItem},
 };
 use crossterm::event::KeyCode;
 use tui::{
@@ -34,7 +33,6 @@ impl SelectItem for MainMenuItem {
                 }
                 app.page = Page::MainMenu(*selector);
                 app.load = true;
-                app.message = Some(String::from("Loading videos..."));
                 false
             }
 
@@ -60,7 +58,6 @@ impl KeyInput for MainMenuItem {
                 KeyCode::Enter => {
                     let state = ItemInfo::default();
                     let mut  history = app.history.clone();
-                    let client = app.client.clone();
                     history.push(app.into());                    
                     
                     return (false, App {
@@ -68,14 +65,9 @@ impl KeyInput for MainMenuItem {
                         page: Page::ItemDisplay(DisplayItem::Video(
                             video_list.iter().nth(list.selected).unwrap().id(),
                         )),
-                        render: false,
                         selectable: App::selectable(&state),
                         state,
-                        load: true,
-                        client,
-                        message: None,
-                        hover: None,
-                        selected: None,
+                        ..Default::default()
                     });
                 }
                 _ => {}
@@ -100,10 +92,16 @@ impl LoadItem for MainMenuItem {
                             .trending(None)?
                             .videos
                             .into_iter()
-                            .map(|t| ListItem::Video(t.into()))
+                            .map(|t| ListItem::MiniVideo(t.into()))
                             .collect();
 
-                        download_all_thumbnails(list.clone())?;
+                            download_all_thumbnails(list.iter().map(|t| (
+                                match t {
+                                    ListItem::MiniVideo(v) => (v.video_thumbnail.clone(), v.video_id.clone(), ItemType::Video),
+                                    _ => unreachable!(),
+                                
+                                }
+                            )).collect())?;
 
                         if let Some((video_list, text_list, _)) = enum_items {
                             *text_list = TextList::default();
@@ -123,10 +121,16 @@ impl LoadItem for MainMenuItem {
                             .popular(None)?
                             .items
                             .into_iter()
-                            .map(|t| ListItem::Video(t.into()))
+                            .map(|t| ListItem::MiniVideo(t.into()))
                             .collect();
 
-                        download_all_thumbnails(list.clone())?;
+                        download_all_thumbnails(list.iter().map(|t| (
+                            match t {
+                                ListItem::MiniVideo(v) => (v.video_thumbnail.clone(), v.video_id.clone(), ItemType::Video),
+                                _ => unreachable!(),
+                            
+                            }
+                        )).collect())?;
 
                         let mut text_list = TextList::default();
 
@@ -234,7 +238,7 @@ fn textlist_from_video_list(original: &LinkedList<ListItem>) -> Vec<String> {
     original
         .iter()
         .map(|item| match item {
-            ListItem::Video(video) => video
+            ListItem::MiniVideo(video) => video
                 .title
                 .clone()
                 .chars()
@@ -263,6 +267,10 @@ impl Default for MainMenuSelector {
 pub struct MainMenu;
 
 impl MainMenu {
+    pub fn message() -> String {
+        String::from("Loading home page...")
+    }
+
     pub fn default() -> Vec<Row> {
         vec![
             Row {

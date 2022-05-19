@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 tui = "0.18"
 crossterm = "0.23"
-invidious = "0.1.0"
+invidious = "0.2"
 futures = "0.3"
 hrtime = "0.2"
 home = "0.5"
@@ -16,6 +16,7 @@ reqwest = {version = "0.11", features = ["blocking"]}
 tokio = { version = "1.18", features = ["full"] }
 viuer = "0.6"
 thousands = "0.2"
+chrono = "0.4"
 
 [profile.dev.package."*"]
 opt-level = 3

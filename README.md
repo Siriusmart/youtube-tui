@@ -1,7 +1,17 @@
 ## Changes made in this commit
-* Added support for multiple pages
-* Added the "ItemInfo" page, can be opened by pressing enter when on a video in the video list (it is supposed to allow you to play the video, WIP)
-* Added history support, press backspace to go back in history
+* Home page button
+* Video/audio playing and downloading - can play from YouTube (recommended) or invidious server (Bro you are killing their bandwidth)
+* Still lacking a lot of main features, but it is now a functional program (check the popular tab those videos are more relevant)
+
+## Requirements
+(These requirements will be removed in the next commit as it will *hopefully* allows you to choose the software/commands you want to use)
+* yt-dlp (for downloading videos/audio)
+* mpv (for video/audio playing and thumbnail preview)
+* konsole (for opening the terminal when downloading and playing audio)
+
+## What Will (Hopefully) Be in the Next Commit
+* Config files
+* Watch history
 
 ## Basic Movements
 > Arrow keys: Move in the direction of the arrow key.
@@ -15,6 +25,8 @@
 > Backspace: Go back in history
 > 
 > End: Clear history
+> 
+> Home: Go to homepage
 
 ## Basic Display
 > Green (Or your terminal's default foreground color): All the items

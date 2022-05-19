@@ -1,10 +1,10 @@
-use std::{collections::LinkedList, error::Error};
+use std::{collections::LinkedList, sync::{Arc, Mutex}};
 
 use crate::{
-    app::pages::{global::*, item_info::*, main_menu::*},
-    traits::{KeyInput, SelectItem},
+    app::pages::{main_menu::*},
+    traits::{KeyInput, SelectItem}, structs::{AppHistory, Item, Page, Row},
 };
-use crossterm::event::KeyCode;
+use crossterm::{event::KeyCode};
 use invidious::blocking::Client;
 use tui::{
     backend::Backend,
@@ -22,14 +22,14 @@ pub struct App {
     pub hover: Option<(usize, usize)>, // x, y
     pub selected: Option<(usize, usize)>,
     pub client: Client,
-    pub message: Option<String>,
+    pub message: Arc<Mutex<Option<String>>>,
     pub load: bool,
     pub render: bool,
     pub history: Vec<AppHistory>,
 }
 
-impl App {
-    pub fn new() -> Self {
+impl Default for App {
+    fn default() -> Self {
         let state = MainMenu::default();
         let selectable = App::selectable(&state);
         Self {
@@ -39,13 +39,15 @@ impl App {
             client: Client::new(String::from("https://vid.puffyan.us")),
             selected: None,
             hover: None,
-            message: None,
+            message: Arc::new(Mutex::new(None)),
             load: true,
             render: true,
             history: Vec::new(),
         }
     }
+}
 
+impl App {
     pub fn selectable(state: &Vec<Row>) -> Vec<Vec<(usize, usize)>> {
         let mut selectable = Vec::new();
 
@@ -294,7 +296,7 @@ impl App {
 
                 match item {
                     Item::Global(i) => {
-                        i.render_item(frame, chunk, selected, hover, &self.message);
+                        i.render_item(frame, chunk, selected, hover, &*self.message.lock().unwrap());
                     }
                     Item::MainMenu(i) => {
                         i.render_item(frame, chunk, selected, hover, &self.page);
@@ -307,10 +309,10 @@ impl App {
         }
     }
 
-    pub fn pop(&mut self) {
+    pub fn pop(&mut self) -> bool{
         if self.history.len() == 0 {
-            self.message = Some(String::from("This is the beginning of history"));
-            return;
+            *self.message.lock().unwrap() = Some(String::from("This is the beginning of history"));
+            return false;
         }
 
         let app_history = self.history.pop().unwrap();
@@ -324,69 +326,14 @@ impl App {
             page: app_history.page,
             client: app_history.client,
             load: app_history.load,
-            render : app_history.render,
+            render: app_history.render,
             history: self.history.clone(),
         };
+
+        true
     }
-}
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum Page {
-    MainMenu(MainMenuSelector),
-    ItemDisplay(DisplayItem),
-}
-
-impl Page {
-    pub fn default() -> Self {
-        Self::MainMenu(MainMenuSelector::default())
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum Item {
-    Global(GlobalItem),
-    MainMenu(MainMenuItem),
-    ItemInfo(ItemInfoItem),
-}
-
-#[derive(Debug, Clone)]
-pub struct Row {
-    pub items: Vec<RowItem>,
-    pub centered: bool,
-    pub height: Constraint,
-}
-
-#[derive(Debug, Clone)]
-pub struct RowItem {
-    pub item: Item,
-    pub constraint: Constraint,
-}
-
-#[derive(Debug, Clone)]
-pub struct AppHistory {
-    pub page: Page,
-    pub state: Vec<Row>, // Item
-    pub selectable: Vec<Vec<(usize, usize)>>,
-    pub hover: Option<(usize, usize)>, // x, y
-    pub selected: Option<(usize, usize)>,
-    pub client: Client,
-    pub message: Option<String>,
-    pub load: bool,
-    pub render: bool,
-}
-
-impl From<App> for AppHistory {
-    fn from(original: App) -> Self {
-        Self {
-            page: original.page,
-            state: original.state,
-            selectable: original.selectable,
-            hover: original.hover,
-            selected: original.selected,
-            client: original.client,
-            message: original.message,
-            load: original.load,
-            render: original.render,
-        }
+    pub fn home(&mut self) {
+        *self = App::default();
     }
 }

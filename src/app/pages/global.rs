@@ -1,5 +1,6 @@
+use std::fmt;
+
 use crossterm::event::KeyCode;
-use invidious::structs::hidden::{PopularItem, TrendingVideo};
 use tui::{style::{Color, Style}, widgets::{Borders, Paragraph, BorderType, Block}, layout::{Alignment, Rect}, Frame, backend::Backend};
 
 use crate::{
@@ -11,6 +12,30 @@ use crate::{
 pub enum GlobalItem {
     SearchBar(String),
     MessageBar,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Mode {
+    Youtube,
+    Invidious,
+}
+
+impl fmt::Display for Mode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Mode::Youtube => write!(f, "Youtube"),
+            Mode::Invidious => write!(f, "Invidious"),
+        }
+    }
+}
+
+impl Mode {
+    pub fn toggle(&mut self) {
+        match self {
+            Mode::Youtube => *self = Mode::Invidious,
+            Mode::Invidious => *self = Mode::Youtube,
+        }
+    }
 }
 
 impl SelectItem for GlobalItem {
@@ -48,66 +73,6 @@ impl KeyInput for GlobalItem {
         }
 
         (true, app)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum ListItem {
-    Video(MiniVideo),
-    PageTurner(bool), // true: +1 | false: -1
-}
-
-impl ListItem {
-    pub fn id(&self) -> String {
-        match self {
-            ListItem::Video(video) => video.video_id.clone(),
-            _ => String::new(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct MiniVideo {
-    pub title: String,
-    pub video_id: String,
-    pub video_thumbnail: String,
-    pub length: String,
-    pub view_count: u64,
-    pub author: String,
-    pub author_url: String,
-    pub published: String,
-    pub description: String,
-}
-
-impl From<TrendingVideo> for MiniVideo {
-    fn from(original: TrendingVideo) -> Self {
-        MiniVideo {
-            title: original.title,
-            video_id: original.videoId,
-            video_thumbnail: original.videoThumbnails[4].url.clone(),
-            length: hrtime::from_sec(original.lengthSeconds as u64),
-            view_count: original.viewCount,
-            author: original.author,
-            author_url: original.authorUrl,
-            published: original.publishedText,
-            description: original.description,
-        }
-    }
-}
-
-impl From<PopularItem> for MiniVideo {
-    fn from(original: PopularItem) -> Self {
-        MiniVideo {
-            title: original.title,
-            video_id: original.videoId,
-            video_thumbnail: original.videoThumbnails[5].url.clone(),
-            length: hrtime::from_sec(original.lengthSeconds as u64),
-            view_count: original.viewCount,
-            author: original.author,
-            author_url: original.authorUrl,
-            published: original.publishedText,
-            description: String::new(),
-        }
     }
 }
 
