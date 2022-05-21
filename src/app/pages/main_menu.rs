@@ -1,12 +1,14 @@
-use std::{collections::LinkedList, error::Error};
+use std::{collections::LinkedList, error::Error, fs};
 
 use crate::{
     app::{
-        pages::{global::*, item_info::*}, app::App,
+        app::App,
+        pages::{global::*, item_info::*},
     },
-    functions::{download_all_thumbnails, ItemType},
+    functions::download_all_thumbnails,
+    structs::{Item, ListItem, Page, Row, RowItem},
     traits::{KeyInput, LoadItem, SelectItem},
-    widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList}, structs::{Page, Row, RowItem, Item, ListItem},
+    widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
 use crossterm::event::KeyCode;
 use tui::{
@@ -57,18 +59,21 @@ impl KeyInput for MainMenuItem {
                 KeyCode::PageDown => list.selected = list.items.len() - 1,
                 KeyCode::Enter => {
                     let state = ItemInfo::default();
-                    let mut  history = app.history.clone();
-                    history.push(app.into());                    
-                    
-                    return (false, App {
-                        history,
-                        page: Page::ItemDisplay(DisplayItem::Video(
-                            video_list.iter().nth(list.selected).unwrap().id(),
-                        )),
-                        selectable: App::selectable(&state),
-                        state,
-                        ..Default::default()
-                    });
+                    let mut history = app.history.clone();
+                    history.push(app.into());
+
+                    return (
+                        false,
+                        App {
+                            history,
+                            page: Page::ItemDisplay(DisplayItem::Video(
+                                video_list.iter().nth(list.selected).unwrap().id(),
+                            )),
+                            selectable: App::selectable(&state),
+                            state,
+                            ..Default::default()
+                        },
+                    );
                 }
                 _ => {}
             },
@@ -95,13 +100,16 @@ impl LoadItem for MainMenuItem {
                             .map(|t| ListItem::MiniVideo(t.into()))
                             .collect();
 
-                            download_all_thumbnails(list.iter().map(|t| (
-                                match t {
-                                    ListItem::MiniVideo(v) => (v.video_thumbnail.clone(), v.video_id.clone(), ItemType::Video),
+                        download_all_thumbnails(
+                            list.iter()
+                                .map(|t| match t {
+                                    ListItem::MiniVideo(v) => {
+                                        (v.video_thumbnail.clone(), v.video_id.clone())
+                                    }
                                     _ => unreachable!(),
-                                
-                                }
-                            )).collect())?;
+                                })
+                                .collect(),
+                        )?;
 
                         if let Some((video_list, text_list, _)) = enum_items {
                             *text_list = TextList::default();
@@ -124,13 +132,16 @@ impl LoadItem for MainMenuItem {
                             .map(|t| ListItem::MiniVideo(t.into()))
                             .collect();
 
-                        download_all_thumbnails(list.iter().map(|t| (
-                            match t {
-                                ListItem::MiniVideo(v) => (v.video_thumbnail.clone(), v.video_id.clone(), ItemType::Video),
-                                _ => unreachable!(),
-                            
-                            }
-                        )).collect())?;
+                        download_all_thumbnails(
+                            list.iter()
+                                .map(|t| match t {
+                                    ListItem::MiniVideo(v) => {
+                                        (v.video_thumbnail.clone(), v.video_id.clone())
+                                    }
+                                    _ => unreachable!(),
+                                })
+                                .collect(),
+                        )?;
 
                         let mut text_list = TextList::default();
 
@@ -145,7 +156,33 @@ impl LoadItem for MainMenuItem {
                         };
                     }
 
-                    _ => {}
+                    MainMenuSelector::History => {
+                        let mut list = LinkedList::new();
+                        let mut text_list = TextList::default();
+
+                        app.watch_history.0.iter().for_each(|t| {
+                            let file = fs::read_to_string(
+                                home::home_dir()
+                                    .expect("Cannot get your home directory")
+                                    .join(".local/share/youtube-tui/watch_history/info")
+                                    .join(format!("{}.json", t)),
+                            );
+
+                            if let Ok(file) = file {
+                                let item: ListItem = serde_json::from_str(&file).unwrap();
+
+                                let title = match &item {
+                                    ListItem::FullVideo(v) => v.title.clone(),
+                                    _ => unreachable!(),
+                                };
+
+                                list.push_back(item);
+                                text_list.items.push(title);
+                            }
+                        });
+
+                        *enum_items = Some((list, text_list, None));
+                    }
                 },
 
                 _ => {}
@@ -220,13 +257,10 @@ impl MainMenuItem {
                         list.selected_style(Style::default().fg(Color::LightYellow));
                     }
 
-                    let item_info = ItemDisplay {
-                        item: videos.iter().nth(list.selected).unwrap().clone(),
-                    };
+                    if let Some(item) = videos.iter().nth(list.selected) {
+                        frame.render_widget(ItemDisplay { item: item.clone() }, chunks[1]);
+                    }
 
-                    frame.render_widget(item_info, chunks[1]);
-
-                    
                     frame.render_widget(list, chunks[0]);
                 }
             }
@@ -260,7 +294,7 @@ pub enum MainMenuSelector {
 
 impl Default for MainMenuSelector {
     fn default() -> Self {
-        Self::Trending
+        Self::Popular
     }
 }
 
@@ -284,11 +318,11 @@ impl MainMenu {
             Row {
                 items: vec![
                     RowItem {
-                        item: Item::MainMenu(MainMenuItem::SeletorTab(MainMenuSelector::Trending)),
+                        item: Item::MainMenu(MainMenuItem::SeletorTab(MainMenuSelector::Popular)),
                         constraint: Constraint::Length(15),
                     },
                     RowItem {
-                        item: Item::MainMenu(MainMenuItem::SeletorTab(MainMenuSelector::Popular)),
+                        item: Item::MainMenu(MainMenuItem::SeletorTab(MainMenuSelector::Trending)),
                         constraint: Constraint::Length(15),
                     },
                     RowItem {

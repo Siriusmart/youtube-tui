@@ -15,3 +15,6 @@ pub use minivideo::*;
 
 mod fullvideo;
 pub use fullvideo::*;
+
+mod watchhistory;
+pub use watchhistory::*;

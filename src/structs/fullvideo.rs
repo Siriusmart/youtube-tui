@@ -1,8 +1,9 @@
-use chrono::{Utc, NaiveDateTime, DateTime};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use invidious::structs::video::Video;
 use thousands::Separable;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FullVideo {
     pub title: String,
     pub video_id: String,
@@ -52,7 +53,11 @@ impl From<Video> for FullVideo {
             public: original.isListed,
             live: original.liveNow,
             upcoming: original.isUpcoming,
-            recommendations: original.recommendedVideos.into_iter().map(|x| x.videoId).collect(),
+            recommendations: original
+                .recommendedVideos
+                .into_iter()
+                .map(|x| x.videoId)
+                .collect(),
         }
     }
 }

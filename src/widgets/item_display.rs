@@ -1,8 +1,8 @@
 use tui::{
     buffer::Buffer,
-    layout::{Margin, Rect},
+    layout::Rect,
     style::{Color, Style},
-    widgets::{Block, Borders, Widget},
+    widgets::Widget,
 };
 use viuer::{print_from_file, Config};
 
@@ -21,7 +21,6 @@ impl Widget for ItemDisplay {
                 path.push(".cache");
                 path.push("youtube-tui");
                 path.push("thumbnails");
-                path.push("videos");
                 path.push(format!("{}.png", video.video_id));
                 let exists = path.exists();
                 let mut image_transform = area;
@@ -86,7 +85,6 @@ impl Widget for ItemDisplay {
                 path.push(".cache");
                 path.push("youtube-tui");
                 path.push("thumbnails");
-                path.push("videos");
                 path.push(format!("{}.png", video.video_id));
                 let exists = path.exists();
                 let mut image_transform = area;
@@ -135,7 +133,7 @@ impl Widget for ItemDisplay {
                 tags.push("Video");
 
                 to_print.push((
-                    format!("[{}]", tags.join(" ")),
+                    format!(" [{}]", tags.join(" ")),
                     Style::default().fg(Color::Gray),
                 ));
                 to_print.push((video.title, Style::default().fg(Color::LightBlue)));

@@ -1,7 +1,7 @@
+use crate::structs::{FullVideo, MiniVideo};
+use serde::{Deserialize, Serialize};
 
-use crate::structs::{MiniVideo, FullVideo};
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum ListItem {
     MiniVideo(MiniVideo),
     FullVideo(FullVideo),

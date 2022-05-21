@@ -1,10 +1,14 @@
-use std::{collections::LinkedList, sync::{Arc, Mutex}};
+use std::{
+    collections::LinkedList,
+    sync::{Arc, Mutex},
+};
 
 use crate::{
-    app::pages::{main_menu::*},
-    traits::{KeyInput, SelectItem}, structs::{AppHistory, Item, Page, Row},
+    app::pages::main_menu::*,
+    structs::{AppHistory, Item, Page, Row, WatchHistory},
+    traits::{KeyInput, SelectItem},
 };
-use crossterm::{event::KeyCode};
+use crossterm::event::KeyCode;
 use invidious::blocking::Client;
 use tui::{
     backend::Backend,
@@ -14,8 +18,11 @@ use tui::{
     Frame,
 };
 
+use super::config::Config;
+
 #[derive(Debug)]
 pub struct App {
+    pub config: Config,
     pub page: Page,
     pub state: Vec<Row>, // Item
     pub selectable: Vec<Vec<(usize, usize)>>,
@@ -26,6 +33,7 @@ pub struct App {
     pub load: bool,
     pub render: bool,
     pub history: Vec<AppHistory>,
+    pub watch_history: WatchHistory,
 }
 
 impl Default for App {
@@ -43,6 +51,8 @@ impl Default for App {
             load: true,
             render: true,
             history: Vec::new(),
+            config: Config::load().unwrap(),
+            watch_history: WatchHistory::load(),
         }
     }
 }
@@ -296,7 +306,13 @@ impl App {
 
                 match item {
                     Item::Global(i) => {
-                        i.render_item(frame, chunk, selected, hover, &*self.message.lock().unwrap());
+                        i.render_item(
+                            frame,
+                            chunk,
+                            selected,
+                            hover,
+                            &*self.message.lock().unwrap(),
+                        );
                     }
                     Item::MainMenu(i) => {
                         i.render_item(frame, chunk, selected, hover, &self.page);
@@ -309,15 +325,15 @@ impl App {
         }
     }
 
-    pub fn pop(&mut self) -> bool{
+    pub fn pop(mut self) -> (App, bool) {
         if self.history.len() == 0 {
             *self.message.lock().unwrap() = Some(String::from("This is the beginning of history"));
-            return false;
+            return (self, false);
         }
 
         let app_history = self.history.pop().unwrap();
 
-        *self = Self {
+        self = Self {
             state: app_history.state,
             selectable: app_history.selectable,
             selected: app_history.selected,
@@ -328,9 +344,11 @@ impl App {
             load: app_history.load,
             render: app_history.render,
             history: self.history.clone(),
+            config: self.config,
+            watch_history: self.watch_history,
         };
 
-        true
+        (self, true)
     }
 
     pub fn home(&mut self) {

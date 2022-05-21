@@ -120,7 +120,9 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                                 return Ok(());
                             }
                             KeyCode::Backspace => {
-                                if app.pop() {
+                                let holder = app.pop();
+                                app = holder.0;
+                                if holder.1 {
                                     terminal.clear()?;
                                 }
                                 app.render = true;
@@ -163,7 +165,9 @@ fn ui<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> Result<(), Box<d
 }
 
 fn init() -> Result<(), Box<dyn Error>> {
-    let mut dir = home::home_dir().expect("Cannot get your home directory");
+    let home_dir = home::home_dir().expect("Cannot get your home directory");
+
+    let mut dir = home_dir.clone();
 
     dir.push(".cache");
     if !dir.exists() {
@@ -181,7 +185,47 @@ fn init() -> Result<(), Box<dyn Error>> {
         fs::create_dir(&dir)?;
     }
 
-    dir.push("videos");
+    dir = home_dir.clone();
+
+    dir.push(".config");
+
+    if !dir.exists() {
+        fs::create_dir(&dir)?;
+    }
+
+    dir.push("youtube-tui");
+
+    if !dir.exists() {
+        fs::create_dir(&dir)?;
+    }
+
+    dir = home_dir;
+
+    dir.push(".local");
+
+    if !dir.exists() {
+        fs::create_dir(&dir)?;
+    }
+
+    dir.push("share");
+
+    if !dir.exists() {
+        fs::create_dir(&dir)?;
+    }
+
+    dir.push("youtube-tui");
+
+    if !dir.exists() {
+        fs::create_dir(&dir)?;
+    }
+
+    dir.push("watch_history");
+
+    if !dir.exists() {
+        fs::create_dir(&dir)?;
+    }
+
+    dir.push("thumbnails");
 
     if !dir.exists() {
         fs::create_dir(&dir)?;
@@ -189,11 +233,12 @@ fn init() -> Result<(), Box<dyn Error>> {
 
     dir.pop();
 
-    dir.push("playlists");
+    dir.push("info");
 
     if !dir.exists() {
         fs::create_dir(&dir)?;
     }
+
 
     Ok(())
 }

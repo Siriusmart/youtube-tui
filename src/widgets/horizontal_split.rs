@@ -152,7 +152,7 @@ impl HorizontalSplit {
             .collect::<Vec<_>>()
     }
 
-    pub fn percentages(self, percentages: Vec<usize>) -> Self{
+    pub fn percentages(self, percentages: Vec<usize>) -> Self {
         Self {
             percentages,
             ..self

@@ -1,8 +1,9 @@
-use thousands::Separable;
 use chrono::{prelude::*, Utc};
 use invidious::structs::hidden::{PopularItem, TrendingVideo};
+use thousands::Separable;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MiniVideo {
     pub title: String,
     pub video_id: String,
@@ -61,7 +62,7 @@ impl From<PopularItem> for MiniVideo {
                         NaiveDateTime::from_timestamp(original.published as i64, 0),
                         Utc,
                     );
-                    format!("[{}]", datetime.format("%Y/%m/%d"))
+                    format!(" [{}]", datetime.format("%Y/%m/%d"))
                 } else {
                     String::new()
                 }

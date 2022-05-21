@@ -1,4 +1,4 @@
-use crate::app::pages::{main_menu::MainMenuSelector, item_info::DisplayItem};
+use crate::app::pages::{item_info::DisplayItem, main_menu::MainMenuSelector};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Page {

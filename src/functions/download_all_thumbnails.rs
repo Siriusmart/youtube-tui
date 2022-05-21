@@ -9,7 +9,7 @@ pub enum ItemType {
 }
 
 pub fn download_all_thumbnails(
-    list: LinkedList<(String, String, ItemType)>,
+    list: LinkedList<(String, String)>,
 ) -> Result<(), Box<dyn Error>> {
     thread::spawn(move || {
         let rt: Runtime = tokio::runtime::Runtime::new().unwrap();
@@ -20,18 +20,16 @@ pub fn download_all_thumbnails(
     Ok(())
 }
 
-pub async fn download_items(urls: LinkedList<(String, String, ItemType)>) -> Result<(), Box<dyn Error>> {
+pub async fn download_items(
+    urls: LinkedList<(String, String)>,
+) -> Result<(), Box<dyn Error>> {
     let mut actions = Vec::new();
     let mut path = home::home_dir().expect("Cannot get your home directory");
     path.push(".cache");
     path.push("youtube-tui");
     path.push("thumbnails");
 
-    for (url, video_id, item_type) in urls.iter() {
-        path.push(match item_type {
-            ItemType::Video => "videos",
-            ItemType::Playlist => "playlists",
-        });
+    for (url, video_id) in urls.iter() {
 
         path.push(format!("{}.png", video_id));
 
@@ -42,7 +40,6 @@ pub async fn download_items(urls: LinkedList<(String, String, ItemType)>) -> Res
             ));
         }
 
-        path.pop();
         path.pop();
     }
 

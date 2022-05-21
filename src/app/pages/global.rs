@@ -1,7 +1,13 @@
 use std::fmt;
 
 use crossterm::event::KeyCode;
-use tui::{style::{Color, Style}, widgets::{Borders, Paragraph, BorderType, Block}, layout::{Alignment, Rect}, Frame, backend::Backend};
+use tui::{
+    backend::Backend,
+    layout::{Alignment, Rect},
+    style::{Color, Style},
+    widgets::{Block, BorderType, Borders, Paragraph},
+    Frame,
+};
 
 use crate::{
     app::app::App,

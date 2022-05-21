@@ -1,41 +1,101 @@
+## Warning: This program is made for Linux machines (And maybe MacOS?)
+
 ## Changes made in this commit
-* Home page button
-* Video/audio playing and downloading - can play from YouTube (recommended) or invidious server (Bro you are killing their bandwidth)
-* Still lacking a lot of main features, but it is now a functional program (check the popular tab those videos are more relevant)
+* Watch history page
+* Config files in `~/.config/youtube-tui`
 
-## Requirements
-(These requirements will be removed in the next commit as it will *hopefully* allows you to choose the software/commands you want to use)
-* yt-dlp (for downloading videos/audio)
-* mpv (for video/audio playing and thumbnail preview)
-* konsole (for opening the terminal when downloading and playing audio)
+## Installation
+Requirements: Git, Cargo and the Rust Compiler
 
-## What Will (Hopefully) Be in the Next Commit
-* Config files
-* Watch history
+```bash
+git clone https://github.com/Siriusmart/youtube-tui && cd youtube-tui && cargo build
+```
 
-## Basic Movements
-> Arrow keys: Move in the direction of the arrow key.
-> 
-> Enter: Select an item (Everything is an item)
-> 
-> Esc: Unselect an item
-> 
-> q: Quit the program (Only works when nothing is selected)
-> 
-> Backspace: Go back in history
-> 
-> End: Clear history
-> 
-> Home: Go to homepage
+## Features
+* View the Trending and Popular tab of YouTube
+* View your Watch history
+* Download videos and audio
+* Watch videos and audio
 
-## Basic Display
-> Green (Or your terminal's default foreground color): All the items
+## Movement
+* Use the arrow keys to move around the screen
+* Press enter to select an item
+* When item is selected all your keys will be passed into it
+* Press escape to exit the item
+* Press q to quit the program
+
+## Layout
+* Each divided area is one item
+* Red shows the item your currently on
+* Blue shows the selected item
+* Yellow shows an item in a special state
+
+## Storage
+* Cache is stored in `~/.cache/youtube-tui`, it is cleared when you quit the program
+* Storage is stored in `~/.local/share/youtube-tui`
+* Config files are stored in `~/.config/youtube-tui`
+
+## Config files
+The config files are located in `~/.config/youtube-tui`, run the program once to create the config files.
+
+> ### `main.yml`
+> ```yaml
+> # The program's main config file
+> ---
+> yt_dl: # Donwload location for your downloaded videos
+>   video_path: ~/Downloads/%(title)s.%(ext)s
+>   audio_path: ~/Downloads/%(title)s.%(ext)s
+> max_watch_history: 50 # Maximum length of watch history
+> ```
+
+> ### `commands.yml`
+> ```yaml
+> # Command arguments to use when launching applications
+> ---
+> video_player:
+>   command: mpv
+>   open_in_console: false
+>   args:
+>     - "--no-terminal"
+>     - "{url}"
+> audio_player:
+>   command: mpv
+>   open_in_console: true
+>   args:
+>     - "--no-video"
+>     - "{url}"
+> image_viewer:
+>   command: mpv
+>   open_in_console: false
+>   args:
+>     - "{url}"
+>     - "--no-terminal"
+> video_downloader:
+>   command: yt-dlp
+>   open_in_console: true
+>   args:
+>     - "{url}"
+>     - "-o"
+>     - "{video_save_location}"
+> audio_downloader:
+>   command: yt-dlp
+>   open_in_console: true
+>   args:
+>     - "{url}"
+>     - "-o"
+>     - "{audio_save_location}"
+>     - "-x"
+> terminal:
+>   command: konsole
+>   open_in_console: false
+>   args:
+>     - "-e"
+>     - "{command}"
 > 
-> Red: The item that you have your "cursor" on (Aka hovering)
-> 
-> Blue/Purple: The item that you have selected
-> 
-> Yellow: Selected but not selected? (I don't know how to say that)
+
+## To Do
+* Make the search bar functional
+* View channels
 
 ## Bugs
-> NONE! It's just a feature. If you found one, please report the feature you've just discovered on GitHub
+* If there is a bug please open a GitHub issue thx :)

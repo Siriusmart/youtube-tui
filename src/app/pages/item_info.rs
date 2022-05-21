@@ -6,8 +6,8 @@ use std::{
 };
 
 use crate::{
-    app::{app::App, pages::global::*},
-    functions::{download_all_thumbnails, ItemType},
+    app::{app::App, config::EnvVar, pages::global::*},
+    functions::download_all_thumbnails,
     structs::{FullVideo, Item, ListItem, Page, Row, RowItem},
     traits::{KeyInput, LoadItem, SelectItem},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
@@ -59,88 +59,154 @@ impl KeyInput for ItemInfoItem {
                     if videoinfo.list.selected < 5 {
                         *app.message.lock().unwrap() = Some(String::from("Launched application"));
                     }
+
                     match videoinfo.list.selected {
                         0 => {
-                            let command = vec![
-                                String::from("mpv"),
-                                String::from("--no-terminal"),
-                                match videoinfo.mode {
-                                    Mode::Youtube => {
-                                        format!("https://youtu.be/{}", videoinfo.video.video_id)
+                            app.watch_history.push(
+                                videoinfo.video.video_id.clone(),
+                                ListItem::FullVideo(videoinfo.video.clone()),
+                                &app.config,
+                            );
+                            let command =
+                                match app.config.commands.video_player.clone().as_command_vec(
+                                    EnvVar {
+                                        url: Some(match videoinfo.mode {
+                                            Mode::Youtube => {
+                                                format!(
+                                                    "https://youtu.be/{}",
+                                                    videoinfo.video.video_id
+                                                )
+                                            }
+                                            Mode::Invidious => {
+                                                format!(
+                                                    "{}/embed/{}",
+                                                    app.client.server, videoinfo.video.video_id
+                                                )
+                                            }
+                                        }),
+                                        ..Default::default()
+                                    },
+                                    &app.config,
+                                ) {
+                                    Ok(command) => command,
+                                    Err(_) => {
+                                        *app.message.lock().unwrap() =
+                                            Some(String::from("Error in parsing launch command"));
+                                        return (false, app);
                                     }
-                                    Mode::Invidious => {
-                                        format!(
-                                            "{}/embed/{}",
-                                            app.client.server, videoinfo.video.video_id
-                                        )
-                                    }
-                                },
-                            ];
+                                };
 
                             run_command(command, app.message.clone());
                         }
                         1 => {
-                            let command = vec![
-                                String::from("konsole"),
-                                String::from("-e"),
-                                String::from("mpv"),
-                                String::from("--no-video"),
-                                match videoinfo.mode {
-                                    Mode::Youtube => {
-                                        format!("https://youtu.be/{}", videoinfo.video.video_id)
+                            app.watch_history.push(
+                                videoinfo.video.video_id.clone(),
+                                ListItem::FullVideo(videoinfo.video.clone()),
+                                &app.config,
+                            );
+                            let command =
+                                match app.config.commands.audio_player.clone().as_command_vec(
+                                    EnvVar {
+                                        url: Some(match videoinfo.mode {
+                                            Mode::Youtube => {
+                                                format!(
+                                                    "https://youtu.be/{}",
+                                                    videoinfo.video.video_id
+                                                )
+                                            }
+                                            Mode::Invidious => {
+                                                format!(
+                                                    "{}/embed/{}",
+                                                    app.client.server, videoinfo.video.video_id
+                                                )
+                                            }
+                                        }),
+                                        ..Default::default()
+                                    },
+                                    &app.config,
+                                ) {
+                                    Ok(command) => command,
+                                    Err(_) => {
+                                        *app.message.lock().unwrap() =
+                                            Some(String::from("Error in parsing launch command"));
+                                        return (false, app);
                                     }
-                                    Mode::Invidious => {
-                                        format!(
-                                            "{}/embed/{}",
-                                            app.client.server, videoinfo.video.video_id
-                                        )
-                                    }
-                                },
-                            ];
+                                };
 
                             run_command(command, app.message.clone());
                         }
                         2 => {
-                            let command = vec![
-                                String::from("konsole"),
-                                String::from("-e"),
-                                String::from("yt-dlp"),
-                                match videoinfo.mode {
-                                    Mode::Youtube => {
-                                        format!("https://youtu.be/{}", videoinfo.video.video_id)
+                            app.watch_history.push(
+                                videoinfo.video.video_id.clone(),
+                                ListItem::FullVideo(videoinfo.video.clone()),
+                                &app.config,
+                            );
+                            let command =
+                                match app.config.commands.video_downloader.clone().as_command_vec(
+                                    EnvVar {
+                                        url: Some(match videoinfo.mode {
+                                            Mode::Youtube => {
+                                                format!(
+                                                    "https://youtu.be/{}",
+                                                    videoinfo.video.video_id
+                                                )
+                                            }
+                                            Mode::Invidious => {
+                                                format!(
+                                                    "{}/embed/{}",
+                                                    app.client.server, videoinfo.video.video_id
+                                                )
+                                            }
+                                        }),
+                                        ..Default::default()
+                                    },
+                                    &app.config,
+                                ) {
+                                    Ok(command) => command,
+                                    Err(_) => {
+                                        *app.message.lock().unwrap() =
+                                            Some(String::from("Error in parsing launch command"));
+                                        return (false, app);
                                     }
-                                    Mode::Invidious => {
-                                        format!(
-                                            "{}/embed/{}",
-                                            app.client.server, videoinfo.video.video_id
-                                        )
-                                    }
-                                },
-                                String::from("-o"),
-                                String::from("~/Downloads/%(title)s.%(ext)s"),
-                            ];
+                                };
+
                             run_command(command, app.message.clone());
                         }
                         3 => {
-                            let command = vec![
-                                String::from("konsole"),
-                                String::from("-e"),
-                                String::from("yt-dlp"),
-                                match videoinfo.mode {
-                                    Mode::Youtube => {
-                                        format!("https://youtu.be/{}", videoinfo.video.video_id)
+                            app.watch_history.push(
+                                videoinfo.video.video_id.clone(),
+                                ListItem::FullVideo(videoinfo.video.clone()),
+                                &app.config,
+                            );
+                            let command =
+                                match app.config.commands.audio_downloader.clone().as_command_vec(
+                                    EnvVar {
+                                        url: Some(match videoinfo.mode {
+                                            Mode::Youtube => {
+                                                format!(
+                                                    "https://youtu.be/{}",
+                                                    videoinfo.video.video_id
+                                                )
+                                            }
+                                            Mode::Invidious => {
+                                                format!(
+                                                    "{}/embed/{}",
+                                                    app.client.server, videoinfo.video.video_id
+                                                )
+                                            }
+                                        }),
+                                        ..Default::default()
+                                    },
+                                    &app.config,
+                                ) {
+                                    Ok(command) => command,
+                                    Err(_) => {
+                                        *app.message.lock().unwrap() =
+                                            Some(String::from("Error in parsing launch command"));
+                                        return (false, app);
                                     }
-                                    Mode::Invidious => {
-                                        format!(
-                                            "{}/embed/{}",
-                                            app.client.server, videoinfo.video.video_id
-                                        )
-                                    }
-                                },
-                                String::from("-o"),
-                                String::from("~/Downloads/%(title)s.%(ext)s"),
-                                String::from("-x"),
-                            ];
+                                };
+
                             run_command(command, app.message.clone());
                         }
                         4 => {
@@ -149,13 +215,28 @@ impl KeyInput for ItemInfoItem {
                             dir.push(".cache");
                             dir.push("youtube-tui");
                             dir.push("thumbnails");
-                            dir.push("videos");
                             dir.push(format!("{}.png", videoinfo.video.video_id));
-                            let command = vec![
-                                String::from("mpv"),
-                                String::from("--no-terminal"),
-                                (*dir.as_path().to_string_lossy()).to_string(),
-                            ];
+                            // let command = vec![
+                            //     String::from("mpv"),
+                            //     String::from("--no-terminal"),
+                            //     (*dir.as_path().to_string_lossy()).to_string(),
+                            // ];
+
+                            let command =
+                                match app.config.commands.image_viewer.clone().as_command_vec(
+                                    EnvVar {
+                                        url: Some((*dir.as_path().to_string_lossy()).to_string()),
+                                        ..Default::default()
+                                    },
+                                    &app.config,
+                                ) {
+                                    Ok(command) => command,
+                                    Err(_) => {
+                                        *app.message.lock().unwrap() =
+                                            Some(String::from("Error in parsing launch command"));
+                                        return (false, app);
+                                    }
+                                };
 
                             run_command(command, app.message.clone());
                         }
@@ -193,7 +274,6 @@ impl LoadItem for ItemInfoItem {
                         let _ = download_all_thumbnails(LinkedList::from([(
                             video.video_thumbnail.clone(),
                             video.video_id.clone(),
-                            ItemType::Video,
                         )]));
                         list.items(vec![
                             String::from("Watch video"),
