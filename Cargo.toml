@@ -2,6 +2,13 @@
 name = "youtube-tui"
 version = "0.1.0"
 edition = "2021"
+authors = ["Siriusmart <siriusmart@tuta.io>"]
+description = "An aesthetically pleasing YouTube TUI written in Rust"
+readme = "README.md"
+license = "GPL-3.0"
+keywords = ["cli", "terminal", "youtube", "tui"]
+categories =["command-line-interface", "command-line-utilities"]
+repository = "https://github.com/Siriusmart/youtube-tui"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
