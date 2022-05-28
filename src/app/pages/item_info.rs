@@ -306,6 +306,7 @@ impl ItemInfoItem {
         rect: Rect,
         selected: bool,
         hover: bool,
+        popup_focus: bool,
     ) {
         match self {
             ItemInfoItem::Video(videoinfo) => {
@@ -335,11 +336,13 @@ impl ItemInfoItem {
 
                 frame.render_widget(split, rect);
 
-                let item_display = ItemDisplay {
-                    item: ListItem::FullVideo(videoinfo.video.clone()),
-                };
+                if !popup_focus {
+                    let item_display = ItemDisplay {
+                        item: ListItem::FullVideo(videoinfo.video.clone()),
+                    };
 
-                frame.render_widget(item_display, chunks[0]);
+                    frame.render_widget(item_display, chunks[0]);
+                }
 
                 frame.render_widget(list, chunks[1]);
             }
@@ -370,6 +373,10 @@ pub struct ItemInfo;
 impl ItemInfo {
     pub fn message() -> String {
         String::from("Loading item info...")
+    }
+
+    pub fn min() -> (u16, u16) {
+        (21, 12)
     }
 
     pub fn default() -> Vec<Row> {

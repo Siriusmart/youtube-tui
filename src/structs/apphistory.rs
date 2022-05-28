@@ -18,6 +18,7 @@ pub struct AppHistory {
     pub message: Arc<Mutex<Option<String>>>,
     pub load: bool,
     pub render: bool,
+    pub popup_focus: bool,
 }
 
 impl From<App> for AppHistory {
@@ -32,6 +33,7 @@ impl From<App> for AppHistory {
             message: original.message,
             load: original.load,
             render: original.render,
+            popup_focus: original.popup_focus,
         }
     }
 }

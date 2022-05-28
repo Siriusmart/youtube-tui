@@ -18,3 +18,6 @@ pub use fullvideo::*;
 
 mod watchhistory;
 pub use watchhistory::*;
+
+mod search_settings;
+pub use search_settings::*;

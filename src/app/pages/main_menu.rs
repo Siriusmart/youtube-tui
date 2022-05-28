@@ -201,6 +201,7 @@ impl MainMenuItem {
         rect: Rect,
         selected: bool,
         hover: bool,
+        popup_focus: bool,
         page: &Page,
     ) {
         let mut style = Style::default().fg(if selected {
@@ -258,7 +259,9 @@ impl MainMenuItem {
                     }
 
                     if let Some(item) = videos.iter().nth(list.selected) {
-                        frame.render_widget(ItemDisplay { item: item.clone() }, chunks[1]);
+                        if !popup_focus {
+                            frame.render_widget(ItemDisplay { item: item.clone() }, chunks[1]);
+                        }
                     }
 
                     frame.render_widget(list, chunks[0]);
@@ -305,13 +308,23 @@ impl MainMenu {
         String::from("Loading home page...")
     }
 
+    pub fn min() -> (u16, u16) {
+        (45, 15)
+    }
+
     pub fn default() -> Vec<Row> {
         vec![
             Row {
-                items: vec![RowItem {
-                    item: Item::Global(GlobalItem::SearchBar(String::new())),
-                    constraint: Constraint::Percentage(100),
-                }],
+                items: vec![
+                    RowItem {
+                        item: Item::Global(GlobalItem::SearchBar(String::new())),
+                        constraint: Constraint::Min(16),
+                    },
+                    RowItem {
+                        item: Item::Global(GlobalItem::SearchSettings),
+                        constraint: Constraint::Length(5),
+                    },
+                ],
                 centered: false,
                 height: Constraint::Length(3),
             },

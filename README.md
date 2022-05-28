@@ -1,14 +1,15 @@
-## Warning: This program is made for Linux machines (And maybe MacOS?)
+## Warning:
+* This app is incomplete and is missing many features
+* This app is only for *\*nix* systems
 
 ## Changes made in this commit
-* Watch history page
-* Config files in `~/.config/youtube-tui`
+* Added search filters
 
 ## Installation
 Requirements: Git, Cargo and the Rust Compiler
 
 ```bash
-git clone https://github.com/Siriusmart/youtube-tui && cd youtube-tui && cargo build
+cargo install youtube-tui
 ```
 
 ## Features
@@ -94,8 +95,8 @@ The config files are located in `~/.config/youtube-tui`, run the program once to
 > 
 
 ## To Do
-* Make the search bar functional
-* View channels
+* Search
+* Adaptive config files (auto update when config files when there are new options in the config)
 
 ## Bugs
 * If there is a bug please open a GitHub issue thx :)

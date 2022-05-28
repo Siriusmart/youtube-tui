@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     app::pages::main_menu::*,
-    structs::{AppHistory, Item, Page, Row, WatchHistory},
+    structs::{AppHistory, Item, Page, Row, SearchSettings, WatchHistory},
     traits::{KeyInput, SelectItem},
 };
 use crossterm::event::KeyCode;
@@ -18,7 +18,7 @@ use tui::{
     Frame,
 };
 
-use super::config::Config;
+use super::{config::Config, pages::item_info::ItemInfo};
 
 #[derive(Debug)]
 pub struct App {
@@ -32,8 +32,10 @@ pub struct App {
     pub message: Arc<Mutex<Option<String>>>,
     pub load: bool,
     pub render: bool,
+    pub popup_focus: bool,
     pub history: Vec<AppHistory>,
     pub watch_history: WatchHistory,
+    pub search_settings: SearchSettings,
 }
 
 impl Default for App {
@@ -50,9 +52,11 @@ impl Default for App {
             message: Arc::new(Mutex::new(None)),
             load: true,
             render: true,
+            popup_focus: false,
             history: Vec::new(),
             config: Config::load().unwrap(),
             watch_history: WatchHistory::load(),
+            search_settings: SearchSettings::default(),
         }
     }
 }
@@ -157,6 +161,7 @@ impl App {
             KeyCode::Esc => {
                 if self.selected.is_some() {
                     self.selected = None;
+                    self.popup_focus = false;
                     return self;
                 }
             }
@@ -226,11 +231,17 @@ impl App {
 
     pub fn render<B: Backend>(&mut self, frame: &mut Frame<B>) {
         let size = frame.size();
+        let mut popups = Vec::new();
 
-        if size.width < 45 || size.height < 16 {
+        let min = match self.page {
+            Page::MainMenu(_) => MainMenu::min(),
+            Page::ItemDisplay(_) => ItemInfo::min(),
+        };
+
+        if size.width < min.0 || size.height < min.1 {
             let paragraph = Paragraph::new(format!(
-                "Window too small. Minimum size 45 x 16. Current size is {} x {}",
-                size.width, size.height
+                "Window too small. Minimum size for this page is {} x {}. Current size is {} x {}",
+                min.0, min.1, size.width, size.height
             ))
             .block(Block::default())
             .style(Style::default().fg(Color::Red))
@@ -304,23 +315,51 @@ impl App {
 
                 let hover = hover_selected == Some((x, y));
 
-                match item {
-                    Item::Global(i) => {
-                        i.render_item(
-                            frame,
-                            chunk,
-                            selected,
-                            hover,
-                            &*self.message.lock().unwrap(),
-                        );
-                    }
+                if match item {
+                    Item::Global(i) => i.render_item(
+                        frame,
+                        chunk,
+                        selected,
+                        hover,
+                        false,
+                        &*self.message.lock().unwrap(),
+                        &mut self.search_settings,
+                    ),
                     Item::MainMenu(i) => {
-                        i.render_item(frame, chunk, selected, hover, &self.page);
+                        i.render_item(frame, chunk, selected, hover, self.popup_focus, &self.page);
+                        false
                     }
+
                     Item::ItemInfo(i) => {
-                        i.render_item(frame, chunk, selected, hover);
+                        i.render_item(frame, chunk, selected, hover, self.popup_focus);
+                        false
                     }
+                } {
+                    popups.push((item, selected, hover, chunk));
                 }
+            }
+        }
+
+        for (item, selected, hover, chunk) in popups {
+            match item {
+                Item::Global(i) => {
+                    i.render_item(
+                        frame,
+                        chunk,
+                        selected,
+                        hover,
+                        true,
+                        &*self.message.lock().unwrap(),
+                        &mut self.search_settings,
+                    );
+                }
+                _ => {} // Item::MainMenu(i) => {
+                        //     i.render_item(frame, chunk, selected, hover, &self.page);
+                        // }
+
+                        // Item::ItemInfo(i) => {
+                        //     i.render_item(frame, chunk, selected, hover);
+                        // }
             }
         }
     }
@@ -346,6 +385,8 @@ impl App {
             history: self.history.clone(),
             config: self.config,
             watch_history: self.watch_history,
+            search_settings: self.search_settings,
+            popup_focus: app_history.popup_focus,
         };
 
         (self, true)
