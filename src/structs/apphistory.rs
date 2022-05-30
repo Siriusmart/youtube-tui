@@ -7,6 +7,8 @@ use crate::{
     structs::{Page, Row},
 };
 
+use super::SearchSettings;
+
 #[derive(Debug, Clone)]
 pub struct AppHistory {
     pub page: Page,
@@ -19,6 +21,9 @@ pub struct AppHistory {
     pub load: bool,
     pub render: bool,
     pub popup_focus: bool,
+    pub search_text: String,
+    pub search_settings: SearchSettings,
+    pub page_no: usize,
 }
 
 impl From<App> for AppHistory {
@@ -34,6 +39,9 @@ impl From<App> for AppHistory {
             load: original.load,
             render: original.render,
             popup_focus: original.popup_focus,
+            search_text: original.search_text,
+            search_settings: original.search_settings,
+            page_no: original.page_no,
         }
     }
 }

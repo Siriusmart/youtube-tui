@@ -1,5 +1,5 @@
 use chrono::{prelude::*, Utc};
-use invidious::structs::hidden::{PopularItem, TrendingVideo};
+use invidious::structs::hidden::{PopularItem, TrendingVideo, SearchItem};
 use thousands::Separable;
 use serde::{Deserialize, Serialize};
 
@@ -68,6 +68,40 @@ impl From<PopularItem> for MiniVideo {
                 }
             ),
             description: String::new(),
+        }
+    }
+}
+
+impl From<SearchItem> for MiniVideo {
+    fn from(original: SearchItem) -> Self {
+        match original {
+            SearchItem::Video { title, videoId, author, authorId: _, authorUrl, lengthSeconds, videoThumbnails, description, descriptionHtml: _, viewCount, published, publishedText, liveNow: _, paid: _, premium: _ } => {
+                MiniVideo {
+                    title: title,
+                    video_id: videoId,
+                    video_thumbnail: videoThumbnails[0].url.clone(),
+                    length: hrtime::from_sec_padded(lengthSeconds as u64),
+                    view_count: viewCount.separate_with_commas(),
+                    author: author,
+                    author_url: authorUrl,
+                    published: format!(
+                        "{}{}",
+                        publishedText,
+                        if Utc::now().timestamp() - published as i64 > 86400 {
+                            let datetime: DateTime<Utc> = DateTime::from_utc(
+                                NaiveDateTime::from_timestamp(published as i64, 0),
+                                Utc,
+                            );
+                            format!(" [{}]", datetime.format("%Y/%m/%d"))
+                        } else {
+                            String::new()
+                        }
+                    ),
+                    description: description,
+                }
+            }
+
+            _ => unreachable!(),
         }
     }
 }

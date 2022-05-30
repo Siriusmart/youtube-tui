@@ -18,7 +18,10 @@ use tui::{
     Frame,
 };
 
-use super::{config::Config, pages::item_info::ItemInfo};
+use super::{
+    config::Config,
+    pages::{item_info::ItemInfo, search::Search},
+};
 
 #[derive(Debug)]
 pub struct App {
@@ -36,6 +39,8 @@ pub struct App {
     pub history: Vec<AppHistory>,
     pub watch_history: WatchHistory,
     pub search_settings: SearchSettings,
+    pub search_text: String,
+    pub page_no: usize,
 }
 
 impl Default for App {
@@ -57,6 +62,8 @@ impl Default for App {
             config: Config::load().unwrap(),
             watch_history: WatchHistory::load(),
             search_settings: SearchSettings::default(),
+            search_text: String::new(),
+            page_no: 1,
         }
     }
 }
@@ -72,6 +79,7 @@ impl App {
                     Item::Global(item) => item.selectable(),
                     Item::MainMenu(item) => item.selectable(),
                     Item::ItemInfo(item) => item.selectable(),
+                    Item::Search(item) => item.selectable(),
                 } {
                     row_vec.push((x, y));
                 }
@@ -112,6 +120,14 @@ impl App {
                             self.state[y].items[x].item = Item::ItemInfo(item);
                         }
                     }
+                    Item::Search(item) => {
+                        let mut item = item.clone();
+                        let hold = item.key_input(key, self);
+                        self = hold.1;
+                        if hold.0 {
+                            self.state[y].items[x].item = Item::Search(item);
+                        }
+                    }
                 }
 
                 return self;
@@ -147,6 +163,13 @@ impl App {
                             }
                         }
                         Item::ItemInfo(mut item) => {
+                            let held = item.select(self);
+                            self = held.0;
+                            if held.1 {
+                                self.selected = Some((x, y));
+                            }
+                        }
+                        Item::Search(mut item) => {
                             let held = item.select(self);
                             self = held.0;
                             if held.1 {
@@ -236,6 +259,7 @@ impl App {
         let min = match self.page {
             Page::MainMenu(_) => MainMenu::min(),
             Page::ItemDisplay(_) => ItemInfo::min(),
+            Page::Search => Search::min(),
         };
 
         if size.width < min.0 || size.height < min.1 {
@@ -324,6 +348,7 @@ impl App {
                         false,
                         &*self.message.lock().unwrap(),
                         &mut self.search_settings,
+                        &self.search_text,
                     ),
                     Item::MainMenu(i) => {
                         i.render_item(frame, chunk, selected, hover, self.popup_focus, &self.page);
@@ -331,6 +356,11 @@ impl App {
                     }
 
                     Item::ItemInfo(i) => {
+                        i.render_item(frame, chunk, selected, hover, self.popup_focus);
+                        false
+                    }
+
+                    Item::Search(i) => {
                         i.render_item(frame, chunk, selected, hover, self.popup_focus);
                         false
                     }
@@ -351,6 +381,7 @@ impl App {
                         true,
                         &*self.message.lock().unwrap(),
                         &mut self.search_settings,
+                        &self.search_text,
                     );
                 }
                 _ => {} // Item::MainMenu(i) => {
@@ -387,6 +418,8 @@ impl App {
             watch_history: self.watch_history,
             search_settings: self.search_settings,
             popup_focus: app_history.popup_focus,
+            search_text: app_history.search_text,
+            page_no: app_history.page_no,
         };
 
         (self, true)

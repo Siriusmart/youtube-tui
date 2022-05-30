@@ -1,12 +1,13 @@
 use tui::layout::Constraint;
 
-use crate::app::pages::{global::GlobalItem, item_info::ItemInfoItem, main_menu::MainMenuItem};
+use crate::app::pages::{global::GlobalItem, item_info::ItemInfoItem, main_menu::MainMenuItem, search::SearchItem};
 
 #[derive(Debug, Clone)]
 pub enum Item {
     Global(GlobalItem),
     MainMenu(MainMenuItem),
     ItemInfo(ItemInfoItem),
+    Search(SearchItem),
 }
 
 #[derive(Debug, Clone)]

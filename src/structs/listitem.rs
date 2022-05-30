@@ -18,4 +18,35 @@ impl ListItem {
             }
         }
     }
+
+    pub fn is_page_turner(&self) -> bool {
+        match self {
+            ListItem::PageTurner(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            ListItem::MiniVideo(video) => video
+                .title
+                .chars()
+                .into_iter()
+                .filter(|c| !c.is_ascii_control())
+                .collect(),
+            ListItem::FullVideo(video) => video
+                .title
+                .chars()
+                .into_iter()
+                .filter(|c| !c.is_ascii_control())
+                .collect(),
+            ListItem::PageTurner(turner) => {
+                if *turner {
+                    String::from("Next Page")
+                } else {
+                    String::from("Previous Page")
+                }
+            }
+        }
+    }
 }

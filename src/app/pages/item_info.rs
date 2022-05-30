@@ -383,7 +383,7 @@ impl ItemInfo {
         vec![
             Row {
                 items: vec![RowItem {
-                    item: Item::Global(GlobalItem::SearchBar(String::new())),
+                    item: Item::Global(GlobalItem::SearchBar),
                     constraint: Constraint::Percentage(100),
                 }],
                 centered: false,

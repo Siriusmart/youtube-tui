@@ -171,10 +171,7 @@ impl LoadItem for MainMenuItem {
                             if let Ok(file) = file {
                                 let item: ListItem = serde_json::from_str(&file).unwrap();
 
-                                let title = match &item {
-                                    ListItem::FullVideo(v) => v.title.clone(),
-                                    _ => unreachable!(),
-                                };
+                                let title = item.to_string();
 
                                 list.push_back(item);
                                 text_list.items.push(title);
@@ -271,21 +268,8 @@ impl MainMenuItem {
     }
 }
 
-fn textlist_from_video_list(original: &LinkedList<ListItem>) -> Vec<String> {
-    original
-        .iter()
-        .map(|item| match item {
-            ListItem::MiniVideo(video) => video
-                .title
-                .clone()
-                .chars()
-                .map(|c| if c.is_ascii() { c } else { '?' })
-                .collect(),
-            _ => {
-                unreachable!()
-            }
-        })
-        .collect()
+pub fn textlist_from_video_list(original: &LinkedList<ListItem>) -> Vec<String> {
+    original.iter().map(|item| item.to_string()).collect()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -317,7 +301,7 @@ impl MainMenu {
             Row {
                 items: vec![
                     RowItem {
-                        item: Item::Global(GlobalItem::SearchBar(String::new())),
+                        item: Item::Global(GlobalItem::SearchBar),
                         constraint: Constraint::Min(16),
                     },
                     RowItem {

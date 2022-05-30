@@ -9,7 +9,7 @@ pub enum ItemType {
 }
 
 pub fn download_all_thumbnails(
-    list: LinkedList<(String, String)>,
+    list: LinkedList<(String, String)>, // (url, id)
 ) -> Result<(), Box<dyn Error>> {
     thread::spawn(move || {
         let rt: Runtime = tokio::runtime::Runtime::new().unwrap();

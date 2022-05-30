@@ -11,7 +11,7 @@ use tui::{
 use youtube_tui::{
     app::{
         app::App,
-        pages::{item_info::ItemInfo, main_menu::MainMenu},
+        pages::{item_info::ItemInfo, main_menu::MainMenu, search::Search},
     },
     structs::{Item, Page, Row, RowItem},
     traits::LoadItem,
@@ -53,6 +53,7 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
             *app.message.lock().unwrap() = Some(match app.page {
                 Page::MainMenu(_) => MainMenu::message(),
                 Page::ItemDisplay(_) => ItemInfo::message(),
+                Page::Search => Search::message(),
             });
             terminal.clear()?;
             ui(&mut terminal, &mut app)?;
@@ -86,6 +87,21 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                             Err(e) => {
                                 row_vec.push(RowItem {
                                     item: Item::ItemInfo(item.clone()),
+                                    ..*row_item
+                                });
+                                *app.message.lock().unwrap() = Some(e.to_string());
+                            }
+                        },
+                        Item::Search(item) => match item.load_item(&app) {
+                            Ok(new) => {
+                                row_vec.push(RowItem {
+                                    item: Item::Search(*new),
+                                    ..*row_item
+                                });
+                            }
+                            Err(e) => {
+                                row_vec.push(RowItem {
+                                    item: Item::Search(item.clone()),
                                     ..*row_item
                                 });
                                 *app.message.lock().unwrap() = Some(e.to_string());

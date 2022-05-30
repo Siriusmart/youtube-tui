@@ -12,14 +12,16 @@ use tui::{
 use crate::{
     app::app::App,
     functions::center_rect,
-    structs::SearchSettings,
+    structs::{SearchSettings, Page},
     traits::{KeyInput, SelectItem},
     widgets::{force_clear::ForceClear, horizontal_split::HorizontalSplit},
 };
 
+use super::search::Search;
+
 #[derive(Debug, Clone)]
 pub enum GlobalItem {
-    SearchBar(String),
+    SearchBar,
     SearchSettings,
     MessageBar,
 }
@@ -51,7 +53,7 @@ impl Mode {
 impl SelectItem for GlobalItem {
     fn select(&mut self, mut app: App) -> (App, bool) {
         let selected = match self {
-            GlobalItem::SearchBar(_) => true,
+            GlobalItem::SearchBar => true,
             GlobalItem::SearchSettings => {
                 app.popup_focus = true;
                 true
@@ -64,7 +66,7 @@ impl SelectItem for GlobalItem {
 
     fn selectable(&self) -> bool {
         match self {
-            GlobalItem::SearchBar(_) | GlobalItem::SearchSettings => true,
+            GlobalItem::SearchBar | GlobalItem::SearchSettings => true,
             _ => false,
         }
     }
@@ -73,14 +75,34 @@ impl SelectItem for GlobalItem {
 impl KeyInput for GlobalItem {
     fn key_input(&mut self, key: KeyCode, mut app: App) -> (bool, App) {
         match self {
-            GlobalItem::SearchBar(search_bar) => match key {
+            GlobalItem::SearchBar => match key {
                 KeyCode::Char(c) => {
-                    search_bar.push(c);
+                    app.search_text.push(c);
                 }
                 KeyCode::Backspace => {
-                    search_bar.pop();
+                    app.search_text.pop();
                 }
-                KeyCode::Enter => {}
+                KeyCode::Enter => {
+                    let state = Search::default();
+                    let mut history = app.history.clone();
+                    let search_text = app.search_text.clone();
+                    let search_settings = app.search_settings.clone();
+                    history.push(app.into());
+
+                    return (
+                        false,
+                        App {
+                            history,
+                            page: Page::Search,
+                            selectable: App::selectable(&state),
+                            state,
+                            search_text,
+                            search_settings,
+                            load: true,
+                            ..Default::default()
+                        },
+                    );
+                }
                 _ => {}
             },
             GlobalItem::SearchSettings => {
@@ -103,10 +125,11 @@ impl GlobalItem {
         popup_render: bool,
         message: &Option<String>,
         search_settings: &mut SearchSettings,
+        search_text: &String,
     ) -> bool {
         let area = frame.size();
         match self {
-            GlobalItem::SearchBar(search) => {
+            GlobalItem::SearchBar => {
                 let block = Block::default()
                     .border_type(BorderType::Rounded)
                     .borders(Borders::ALL)
@@ -119,7 +142,7 @@ impl GlobalItem {
                     }))
                     .title("Search YouTube")
                     .title_alignment(Alignment::Center);
-                let paragraph = Paragraph::new(search.clone()).block(block);
+                let paragraph = Paragraph::new(search_text.clone()).block(block);
                 frame.render_widget(paragraph, rect);
             }
             GlobalItem::MessageBar => {

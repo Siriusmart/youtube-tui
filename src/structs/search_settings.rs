@@ -108,9 +108,9 @@ impl SearchSettings {
                     *self = Self::default();
                     self.text_list.selected = 4;
                     self.update_left();
-                } else {
-                    self.row = false;
                 }
+
+                self.row = !self.row;
             }
             _ => {}
         }
@@ -159,7 +159,7 @@ pub enum SearchSettingsSortBy {
 impl AsUrlString for SearchSettingsSortBy {
     fn as_url_string(&self) -> String {
         format!(
-            "sort_by={}",
+            "sort={}",
             match self {
                 SearchSettingsSortBy::Relevance => String::from("relevance"),
                 SearchSettingsSortBy::Rating => String::from("rating"),

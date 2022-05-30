@@ -4,6 +4,7 @@ use crate::app::pages::{item_info::DisplayItem, main_menu::MainMenuSelector};
 pub enum Page {
     MainMenu(MainMenuSelector),
     ItemDisplay(DisplayItem),
+    Search,
 }
 
 impl Default for Page {

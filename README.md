@@ -1,9 +1,9 @@
 ## Warning:
-* This app is incomplete and is missing many features
+* This app is incomplete but is basically usable
 * This app is only for *\*nix* systems
 
 ## Changes made in this commit
-* Added search filters
+* Search support for video (Cannot display channel and playlists yet)
 
 ## Installation
 Requirements: Git, Cargo and the Rust Compiler
@@ -95,7 +95,7 @@ The config files are located in `~/.config/youtube-tui`, run the program once to
 > 
 
 ## To Do
-* Search
+* Search (For all items)
 * Adaptive config files (auto update when config files when there are new options in the config)
 
 ## Bugs
