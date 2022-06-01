@@ -3,13 +3,22 @@
 * This app is only for *\*nix* systems
 
 ## Changes made in this commit
-* Search support for video (Cannot display channel and playlists yet)
+* Playlist support
+* Adaptive config files (e.g. auto update config files while preserving the original options)
 
 ## Installation
 Requirements: Git, Cargo and the Rust Compiler
 
+Executable size: ~12.5MB
+
 ```bash
+# Install from crates.io (might not be as up-to-date as the one on GitHub)
 cargo install youtube-tui
+```
+
+```bash
+# Install from GitHub with cargo install (The binary will be placed in ~/.cargo/bin, and can be called with `youtube-tui`)
+git clone https://github.com/siriusmart/youtube-tui && cd youtube-tui && cargo install --path . && cd .. && rm -rf youtube-tui
 ```
 
 ## Features
@@ -17,6 +26,7 @@ cargo install youtube-tui
 * View your Watch history
 * Download videos and audio
 * Watch videos and audio
+* Video and playlist support
 
 ## Movement
 * Use the arrow keys to move around the screen
@@ -37,7 +47,7 @@ cargo install youtube-tui
 * Config files are stored in `~/.config/youtube-tui`
 
 ## Config files
-The config files are located in `~/.config/youtube-tui`, run the program once to create the config files.
+The config files are located in `~/.config/youtube-tui`, run the program once to create the config files. The following are the default config files:
 
 > ### `main.yml`
 > ```yaml
@@ -92,11 +102,45 @@ The config files are located in `~/.config/youtube-tui`, run the program once to
 >   args:
 >     - "-e"
 >     - "{command}"
-> 
-
+> playlist_audio_all:
+>   command: mpv
+>   open_in_console: true
+>   args:
+>     - "--no-video"
+>     - "{url}"
+> playlist_video_all:
+>   command: mpv
+>   open_in_console: false
+>   args:
+>     - "{url}"
+>     - "--no-terminal"
+> playlist_shuffle_audio_all:
+>   command: mpv
+>   open_in_console: true
+>   args:
+>     - "--no-video"
+>     - "{url}"
+>     - "--shuffle"
+> download_all_audio:
+>   command: yt-dlp
+>   open_in_console: true
+>   args:
+>     - "{url}"
+>     - "-o"
+>     - "{audio_save_location}"
+>     - "-x"
+> download_all_video:
+>   command: yt-dlp
+>   open_in_console: true
+>   args:
+>     - "{url}"
+>     - "-o"
+>     - "{video_save_location}"
+> ```
 ## To Do
-* Search (For all items)
-* Adaptive config files (auto update when config files when there are new options in the config)
+* Channel support
+* Update notice (e.g. when a new version is released on GitHub or crates.io, can be disabled in the config file)
+* Keybind options (e.g. change the keybinds in the config file)
 
 ## Bugs
 * If there is a bug please open a GitHub issue thx :)

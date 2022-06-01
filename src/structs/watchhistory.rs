@@ -7,9 +7,7 @@ use crate::app::config::Config;
 use super::ListItem;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WatchHistory(pub LinkedList<String>);
-
-
+pub struct WatchHistory(pub LinkedList<ListItem>);
 
 impl Default for WatchHistory {
     fn default() -> Self {
@@ -38,11 +36,10 @@ impl WatchHistory {
 
     pub fn push(&mut self, item: String, listitem: ListItem, config: &Config) {
         if let Some(v) = self.0.front() {
-            if *v == item {
+            if *v.id() == item {
                 return;
             }
         }
-        self.0.push_front(item);
 
         let home_dir = home::home_dir().expect("Cannot get your home directory");
 
@@ -67,7 +64,45 @@ impl WatchHistory {
                     }
                 }
             }
+
+            ListItem::FullPlayList(playlist) => {
+                let mut save_file = home_dir.join(".local/share/youtube-tui/watch_history/info");
+                save_file.push(format!("{}.json", playlist.playlist_id));
+                fs::write(save_file, serde_json::to_string(&listitem).unwrap()).unwrap();
+
+                let file_name = format!("{}.png", playlist.playlist_id);
+                original_dir.push(file_name.clone());
+
+                if original_dir.exists() {
+                    let mut new_dir =
+                        home_dir.join(".local/share/youtube-tui/watch_history/thumbnails");
+                    new_dir.push(file_name);
+
+                    if !new_dir.exists() {
+                        fs::copy(original_dir, new_dir).expect("Cannot copy thumbnail");
+                    }
+                }
+            }
             _ => {}
+        }
+
+        self.0.push_front(listitem);
+
+        if self.0.len() > config.main.max_watch_history {
+            let back = self.0.pop_back();
+            if let Some(item) = back {
+                let id = item.id();
+                let _ = fs::remove_file(
+                    home_dir
+                        .join(".local/share/youtube-tui/watch_history/info")
+                        .join(format!("{}.json", id.clone())),
+                );
+                let _ = fs::remove_file(
+                    home_dir
+                        .join(".local/share/youtube-tui/watch_history/thumbnails")
+                        .join(format!("{}.png", id)),
+                );
+            }
         }
 
         fs::write(
@@ -75,19 +110,5 @@ impl WatchHistory {
             serde_json::to_string(&self).unwrap(),
         )
         .expect("Cannot write watch history");
-
-        if self.0.len() > config.main.max_watch_history {
-            let back = self.0.pop_back();
-            let _ = fs::remove_file(
-                home_dir
-                    .join(".local/share/youtube-tui/watch_history/info")
-                    .join(format!("{}.json", back.clone().unwrap())),
-            );
-            let _ = fs::remove_file(
-                home_dir
-                    .join(".local/share/youtube-tui/watch_history/thumbnails")
-                    .join(format!("{}.png", back.unwrap())),
-            );
-        }
     }
 }

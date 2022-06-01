@@ -21,3 +21,9 @@ pub use watchhistory::*;
 
 mod search_settings;
 pub use search_settings::*;
+
+mod miniplaylist;
+pub use miniplaylist::*;
+
+mod fullplaylist;
+pub use fullplaylist::*;

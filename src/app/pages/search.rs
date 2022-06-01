@@ -1,4 +1,4 @@
-use std::collections::LinkedList;
+use std::{collections::LinkedList, error::Error};
 
 use crossterm::event::KeyCode;
 use invidious::structs::hidden::SearchItem as InvidiousSearchItem;
@@ -12,8 +12,8 @@ use tui::{
 use crate::{
     app::app::App,
     functions::download_all_thumbnails,
-    structs::{Item, ListItem, MiniVideo, Page, Row, RowItem},
-    traits::{KeyInput, LoadItem, SelectItem},
+    structs::{Item, ListItem, MiniPlayList, MiniVideo, Page, Row, RowItem},
+    traits::{KeyInput, SelectItem},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
 
@@ -104,6 +104,25 @@ impl KeyInput for SearchItem {
                                 );
                             }
 
+                            ListItem::MiniPlayList(playlist) => {
+                                let state = ItemInfo::default();
+                                let mut history = app.history.clone();
+                                history.push(app.into());
+
+                                return (
+                                    false,
+                                    App {
+                                        history,
+                                        page: Page::ItemDisplay(DisplayItem::PlayList(
+                                            playlist.playlist_id.clone(),
+                                        )),
+                                        selectable: App::selectable(&state),
+                                        state,
+                                        ..Default::default()
+                                    },
+                                );
+                            }
+
                             _ => {}
                         }
                     }
@@ -116,99 +135,110 @@ impl KeyInput for SearchItem {
     }
 }
 
-impl LoadItem for SearchItem {
-    fn load_item(&self, app: &App) -> Result<Box<Self>, Box<dyn std::error::Error>> {
+impl SearchItem {
+    pub fn load_item(&self, app: &App) -> Result<Box<Self>, Box<dyn Error>> {
         let mut this = self.clone();
 
         match &mut this {
             SearchItem::Search { results, text_list } => {
                 // panic!("got here");
-                if app.search_text.len() == 0 {
-                    *app.message.lock().unwrap() =
-                        Some(String::from("Search term cannot be empty"));
-                } else {
-                    let mut args = vec![app.search_text.clone()];
-                    args.extend(app.search_settings.clone().to_vec());
 
-                    let invidious_results = app
-                        .client
-                        .search(Some(&format!(
-                            "page={}&q={}",
-                            app.page_no,
-                            args.join("&").as_str()
-                        )))?
-                        .items;
+                let mut args = vec![app.search_text.clone()];
+                args.extend(app.search_settings.clone().to_vec());
 
-                    let mut items = LinkedList::new();
+                let invidious_results = app
+                    .client
+                    .search(Some(&format!(
+                        "page={}&q={}",
+                        app.page_no,
+                        args.join("&").as_str()
+                    )))?
+                    .items;
 
-                    for item in invidious_results {
-                        match item {
-                            InvidiousSearchItem::Video {
-                                title: _,
-                                videoId: _,
-                                author: _,
-                                authorId: _,
-                                authorUrl: _,
-                                lengthSeconds: _,
-                                videoThumbnails: _,
-                                description: _,
-                                descriptionHtml: _,
-                                viewCount: _,
-                                published: _,
-                                publishedText: _,
-                                liveNow: _,
-                                paid: _,
-                                premium: _,
-                            } => {
-                                items.push_back(ListItem::MiniVideo(MiniVideo::from(item)));
-                            }
+                let mut items = LinkedList::new();
 
-                            _ => {}
+                for item in invidious_results {
+                    match item {
+                        InvidiousSearchItem::Video {
+                            title: _,
+                            videoId: _,
+                            author: _,
+                            authorId: _,
+                            authorUrl: _,
+                            lengthSeconds: _,
+                            videoThumbnails: _,
+                            description: _,
+                            descriptionHtml: _,
+                            viewCount: _,
+                            published: _,
+                            publishedText: _,
+                            liveNow: _,
+                            paid: _,
+                            premium: _,
+                        } => {
+                            items.push_back(ListItem::MiniVideo(MiniVideo::from(item)));
                         }
-                    }
 
-                    let mut minimum_length = 0;
-
-                    if app.page_no != 1 {
-                        minimum_length += 1;
-                        items.push_front(ListItem::PageTurner(false));
-                    }
-
-                    if items.len() == minimum_length {
-                        *app.message.lock().unwrap() = Some(String::from("No results found"));
-                    } else {
-                        items.push_back(ListItem::PageTurner(true));
-                    }
-
-                    text_list.items = textlist_from_video_list(&items);
-
-                    let mut thumbnails = LinkedList::new();
-
-                    for item in items.iter() {
-                        match item {
-                            ListItem::MiniVideo(video) => {
-                                thumbnails.push_back((
-                                    video.video_thumbnail.clone(),
-                                    video.video_id.clone(),
-                                ));
-                            }
-
-                            _ => {}
+                        InvidiousSearchItem::Playlist {
+                            title: _,
+                            playlistId: _,
+                            author: _,
+                            authorId: _,
+                            authorUrl: _,
+                            videoCount: _,
+                            videos: _,
+                        } => {
+                            items.push_back(ListItem::MiniPlayList(MiniPlayList::from(item)));
                         }
+
+                        _ => {}
                     }
-
-                    let _ = download_all_thumbnails(thumbnails);
-
-                    *results = Some(items);
                 }
+
+                let mut minimum_length = 0;
+
+                if app.page_no != 1 {
+                    minimum_length += 1;
+                    items.push_front(ListItem::PageTurner(false));
+                }
+
+                if items.len() == minimum_length {
+                    *app.message.lock().unwrap() = Some(String::from("No results found"));
+                } else {
+                    items.push_back(ListItem::PageTurner(true));
+                }
+
+                text_list.items = textlist_from_video_list(&items);
+
+                let mut thumbnails = LinkedList::new();
+
+                for item in items.iter() {
+                    match item {
+                        ListItem::MiniVideo(video) => {
+                            thumbnails
+                                .push_back((video.video_thumbnail.clone(), video.video_id.clone()));
+                        }
+
+                        ListItem::MiniPlayList(playlist) => {
+                            if let Some(thumbnail) = &playlist.thumbnail {
+                                thumbnails
+                                    .push_back((thumbnail.clone(), playlist.playlist_id.clone()));
+                            }
+                        }
+
+                        _ => {}
+                    }
+                }
+
+                let _ = download_all_thumbnails(thumbnails);
+
+                *results = Some(items);
             }
         }
 
         Ok(Box::new(this))
     }
-}
 
-impl SearchItem {
     pub fn render_item<B: Backend>(
         &mut self,
         frame: &mut Frame<B>,
@@ -217,7 +247,6 @@ impl SearchItem {
         hover: bool,
         popup_focus: bool,
     ) {
-
         match self {
             SearchItem::Search { results, text_list } => {
                 let split = HorizontalSplit::default()

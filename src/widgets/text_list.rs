@@ -38,9 +38,16 @@ impl Widget for TextList {
             .skip(self.scroll)
             .take(area.height as usize - 2)
         {
-            if item.len() > width_minus_2 {
-                item = format!("{}...", &item[0..width_minus_5]);
+            let mut len = item.chars().count();
+            if len > width_minus_2 {
+                for _ in width_minus_5..len {
+                    item.pop();
+                }
+
+                item.push_str("...");
             }
+
+            len = item.chars().count();
 
             if i == self.selected {
                 let horizontal = HORIZONTAL.to_string().repeat(width_minus_2);
@@ -52,7 +59,7 @@ impl Widget for TextList {
                     ROUNDED_TOP_RIGHT,
                     VERTICAL,
                     item,
-                    " ".repeat(area.width as usize - 2 - item.len()),
+                    " ".repeat(area.width as usize - 2 - len),
                     VERTICAL,
                     ROUNDED_BOTTOM_LEFT,
                     horizontal,
@@ -92,15 +99,13 @@ impl Widget for TextList {
                 buf.set_style(rect, self.selected_style);
 
                 for line in lines.lines() {
-                    for (x, c) in (0..area.width).zip(line.chars()) {
-                        buf.get_mut(area.x + x, y).set_char(c);
-                    }
+                    buf.set_string(area.x, y, line, Style::default());
+
                     y += 1;
                 }
             } else {
-                for (x, c) in (0..area.width).zip(item.chars()) {
-                    buf.get_mut(area.x + x + 1, y).set_char(c);
-                }
+                buf.set_string(area.x + 1, y, item, Style::default());
+
                 y += 1;
             }
         }

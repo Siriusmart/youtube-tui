@@ -7,7 +7,7 @@ use crate::{
     },
     functions::download_all_thumbnails,
     structs::{Item, ListItem, Page, Row, RowItem},
-    traits::{KeyInput, LoadItem, SelectItem},
+    traits::{KeyInput, SelectItem},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
 use crossterm::event::KeyCode;
@@ -52,11 +52,11 @@ impl SelectItem for MainMenuItem {
 impl KeyInput for MainMenuItem {
     fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
         match self {
-            MainMenuItem::VideoList(Some((video_list, list, _))) => match key {
-                KeyCode::Up => list.up(),
-                KeyCode::Down => list.down(),
-                KeyCode::PageUp => list.selected = 0,
-                KeyCode::PageDown => list.selected = list.items.len() - 1,
+            MainMenuItem::VideoList(Some((list, textlist, _))) => match key {
+                KeyCode::Up => textlist.up(),
+                KeyCode::Down => textlist.down(),
+                KeyCode::PageUp => textlist.selected = 0,
+                KeyCode::PageDown => textlist.selected = textlist.items.len() - 1,
                 KeyCode::Enter => {
                     let state = ItemInfo::default();
                     let mut history = app.history.clone();
@@ -66,9 +66,31 @@ impl KeyInput for MainMenuItem {
                         false,
                         App {
                             history,
-                            page: Page::ItemDisplay(DisplayItem::Video(
-                                video_list.iter().nth(list.selected).unwrap().id(),
-                            )),
+                            page: Page::ItemDisplay(
+                                match list.iter().nth(textlist.selected).unwrap() {
+                                    ListItem::FullVideo(item) => {
+                                        DisplayItem::Video(
+                                            item.video_id.clone(),
+                                        )
+                                    }
+                                    ListItem::FullPlayList(item) => {
+                                        DisplayItem::PlayList(
+                                            item.playlist_id.clone(),
+                                        )
+                                    }
+                                    ListItem::MiniPlayList(item) => {
+                                        DisplayItem::PlayList(
+                                            item.playlist_id.clone(),
+                                        )
+                                    }
+                                    ListItem::MiniVideo(item) => {
+                                        DisplayItem::Video(
+                                            item.video_id.clone(),
+                                        )
+                                    }
+                                    _ => unreachable!(),
+                                },
+                            ),
                             selectable: App::selectable(&state),
                             state,
                             ..Default::default()
@@ -84,8 +106,8 @@ impl KeyInput for MainMenuItem {
     }
 }
 
-impl LoadItem for MainMenuItem {
-    fn load_item(&self, app: &App) -> Result<Box<Self>, Box<dyn Error>> {
+impl MainMenuItem {
+    pub fn load_item(&self, app: &App) -> Result<Box<Self>, Box<dyn Error>> {
         let mut this = self.clone();
 
         match &mut this {
@@ -132,7 +154,7 @@ impl LoadItem for MainMenuItem {
                             .map(|t| ListItem::MiniVideo(t.into()))
                             .collect();
 
-                        download_all_thumbnails(
+                        let _ = download_all_thumbnails(
                             list.iter()
                                 .map(|t| match t {
                                     ListItem::MiniVideo(v) => {
@@ -141,7 +163,7 @@ impl LoadItem for MainMenuItem {
                                     _ => unreachable!(),
                                 })
                                 .collect(),
-                        )?;
+                        );
 
                         let mut text_list = TextList::default();
 
@@ -165,7 +187,7 @@ impl LoadItem for MainMenuItem {
                                 home::home_dir()
                                     .expect("Cannot get your home directory")
                                     .join(".local/share/youtube-tui/watch_history/info")
-                                    .join(format!("{}.json", t)),
+                                    .join(format!("{}.json", t.id())),
                             );
 
                             if let Ok(file) = file {
@@ -189,9 +211,7 @@ impl LoadItem for MainMenuItem {
 
         Ok(Box::new(this))
     }
-}
 
-impl MainMenuItem {
     pub fn render_item<B: Backend>(
         &mut self,
         frame: &mut Frame<B>,

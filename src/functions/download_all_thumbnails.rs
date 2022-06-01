@@ -5,7 +5,7 @@ use tokio::runtime::Runtime;
 
 pub enum ItemType {
     Video,
-    Playlist,
+    PlayList,
 }
 
 pub fn download_all_thumbnails(

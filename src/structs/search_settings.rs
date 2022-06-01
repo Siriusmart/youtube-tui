@@ -73,10 +73,23 @@ impl SearchSettings {
                     self.select_text_list.up();
 
                     match self.text_list.selected {
-                        0 => self.sort_by = SearchSettingsSortBy::index_to_value(self.select_text_list.selected),
-                        1 => self.date = SearchSettingsDate::index_to_value(self.select_text_list.selected),
-                        2 => self.duartion = SearchSettingsDuration::index_to_value(self.select_text_list.selected),
-                        3 => self.r#type = SearchSettingsType::index_to_value(self.select_text_list.selected),
+                        0 => {
+                            self.sort_by =
+                                SearchSettingsSortBy::index_to_value(self.select_text_list.selected)
+                        }
+                        1 => {
+                            self.date =
+                                SearchSettingsDate::index_to_value(self.select_text_list.selected)
+                        }
+                        2 => {
+                            self.duartion = SearchSettingsDuration::index_to_value(
+                                self.select_text_list.selected,
+                            )
+                        }
+                        3 => {
+                            self.r#type =
+                                SearchSettingsType::index_to_value(self.select_text_list.selected)
+                        }
                         _ => {}
                     }
                 }
@@ -89,10 +102,23 @@ impl SearchSettings {
                     self.select_text_list.down();
 
                     match self.text_list.selected {
-                        0 => self.sort_by = SearchSettingsSortBy::index_to_value(self.select_text_list.selected),
-                        1 => self.date = SearchSettingsDate::index_to_value(self.select_text_list.selected),
-                        2 => self.duartion = SearchSettingsDuration::index_to_value(self.select_text_list.selected),
-                        3 => self.r#type = SearchSettingsType::index_to_value(self.select_text_list.selected),
+                        0 => {
+                            self.sort_by =
+                                SearchSettingsSortBy::index_to_value(self.select_text_list.selected)
+                        }
+                        1 => {
+                            self.date =
+                                SearchSettingsDate::index_to_value(self.select_text_list.selected)
+                        }
+                        2 => {
+                            self.duartion = SearchSettingsDuration::index_to_value(
+                                self.select_text_list.selected,
+                            )
+                        }
+                        3 => {
+                            self.r#type =
+                                SearchSettingsType::index_to_value(self.select_text_list.selected)
+                        }
                         _ => {}
                     }
                 }
@@ -108,9 +134,9 @@ impl SearchSettings {
                     *self = Self::default();
                     self.text_list.selected = 4;
                     self.update_left();
+                } else {
+                    self.row = !self.row;
                 }
-
-                self.row = !self.row;
             }
             _ => {}
         }

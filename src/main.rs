@@ -14,7 +14,6 @@ use youtube_tui::{
         pages::{item_info::ItemInfo, main_menu::MainMenu, search::Search},
     },
     structs::{Item, Page, Row, RowItem},
-    traits::LoadItem,
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -77,21 +76,25 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                                 *app.message.lock().unwrap() = Some(e.to_string());
                             }
                         },
-                        Item::ItemInfo(item) => match item.load_item(&app) {
-                            Ok(new) => {
-                                row_vec.push(RowItem {
-                                    item: Item::ItemInfo(*new),
-                                    ..*row_item
-                                });
+                        Item::ItemInfo(item) => {
+                            let mut watch_history = app.watch_history.clone();
+                            match item.load_item(&app, &mut watch_history) {
+                                Ok(new) => {
+                                    row_vec.push(RowItem {
+                                        item: Item::ItemInfo(*new),
+                                        ..*row_item
+                                    });
+                                }
+                                Err(e) => {
+                                    row_vec.push(RowItem {
+                                        item: Item::ItemInfo(item.clone()),
+                                        ..*row_item
+                                    });
+                                    *app.message.lock().unwrap() = Some(e.to_string());
+                                }
                             }
-                            Err(e) => {
-                                row_vec.push(RowItem {
-                                    item: Item::ItemInfo(item.clone()),
-                                    ..*row_item
-                                });
-                                *app.message.lock().unwrap() = Some(e.to_string());
-                            }
-                        },
+                            app.watch_history = watch_history;
+                        }
                         Item::Search(item) => match item.load_item(&app) {
                             Ok(new) => {
                                 row_vec.push(RowItem {
@@ -254,7 +257,6 @@ fn init() -> Result<(), Box<dyn Error>> {
     if !dir.exists() {
         fs::create_dir(&dir)?;
     }
-
 
     Ok(())
 }

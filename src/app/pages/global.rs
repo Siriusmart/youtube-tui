@@ -12,7 +12,7 @@ use tui::{
 use crate::{
     app::app::App,
     functions::center_rect,
-    structs::{SearchSettings, Page},
+    structs::{Page, SearchSettings},
     traits::{KeyInput, SelectItem},
     widgets::{force_clear::ForceClear, horizontal_split::HorizontalSplit},
 };
@@ -83,25 +83,30 @@ impl KeyInput for GlobalItem {
                     app.search_text.pop();
                 }
                 KeyCode::Enter => {
-                    let state = Search::default();
-                    let mut history = app.history.clone();
-                    let search_text = app.search_text.clone();
-                    let search_settings = app.search_settings.clone();
-                    history.push(app.into());
+                    if app.search_text.len() == 0 {
+                        *app.message.lock().unwrap() =
+                            Some(String::from("Search term cannot be empty"));
+                    } else {
+                        let state = Search::default();
+                        let mut history = app.history.clone();
+                        let search_text = app.search_text.clone();
+                        let search_settings = app.search_settings.clone();
+                        history.push(app.into());
 
-                    return (
-                        false,
-                        App {
-                            history,
-                            page: Page::Search,
-                            selectable: App::selectable(&state),
-                            state,
-                            search_text,
-                            search_settings,
-                            load: true,
-                            ..Default::default()
-                        },
-                    );
+                        return (
+                            false,
+                            App {
+                                history,
+                                page: Page::Search,
+                                selectable: App::selectable(&state),
+                                state,
+                                search_text,
+                                search_settings,
+                                load: true,
+                                ..Default::default()
+                            },
+                        );
+                    }
                 }
                 _ => {}
             },

@@ -626,9 +626,9 @@ dependencies = [
 
 [[package]]
 name = "invidious"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89779909e071231edd52fae0a93b5c0a9b3d0d87f83fa0e4f2a958d8c9d66d0a"
+checksum = "b6d4c6a7a9048464b7265d607d7d94469143ae51bc76338a103f7d088c0e5da7"
 dependencies = [
  "reqwest",
  "serde",
@@ -1716,7 +1716,7 @@ dependencies = [
 
 [[package]]
 name = "youtube-tui"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "crossterm",
