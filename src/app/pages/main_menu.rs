@@ -69,24 +69,16 @@ impl KeyInput for MainMenuItem {
                             page: Page::ItemDisplay(
                                 match list.iter().nth(textlist.selected).unwrap() {
                                     ListItem::FullVideo(item) => {
-                                        DisplayItem::Video(
-                                            item.video_id.clone(),
-                                        )
+                                        DisplayItem::Video(item.video_id.clone())
                                     }
                                     ListItem::FullPlayList(item) => {
-                                        DisplayItem::PlayList(
-                                            item.playlist_id.clone(),
-                                        )
+                                        DisplayItem::PlayList(item.playlist_id.clone())
                                     }
                                     ListItem::MiniPlayList(item) => {
-                                        DisplayItem::PlayList(
-                                            item.playlist_id.clone(),
-                                        )
+                                        DisplayItem::PlayList(item.playlist_id.clone())
                                     }
                                     ListItem::MiniVideo(item) => {
-                                        DisplayItem::Video(
-                                            item.video_id.clone(),
-                                        )
+                                        DisplayItem::Video(item.video_id.clone())
                                     }
                                     _ => unreachable!(),
                                 },
@@ -107,7 +99,7 @@ impl KeyInput for MainMenuItem {
 }
 
 impl MainMenuItem {
-    pub fn load_item(&self, app: &App) -> Result<Box<Self>, Box<dyn Error>> {
+    pub fn load_item(&self, app: &App) -> Result<Self, Box<dyn Error>> {
         let mut this = self.clone();
 
         match &mut this {
@@ -209,7 +201,7 @@ impl MainMenuItem {
             _ => {}
         }
 
-        Ok(Box::new(this))
+        Ok(this)
     }
 
     pub fn render_item<B: Backend>(

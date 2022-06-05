@@ -152,7 +152,11 @@ impl Default for CommandsConfig {
             playlist_shuffle_audio_all: CommandConfig {
                 command: String::from("mpv"),
                 open_in_console: true,
-                args: vec![String::from("--no-video"), String::from("{url}"), String::from("--shuffle")],
+                args: vec![
+                    String::from("--no-video"),
+                    String::from("{url}"),
+                    String::from("--shuffle"),
+                ],
             },
             download_all_audio: CommandConfig {
                 command: String::from("yt-dlp"),

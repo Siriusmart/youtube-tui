@@ -1,4 +1,4 @@
-use invidious::structs::hidden::SearchItem;
+use invidious::structs::hidden::{Playlist, SearchItem};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -40,6 +40,24 @@ impl From<SearchItem> for MiniPlayList {
             _ => {
                 unreachable!()
             }
+        }
+    }
+}
+
+impl From<Playlist> for MiniPlayList {
+    fn from(original: Playlist) -> Self {
+        Self {
+            title: original.title,
+            playlist_id: original.playlistId,
+            author: original.author,
+            author_id: original.authorId,
+            author_url: original.authorUrl,
+            video_count: original.videoCount as usize,
+            thumbnail: if original.videos.len() == 0 {
+                None
+            } else {
+                Some(original.videos[0].videoThumbnails[4].url.clone())
+            },
         }
     }
 }

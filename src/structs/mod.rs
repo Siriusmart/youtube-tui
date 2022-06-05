@@ -27,3 +27,9 @@ pub use miniplaylist::*;
 
 mod fullplaylist;
 pub use fullplaylist::*;
+
+mod minichannel;
+pub use minichannel::*;
+
+mod fullchannel;
+pub use fullchannel::*;

@@ -1,9 +1,12 @@
-use crate::app::pages::{item_info::DisplayItem, main_menu::MainMenuSelector};
+use crate::app::pages::{
+    channel::ChannelPage, item_info::DisplayItem, main_menu::MainMenuSelector,
+};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Page {
     MainMenu(MainMenuSelector),
     ItemDisplay(DisplayItem),
+    Channel(ChannelPage, String),
     Search,
 }
 

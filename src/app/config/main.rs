@@ -1,4 +1,8 @@
-use std::{error::Error, fs::{self, OpenOptions}, io::Write};
+use std::{
+    error::Error,
+    fs::{self, OpenOptions},
+    io::Write,
+};
 
 use serde::{Deserialize, Serialize};
 

@@ -21,7 +21,10 @@ use tui::{
     Frame,
 };
 
-use super::global::GlobalItem;
+use super::{
+    channel::{Channel, ChannelPage},
+    global::GlobalItem,
+};
 
 #[derive(Debug, Clone)]
 pub enum ItemInfoItem {
@@ -242,9 +245,23 @@ impl KeyInput for ItemInfoItem {
                             run_command(command, app.message.clone());
                         }
                         5 => {
-                            *app.message.lock().unwrap() = Some(String::from(
-                                "Too lazy to implement that what do you expect?",
-                            ));
+                            let state = Channel::default();
+                            let mut history = app.history.clone();
+                            history.push(app.into());
+
+                            return (
+                                false,
+                                App {
+                                    history,
+                                    page: Page::Channel(
+                                        ChannelPage::Home,
+                                        videoinfo.video.channel_id.clone(),
+                                    ),
+                                    selectable: App::selectable(&state),
+                                    state,
+                                    ..Default::default()
+                                },
+                            );
                         }
                         6 => {
                             videoinfo.mode.toggle();
@@ -499,9 +516,24 @@ impl KeyInput for ItemInfoItem {
                             }
 
                             7 => {
-                                *app.message.lock().unwrap() = Some(String::from(
-                                    "Too lazy to implement that what do you expect?",
-                                ));
+                                let state = Channel::default();
+                                let mut history = app.history.clone();
+                                history.push(app.into());
+
+                                return (
+                                    false,
+                                    App {
+                                        history,
+                                        page: Page::Channel(
+                                            ChannelPage::Home,
+                                            playlistinfo.playlist.author_id.clone(),
+                                        ),
+                                        selectable: App::selectable(&state),
+                                        state,
+                                        load: true,
+                                        ..Default::default()
+                                    },
+                                );
                             }
 
                             8 => {
@@ -562,7 +594,7 @@ impl ItemInfoItem {
         &self,
         app: &App,
         watch_history: &mut WatchHistory,
-    ) -> Result<Box<Self>, Box<dyn Error>> {
+    ) -> Result<Self, Box<dyn Error>> {
         let mut this = self.clone();
 
         if let ItemInfoItem::Unknown = this {
@@ -650,7 +682,7 @@ impl ItemInfoItem {
                 _ => {}
             }
         }
-        Ok(Box::new(this))
+        Ok(this)
     }
 
     pub fn render_item<B: Backend>(

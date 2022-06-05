@@ -1,10 +1,8 @@
 ## Warning:
-* This app is incomplete but is basically usable
 * This app is only for *\*nix* systems
 
 ## Changes made in this commit
-* Playlist support
-* Adaptive config files (e.g. auto update config files while preserving the original options)
+* Channel support
 
 ## Installation
 Requirements: Git, Cargo and the Rust Compiler
@@ -138,9 +136,9 @@ The config files are located in `~/.config/youtube-tui`, run the program once to
 >     - "{video_save_location}"
 > ```
 ## To Do
-* Channel support
 * Update notice (e.g. when a new version is released on GitHub or crates.io, can be disabled in the config file)
 * Keybind options (e.g. change the keybinds in the config file)
+* Channel search + item sorting
 
 ## Bugs
 * If there is a bug please open a GitHub issue thx :)

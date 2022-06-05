@@ -12,12 +12,13 @@ use tui::{
 use crate::{
     app::app::App,
     functions::download_all_thumbnails,
-    structs::{Item, ListItem, MiniPlayList, MiniVideo, Page, Row, RowItem},
+    structs::{Item, ListItem, MiniChannel, MiniPlayList, MiniVideo, Page, Row, RowItem},
     traits::{KeyInput, SelectItem},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
 
 use super::{
+    channel::{Channel, ChannelPage},
     global::GlobalItem,
     item_info::{DisplayItem, ItemInfo},
     main_menu::textlist_from_video_list,
@@ -123,6 +124,26 @@ impl KeyInput for SearchItem {
                                 );
                             }
 
+                            ListItem::MiniChannel(channel) => {
+                                let state = Channel::default();
+                                let mut history = app.history.clone();
+                                history.push(app.into());
+
+                                return (
+                                    false,
+                                    App {
+                                        history,
+                                        page: Page::Channel(
+                                            ChannelPage::Home,
+                                            channel.author_id.clone(),
+                                        ),
+                                        selectable: App::selectable(&state),
+                                        state,
+                                        ..Default::default()
+                                    },
+                                );
+                            }
+
                             _ => {}
                         }
                     }
@@ -136,7 +157,7 @@ impl KeyInput for SearchItem {
 }
 
 impl SearchItem {
-    pub fn load_item(&self, app: &App) -> Result<Box<Self>, Box<dyn Error>> {
+    pub fn load_item(&self, app: &App) -> Result<Self, Box<dyn Error>> {
         let mut this = self.clone();
 
         match &mut this {
@@ -191,6 +212,19 @@ impl SearchItem {
                             items.push_back(ListItem::MiniPlayList(MiniPlayList::from(item)));
                         }
 
+                        InvidiousSearchItem::Channel {
+                            author: _,
+                            authorId: _,
+                            authorUrl: _,
+                            authorThumbnails: _,
+                            subCount: _,
+                            videoCount: _,
+                            description: _,
+                            descriptionHtml: _,
+                        } => {
+                            items.push_back(ListItem::MiniChannel(MiniChannel::from(item)));
+                        }
+
                         _ => {}
                     }
                 }
@@ -226,6 +260,15 @@ impl SearchItem {
                             }
                         }
 
+                        ListItem::MiniChannel(channel) => {
+                            thumbnails.push_back((
+                                format!("https:{}", channel.thumbnail.clone()),
+                                channel.author_id.clone(),
+                            ));
+
+                            // panic!("{:?}", channel.thumbnail.clone());
+                        }
+
                         _ => {}
                     }
                 }
@@ -236,7 +279,7 @@ impl SearchItem {
             }
         }
 
-        Ok(Box::new(this))
+        Ok(this)
     }
 
     pub fn render_item<B: Backend>(

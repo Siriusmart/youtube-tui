@@ -20,7 +20,7 @@ use tui::{
 
 use super::{
     config::Config,
-    pages::{item_info::ItemInfo, search::Search},
+    pages::{channel::Channel, item_info::ItemInfo, search::Search},
 };
 
 #[derive(Debug)]
@@ -80,6 +80,7 @@ impl App {
                     Item::MainMenu(item) => item.selectable(),
                     Item::ItemInfo(item) => item.selectable(),
                     Item::Search(item) => item.selectable(),
+                    Item::Channel(item) => item.selectable(),
                 } {
                     row_vec.push((x, y));
                 }
@@ -128,6 +129,14 @@ impl App {
                             self.state[y].items[x].item = Item::Search(item);
                         }
                     }
+                    Item::Channel(item) => {
+                        let mut item = item.clone();
+                        let hold = item.key_input(key, self);
+                        self = hold.1;
+                        if hold.0 {
+                            self.state[y].items[x].item = Item::Channel(item);
+                        }
+                    }
                 }
 
                 return self;
@@ -170,6 +179,13 @@ impl App {
                             }
                         }
                         Item::Search(mut item) => {
+                            let held = item.select(self);
+                            self = held.0;
+                            if held.1 {
+                                self.selected = Some((x, y));
+                            }
+                        }
+                        Item::Channel(mut item) => {
                             let held = item.select(self);
                             self = held.0;
                             if held.1 {
@@ -260,6 +276,7 @@ impl App {
             Page::MainMenu(_) => MainMenu::min(),
             Page::ItemDisplay(_) => ItemInfo::min(),
             Page::Search => Search::min(),
+            Page::Channel(_, _) => Channel::min(),
         };
 
         if size.width < min.0 || size.height < min.1 {
@@ -362,6 +379,11 @@ impl App {
 
                     Item::Search(i) => {
                         i.render_item(frame, chunk, selected, hover, self.popup_focus);
+                        false
+                    }
+
+                    Item::Channel(i) => {
+                        i.render_item(frame, chunk, selected, hover, self.popup_focus, &self.page);
                         false
                     }
                 } {

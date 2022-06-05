@@ -1,7 +1,7 @@
 use crate::structs::{FullVideo, MiniVideo};
 use serde::{Deserialize, Serialize};
 
-use super::{FullPlayList, MiniPlayList};
+use super::{FullChannel, FullPlayList, MiniChannel, MiniPlayList};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum ListItem {
@@ -9,6 +9,8 @@ pub enum ListItem {
     FullVideo(FullVideo),
     MiniPlayList(MiniPlayList),
     FullPlayList(FullPlayList),
+    MiniChannel(MiniChannel),
+    FullChannel(FullChannel),
     PageTurner(bool), // true: +1 | false: -1
 }
 
@@ -54,6 +56,18 @@ impl ListItem {
                 .collect(),
             ListItem::FullPlayList(playlist) => playlist
                 .title
+                .chars()
+                .into_iter()
+                .filter(|c| !c.is_ascii_control())
+                .collect(),
+            ListItem::MiniChannel(channel) => channel
+                .author
+                .chars()
+                .into_iter()
+                .filter(|c| !c.is_ascii_control())
+                .collect(),
+            ListItem::FullChannel(channel) => channel
+                .author
                 .chars()
                 .into_iter()
                 .filter(|c| !c.is_ascii_control())

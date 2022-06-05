@@ -16,6 +16,165 @@ pub struct ItemDisplay {
 impl Widget for ItemDisplay {
     fn render(self, area: Rect, buf: &mut Buffer) {
         match self.item {
+            ListItem::MiniChannel(channel) => {
+                let mut path = home::home_dir().expect("Cannot get your home directory");
+                path.push(".cache");
+                path.push("youtube-tui");
+                path.push("thumbnails");
+                path.push(format!("{}.png", channel.author_id));
+
+                let exists = path.exists();
+                let mut image_transform = area;
+                if exists {
+                    if image_transform.width * 2 > image_transform.height {
+                        image_transform.width = image_transform.height / 2;
+                    }
+                    image_transform.height = image_transform.width / 2;
+                    // image_transform.width = image_transform.height * 2;
+
+                    let conf = Config {
+                        width: Some(image_transform.width as u32),
+                        height: Some(image_transform.height as u32),
+                        x: image_transform.x,
+                        y: image_transform.y as i16,
+                        ..Default::default()
+                    };
+
+                    let _ = print_from_file(path.as_os_str(), &conf);
+                }
+
+                let mut y = if exists {
+                    image_transform.y + image_transform.height
+                } else {
+                    area.y
+                };
+
+                let mut to_print = Vec::new();
+                to_print.push((String::from("[Channel]"), Style::default().fg(Color::Gray)));
+                to_print.push((channel.author, Style::default().fg(Color::LightBlue)));
+                to_print.push((
+                    format!("Subscribers: {}", channel.sub_count),
+                    Style::default().fg(Color::LightYellow),
+                ));
+                to_print.push((
+                    format!("Video Count: {}", channel.video_count),
+                    Style::default().fg(Color::LightCyan),
+                ));
+
+                to_print.push((
+                    String::from("Description: "),
+                    Style::default().fg(Color::Gray),
+                ));
+
+                for (mut item, style) in to_print {
+                    if y > area.height + area.y - 1 {
+                        return;
+                    }
+
+                    if item.len() > area.width as usize {
+                        item = format!("{}...", &item[..area.width as usize - 3]);
+                    }
+                    buf.set_string(area.x, y, item, style);
+                    y += 1;
+                }
+
+                if y < area.height + area.y {
+                    let rect = Rect {
+                        x: area.x,
+                        y: y,
+                        width: area.width,
+                        height: area.height + area.y - y,
+                    };
+
+                    let paragraph = Paragraph::new(channel.description.clone())
+                        .wrap(Wrap { trim: true })
+                        .alignment(Alignment::Left)
+                        .style(Style::default().fg(Color::Gray));
+
+                    paragraph.render(rect, buf);
+                }
+            }
+            ListItem::FullChannel(channel) => {
+                let mut path = home::home_dir().expect("Cannot get your home directory");
+                path.push(".cache");
+                path.push("youtube-tui");
+                path.push("thumbnails");
+                path.push(format!("{}.png", channel.author_id));
+
+                let exists = path.exists();
+                let mut image_transform = area;
+                if exists {
+                    image_transform.height = image_transform.width * 9 / 64;
+                    image_transform.width = image_transform.height * 2;
+
+                    let conf = Config {
+                        width: Some(image_transform.width as u32),
+                        height: Some(image_transform.height as u32),
+                        x: image_transform.x,
+                        y: image_transform.y as i16,
+                        ..Default::default()
+                    };
+
+                    let _ = print_from_file(path.as_os_str(), &conf);
+                }
+
+                let mut y = if exists {
+                    image_transform.y + image_transform.height
+                } else {
+                    area.y
+                };
+
+                let mut to_print = Vec::new();
+                to_print.push((String::from("[Channel]"), Style::default().fg(Color::Gray)));
+                to_print.push((channel.author, Style::default().fg(Color::LightBlue)));
+                to_print.push((
+                    format!("Subscribers: {}", channel.sub_count),
+                    Style::default().fg(Color::LightYellow),
+                ));
+
+                to_print.push((
+                    String::from("Description: "),
+                    Style::default().fg(Color::Gray),
+                ));
+
+                to_print.push((
+                    format!("Total Views: {}", channel.total_views),
+                    Style::default().fg(Color::LightCyan),
+                ));
+
+                to_print.push((
+                    String::from("Description: "),
+                    Style::default().fg(Color::Gray),
+                ));
+
+                for (mut item, style) in to_print {
+                    if y > area.height + area.y - 1 {
+                        return;
+                    }
+
+                    if item.len() > area.width as usize {
+                        item = format!("{}...", &item[..area.width as usize - 3]);
+                    }
+                    buf.set_string(area.x, y, item, style);
+                    y += 1;
+                }
+
+                if y < area.height + area.y {
+                    let rect = Rect {
+                        x: area.x,
+                        y: y,
+                        width: area.width,
+                        height: area.height + area.y - y,
+                    };
+
+                    let paragraph = Paragraph::new(channel.description.clone())
+                        .wrap(Wrap { trim: true })
+                        .alignment(Alignment::Left)
+                        .style(Style::default().fg(Color::Gray));
+
+                    paragraph.render(rect, buf);
+                }
+            }
             ListItem::MiniVideo(video) => {
                 let mut path = home::home_dir().expect("Cannot get your home directory");
                 path.push(".cache");
@@ -318,7 +477,7 @@ impl Widget for ItemDisplay {
                     if y > area.height + area.y - 1 {
                         return;
                     }
-                    
+
                     if item.len() > area.width as usize {
                         if item.len() > area.width as usize - 2 {
                             for _ in area.width as usize - 3..item.len() {
@@ -347,7 +506,6 @@ impl Widget for ItemDisplay {
 
                 paragraph.render(area, buf);
             }
-            
         }
     }
 }

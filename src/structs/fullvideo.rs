@@ -1,7 +1,7 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
 use invidious::structs::video::Video;
-use thousands::Separable;
 use serde::{Deserialize, Serialize};
+use thousands::Separable;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FullVideo {

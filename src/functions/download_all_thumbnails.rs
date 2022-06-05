@@ -20,9 +20,7 @@ pub fn download_all_thumbnails(
     Ok(())
 }
 
-pub async fn download_items(
-    urls: LinkedList<(String, String)>,
-) -> Result<(), Box<dyn Error>> {
+pub async fn download_items(urls: LinkedList<(String, String)>) -> Result<(), Box<dyn Error>> {
     let mut actions = Vec::new();
     let mut path = home::home_dir().expect("Cannot get your home directory");
     path.push(".cache");
@@ -30,7 +28,6 @@ pub async fn download_items(
     path.push("thumbnails");
 
     for (url, video_id) in urls.iter() {
-
         path.push(format!("{}.png", video_id));
 
         if !path.exists() {
