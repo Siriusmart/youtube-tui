@@ -15,6 +15,7 @@ pub struct TextList {
     pub selected: usize,
     pub scroll: usize,
     pub area: Option<Rect>,
+    pub prev_area: Option<Rect>,
     pub style: Style,
     pub selected_style: Style,
 }
@@ -119,6 +120,7 @@ impl Default for TextList {
             selected: 0,
             scroll: 0,
             area: None,
+            prev_area: None,
             style: Style::default(),
             selected_style: Style::default().fg(Color::Yellow),
         }
@@ -127,6 +129,7 @@ impl Default for TextList {
 
 impl TextList {
     pub fn area(&mut self, area: Rect) {
+        self.prev_area = self.area;
         self.area = Some(area);
     }
 

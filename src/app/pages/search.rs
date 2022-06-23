@@ -12,8 +12,10 @@ use tui::{
 use crate::{
     app::app::App,
     functions::download_all_thumbnails,
-    structs::{Item, ListItem, MiniChannel, MiniPlayList, MiniVideo, Page, Row, RowItem},
-    traits::{KeyInput, SelectItem},
+    structs::{
+        Item, ListItem, MiniChannel, MiniPlayList, MiniVideo, Page, Row, RowItem, WatchHistory,
+    },
+    traits::{ItemTrait, PageTrait},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
 
@@ -32,7 +34,7 @@ pub enum SearchItem {
     },
 }
 
-impl SelectItem for SearchItem {
+impl ItemTrait for SearchItem {
     fn select(&mut self, app: App) -> (App, bool) {
         (app, true)
     }
@@ -40,9 +42,7 @@ impl SelectItem for SearchItem {
     fn selectable(&self) -> bool {
         true
     }
-}
 
-impl KeyInput for SearchItem {
     fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
         match self {
             SearchItem::Search { results, text_list } => match key {
@@ -154,10 +154,8 @@ impl KeyInput for SearchItem {
 
         (true, app)
     }
-}
 
-impl SearchItem {
-    pub fn load_item(&self, app: &App) -> Result<Self, Box<dyn Error>> {
+    fn load_item(&self, app: &App, _: &mut WatchHistory) -> Result<Item, Box<dyn Error>> {
         let mut this = self.clone();
 
         match &mut this {
@@ -279,17 +277,20 @@ impl SearchItem {
             }
         }
 
-        Ok(this)
+        Ok(Item::Search(this))
     }
 
-    pub fn render_item<B: Backend>(
-        &mut self,
+    fn render_item<B: Backend>(
+        &self,
         frame: &mut Frame<B>,
         rect: Rect,
+        app: App,
         selected: bool,
         hover: bool,
         popup_focus: bool,
-    ) {
+        _: bool,
+    ) -> (bool, Option<Item>, App) {
+        let out = (false, None, app);
         match self {
             SearchItem::Search { results, text_list } => {
                 let split = HorizontalSplit::default()
@@ -306,8 +307,8 @@ impl SearchItem {
 
                 frame.render_widget(split, rect);
 
-                text_list.area(chunks[0]);
                 let mut text_list = text_list.clone();
+                text_list.area(chunks[0]);
 
                 if let Some(result) = results {
                     if let Some(item) = result.iter().nth(text_list.selected) {
@@ -326,21 +327,23 @@ impl SearchItem {
                 frame.render_widget(text_list, chunks[0]);
             }
         }
+
+        out
     }
 }
 
 pub struct Search;
 
-impl Search {
-    pub fn message() -> String {
+impl PageTrait for Search {
+    fn message() -> String {
         String::from("Loading search results...")
     }
 
-    pub fn min() -> (u16, u16) {
+    fn min() -> (u16, u16) {
         (45, 12)
     }
 
-    pub fn default() -> Vec<Row> {
+    fn default() -> Vec<Row> {
         vec![
             Row {
                 items: vec![

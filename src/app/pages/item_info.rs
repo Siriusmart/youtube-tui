@@ -10,7 +10,7 @@ use crate::{
     app::{app::App, config::EnvVar, pages::global::*},
     functions::download_all_thumbnails,
     structs::{FullPlayList, FullVideo, Item, ListItem, Page, Row, RowItem, WatchHistory},
-    traits::{KeyInput, SelectItem},
+    traits::{ItemTrait, PageTrait},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
 use crossterm::event::KeyCode;
@@ -64,7 +64,7 @@ impl PlayListDisplayView {
     }
 }
 
-impl SelectItem for ItemInfoItem {
+impl ItemTrait for ItemInfoItem {
     fn select(&mut self, app: App) -> (App, bool) {
         let selected = true;
 
@@ -74,9 +74,7 @@ impl SelectItem for ItemInfoItem {
     fn selectable(&self) -> bool {
         true
     }
-}
 
-impl KeyInput for ItemInfoItem {
     fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
         match self {
             ItemInfoItem::Video(videoinfo) => match key {
@@ -587,14 +585,12 @@ impl KeyInput for ItemInfoItem {
 
         (true, app)
     }
-}
 
-impl ItemInfoItem {
-    pub fn load_item(
+    fn load_item(
         &self,
         app: &App,
         watch_history: &mut WatchHistory,
-    ) -> Result<Self, Box<dyn Error>> {
+    ) -> Result<Item, Box<dyn Error>> {
         let mut this = self.clone();
 
         if let ItemInfoItem::Unknown = this {
@@ -682,22 +678,30 @@ impl ItemInfoItem {
                 _ => {}
             }
         }
-        Ok(this)
+        Ok(Item::ItemInfo(this))
     }
 
-    pub fn render_item<B: Backend>(
-        &mut self,
+    fn render_item<B: Backend>(
+        // &mut self,
+        // frame: &mut Frame<B>,
+        // rect: Rect,
+        // selected: bool,
+        // hover: bool,
+        // popup_focus: bool,
+        &self,
         frame: &mut Frame<B>,
         rect: Rect,
+        app: App,
         selected: bool,
         hover: bool,
         popup_focus: bool,
-    ) {
+        _: bool,
+    ) -> (bool, Option<Item>, App) {
+        let out = (false, None, app);
         match self {
             ItemInfoItem::Video(videoinfo) => {
-                let index = videoinfo.list.items.len() - 1;
-                videoinfo.list.items[index] = format!("Mode: {}", videoinfo.mode);
-                drop(index);
+                let mut list = videoinfo.list.clone();
+                list.items[videoinfo.list.items.len() - 1] = format!("Mode: {}", videoinfo.mode);
 
                 let split = HorizontalSplit::default()
                     .percentages(vec![40, 60])
@@ -710,7 +714,6 @@ impl ItemInfoItem {
                     }));
 
                 let chunks = split.inner(rect);
-                let mut list = videoinfo.list.clone();
 
                 list.area(chunks[1]);
                 if selected {
@@ -768,10 +771,9 @@ impl ItemInfoItem {
                         frame.render_widget(list, chunks[1]);
                     }
                     PlayListDisplayView::PlayListView => {
-                        let index = playlistinfo.playlist_view_list.items.len() - 1;
-                        playlistinfo.playlist_view_list.items[index] =
+                        let mut playlist_view_list = playlistinfo.playlist_view_list.clone();
+                        playlist_view_list.items[playlistinfo.playlist_view_list.items.len() - 1] =
                             format!("Mode: {}", playlistinfo.mode);
-                        drop(index);
 
                         let mut list = playlistinfo.playlist_view_list.clone();
                         list.area(chunks[1]);
@@ -800,6 +802,7 @@ impl ItemInfoItem {
                 frame.render_widget(split, rect);
             }
         }
+        out
     }
 }
 
@@ -811,16 +814,16 @@ pub enum DisplayItem {
 
 pub struct ItemInfo;
 
-impl ItemInfo {
-    pub fn message() -> String {
+impl PageTrait for ItemInfo {
+    fn message() -> String {
         String::from("Loading item info...")
     }
 
-    pub fn min() -> (u16, u16) {
+    fn min() -> (u16, u16) {
         (21, 12)
     }
 
-    pub fn default() -> Vec<Row> {
+    fn default() -> Vec<Row> {
         vec![
             Row {
                 items: vec![
@@ -855,6 +858,8 @@ impl ItemInfo {
         ]
     }
 }
+
+impl ItemInfoItem {}
 
 fn run_command(args: Vec<String>, message: Arc<Mutex<Option<String>>>) {
     thread::spawn(move || {

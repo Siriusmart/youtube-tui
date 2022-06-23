@@ -12,8 +12,10 @@ use tui::{
 use crate::{
     app::app::App,
     functions::download_all_thumbnails,
-    structs::{FullChannel, Item, ListItem, MiniPlayList, MiniVideo, Page, Row, RowItem},
-    traits::{KeyInput, SelectItem},
+    structs::{
+        FullChannel, Item, ListItem, MiniPlayList, MiniVideo, Page, Row, RowItem, WatchHistory,
+    },
+    traits::{ItemTrait, PageTrait},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
 
@@ -43,8 +45,8 @@ pub enum ChannelDisplayItem {
     Unknown,
 }
 
-impl ChannelItem {
-    pub fn load_item(&self, app: &App) -> Result<Self, Box<dyn Error>> {
+impl ItemTrait for ChannelItem {
+    fn load_item(&self, app: &App, _: &mut WatchHistory) -> Result<Item, Box<dyn Error>> {
         let mut this = self.clone();
 
         if let Page::Channel(channel_page, id) = &app.page {
@@ -112,18 +114,28 @@ impl ChannelItem {
             }
         }
 
-        Ok(this)
+        Ok(Item::Channel(this))
     }
 
-    pub fn render_item<B: Backend>(
-        &mut self,
+    fn render_item<B: Backend>(
+        // &mut self,
+        // frame: &mut Frame<B>,
+        // rect: Rect,
+        // selected: bool,
+        // hover: bool,
+        // popup_focus: bool,
+        // page: &Page,
+        &self,
         frame: &mut Frame<B>,
         rect: Rect,
+        app: App,
         selected: bool,
         hover: bool,
         popup_focus: bool,
-        page: &Page,
-    ) {
+        _: bool,
+    ) -> (bool, Option<Item>, App) {
+        let mut out = (false, None, app);
+
         let mut style = Style::default().fg(if selected {
             Color::LightBlue
         } else if hover {
@@ -172,8 +184,15 @@ impl ChannelItem {
 
                     frame.render_widget(split, rect);
 
-                    textlist.area(chunks[0]);
                     let mut textlist = textlist.clone();
+
+                    textlist.area(chunks[0]);
+
+                    let hold_textlist = if textlist.area == textlist.prev_area {
+                        None
+                    } else {
+                        Some(textlist.clone())
+                    };
 
                     if selected {
                         textlist.selected_style(Style::default().fg(Color::LightRed));
@@ -193,6 +212,12 @@ impl ChannelItem {
                     }
 
                     frame.render_widget(textlist, chunks[0]);
+
+                    if let Some(textlist) = hold_textlist {
+                        out.1 = Some(Item::Channel(ChannelItem::InfoDisplay(
+                            ChannelDisplayItem::Videos(videos.clone(), textlist),
+                        )));
+                    }
                 }
                 ChannelDisplayItem::Playlists(playlists, textlist) => {
                     let split = HorizontalSplit::default()
@@ -209,8 +234,15 @@ impl ChannelItem {
 
                     frame.render_widget(split, rect);
 
-                    textlist.area(chunks[0]);
                     let mut textlist = textlist.clone();
+
+                    textlist.area(chunks[0]);
+
+                    let hold_textlist = if textlist.area == textlist.prev_area {
+                        None
+                    } else {
+                        Some(textlist.clone())
+                    };
 
                     if selected {
                         textlist.selected_style(Style::default().fg(Color::LightRed));
@@ -230,11 +262,17 @@ impl ChannelItem {
                     }
 
                     frame.render_widget(textlist, chunks[0]);
+
+                    if let Some(textlist) = hold_textlist {
+                        out.1 = Some(Item::Channel(ChannelItem::InfoDisplay(
+                            ChannelDisplayItem::Playlists(playlists.clone(), textlist),
+                        )));
+                    }
                 }
             },
             ChannelItem::SelectItems(selected_page) => {
                 if !hover {
-                    if let Page::Channel(channel_page, _) = page {
+                    if let Page::Channel(channel_page, _) = &out.2.page {
                         if *selected_page == *channel_page {
                             style = style.fg(Color::LightYellow);
                         }
@@ -252,10 +290,9 @@ impl ChannelItem {
                 frame.render_widget(paragraph, rect);
             }
         }
+        out
     }
-}
 
-impl KeyInput for ChannelItem {
     fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
         match self {
             ChannelItem::InfoDisplay(displayitem) => match displayitem {
@@ -336,9 +373,7 @@ impl KeyInput for ChannelItem {
 
         (true, app)
     }
-}
 
-impl SelectItem for ChannelItem {
     fn select(&mut self, app: App) -> (App, bool) {
         let cloned = self.clone();
         match &cloned {
@@ -377,16 +412,16 @@ impl SelectItem for ChannelItem {
 
 pub struct Channel;
 
-impl Channel {
-    pub fn message() -> String {
+impl PageTrait for Channel {
+    fn message() -> String {
         String::from("Loading channel info...")
     }
 
-    pub fn min() -> (u16, u16) {
+    fn min() -> (u16, u16) {
         (45, 15)
     }
 
-    pub fn default() -> Vec<Row> {
+    fn default() -> Vec<Row> {
         vec![
             Row {
                 items: vec![

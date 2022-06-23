@@ -6,8 +6,8 @@ use crate::{
         pages::{global::*, item_info::*},
     },
     functions::download_all_thumbnails,
-    structs::{Item, ListItem, Page, Row, RowItem},
-    traits::{KeyInput, SelectItem},
+    structs::{Item, ListItem, Page, Row, RowItem, WatchHistory},
+    traits::{ItemTrait, PageTrait},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
 use crossterm::event::KeyCode;
@@ -26,80 +26,8 @@ pub enum MainMenuItem {
 
 // app.client.trending(None)
 
-impl SelectItem for MainMenuItem {
-    fn select(&mut self, mut app: App) -> (App, bool) {
-        let selected = match self {
-            MainMenuItem::SeletorTab(selector) => {
-                if app.page == (Page::MainMenu(*selector)) {
-                    return (app, false);
-                }
-                app.page = Page::MainMenu(*selector);
-                app.load = true;
-                false
-            }
-
-            _ => true,
-        };
-
-        (app, selected)
-    }
-
-    fn selectable(&self) -> bool {
-        true
-    }
-}
-
-impl KeyInput for MainMenuItem {
-    fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
-        match self {
-            MainMenuItem::VideoList(Some((list, textlist, _))) => match key {
-                KeyCode::Up => textlist.up(),
-                KeyCode::Down => textlist.down(),
-                KeyCode::PageUp => textlist.selected = 0,
-                KeyCode::PageDown => textlist.selected = textlist.items.len() - 1,
-                KeyCode::Enter => {
-                    let state = ItemInfo::default();
-                    let mut history = app.history.clone();
-                    history.push(app.into());
-
-                    return (
-                        false,
-                        App {
-                            history,
-                            page: Page::ItemDisplay(
-                                match list.iter().nth(textlist.selected).unwrap() {
-                                    ListItem::FullVideo(item) => {
-                                        DisplayItem::Video(item.video_id.clone())
-                                    }
-                                    ListItem::FullPlayList(item) => {
-                                        DisplayItem::PlayList(item.playlist_id.clone())
-                                    }
-                                    ListItem::MiniPlayList(item) => {
-                                        DisplayItem::PlayList(item.playlist_id.clone())
-                                    }
-                                    ListItem::MiniVideo(item) => {
-                                        DisplayItem::Video(item.video_id.clone())
-                                    }
-                                    _ => unreachable!(),
-                                },
-                            ),
-                            selectable: App::selectable(&state),
-                            state,
-                            ..Default::default()
-                        },
-                    );
-                }
-                _ => {}
-            },
-            _ => {}
-        }
-
-        (true, app)
-    }
-}
-
-impl MainMenuItem {
-    pub fn load_item(&self, app: &App) -> Result<Self, Box<dyn Error>> {
+impl ItemTrait for MainMenuItem {
+    fn load_item(&self, app: &App, _: &mut WatchHistory) -> Result<Item, Box<dyn Error>> {
         let mut this = self.clone();
 
         match &mut this {
@@ -201,18 +129,27 @@ impl MainMenuItem {
             _ => {}
         }
 
-        Ok(this)
+        Ok(Item::MainMenu(this))
     }
 
-    pub fn render_item<B: Backend>(
-        &mut self,
+    fn render_item<B: Backend>(
+        // &mut self,
+        // frame: &mut Frame<B>,
+        // rect: Rect,
+        // selected: bool,
+        // hover: bool,
+        // popup_focus: bool,
+        // page: &Page,
+        &self,
         frame: &mut Frame<B>,
         rect: Rect,
+        app: App,
         selected: bool,
         hover: bool,
         popup_focus: bool,
-        page: &Page,
-    ) {
+        _: bool,
+    ) -> (bool, Option<Item>, App) {
+        let mut out = (false, None, app);
         let mut style = Style::default().fg(if selected {
             Color::LightBlue
         } else if hover {
@@ -223,7 +160,7 @@ impl MainMenuItem {
 
         match self {
             MainMenuItem::SeletorTab(selector) => {
-                if !hover && page == &(Page::MainMenu(*selector)) {
+                if !hover && &out.2.page == &(Page::MainMenu(*selector)) {
                     style = style.fg(Color::LightYellow);
                 }
                 let text = match selector {
@@ -257,9 +194,16 @@ impl MainMenuItem {
 
                 frame.render_widget(split, rect);
 
-                if let Some((videos, list, _)) = data {
-                    list.area(chunks[0]);
+                if let Some((videos, list, index)) = data {
                     let mut list = list.clone();
+
+                    list.area(chunks[0]);
+
+                    let hold_textlist = if list.area == list.prev_area {
+                        None
+                    } else {
+                        Some(list.clone())
+                    };
 
                     if selected {
                         list.selected_style(Style::default().fg(Color::LightRed));
@@ -274,11 +218,89 @@ impl MainMenuItem {
                     }
 
                     frame.render_widget(list, chunks[0]);
+
+                    if let Some(textlist) = hold_textlist {
+                        out.1 = Some(Item::MainMenu(MainMenuItem::VideoList(Some((
+                            videos.clone(),
+                            textlist,
+                            *index,
+                        )))));
+                    }
                 }
             }
         }
+        out
+    }
+    fn select(&mut self, mut app: App) -> (App, bool) {
+        let selected = match self {
+            MainMenuItem::SeletorTab(selector) => {
+                if app.page == (Page::MainMenu(*selector)) {
+                    return (app, false);
+                }
+                app.page = Page::MainMenu(*selector);
+                app.load = true;
+                false
+            }
+
+            _ => true,
+        };
+
+        (app, selected)
+    }
+
+    fn selectable(&self) -> bool {
+        true
+    }
+
+    fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
+        match self {
+            MainMenuItem::VideoList(Some((list, textlist, _))) => match key {
+                KeyCode::Up => textlist.up(),
+                KeyCode::Down => textlist.down(),
+                KeyCode::PageUp => textlist.selected = 0,
+                KeyCode::PageDown => textlist.selected = textlist.items.len() - 1,
+                KeyCode::Enter => {
+                    let state = ItemInfo::default();
+                    let mut history = app.history.clone();
+                    history.push(app.into());
+
+                    return (
+                        false,
+                        App {
+                            history,
+                            page: Page::ItemDisplay(
+                                match list.iter().nth(textlist.selected).unwrap() {
+                                    ListItem::FullVideo(item) => {
+                                        DisplayItem::Video(item.video_id.clone())
+                                    }
+                                    ListItem::FullPlayList(item) => {
+                                        DisplayItem::PlayList(item.playlist_id.clone())
+                                    }
+                                    ListItem::MiniPlayList(item) => {
+                                        DisplayItem::PlayList(item.playlist_id.clone())
+                                    }
+                                    ListItem::MiniVideo(item) => {
+                                        DisplayItem::Video(item.video_id.clone())
+                                    }
+                                    _ => unreachable!(),
+                                },
+                            ),
+                            selectable: App::selectable(&state),
+                            state,
+                            ..Default::default()
+                        },
+                    );
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+
+        (true, app)
     }
 }
+
+impl MainMenuItem {}
 
 pub fn textlist_from_video_list(original: &LinkedList<ListItem>) -> Vec<String> {
     original.iter().map(|item| item.to_string()).collect()
@@ -299,16 +321,16 @@ impl Default for MainMenuSelector {
 
 pub struct MainMenu;
 
-impl MainMenu {
-    pub fn message() -> String {
+impl PageTrait for MainMenu {
+    fn message() -> String {
         String::from("Loading home page...")
     }
 
-    pub fn min() -> (u16, u16) {
+    fn min() -> (u16, u16) {
         (45, 15)
     }
 
-    pub fn default() -> Vec<Row> {
+    fn default() -> Vec<Row> {
         vec![
             Row {
                 items: vec![

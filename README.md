@@ -1,144 +1,69 @@
-## Warning:
-* This app is only for *\*nix* systems
+![](https://img.shields.io/github/languages/top/siriusmart/youtube-tui?label=rust)
+![](https://shields.io/github/license/siriusmart/youtube-tui)
+[![](https://img.shields.io/crates/d/youtube-tui?label=crates.io%20downloads)](https://crates.io/crates/youtube-tui)
+[![](https://img.shields.io/crates/v/youtube-tui?label=crates.io%20version)](https://crates.io/crates/youtube-tui)
+![](https://shields.io/github/stars/siriusmart/youtube-tui?style=social)
 
-## Changes made in this commit
-* Channel support
+# YouTube TUI
+
+An aesthetically pleasing pleasing YouTube TUI written in Rust.
+
+## Overview
+
+YouTube TUI is a text user interface that provides a clean UI for browsing YouTube content. It can perform searches and view channels in the terminal, play videos and playlists with external programs like MPV. Rust is used in writing this program for its better performance and ease of maintaining.
+
+This program is being actively developed and there will be new features coming up every commit.
+
+> ### What's new in this commit
+>
+> * Code is being cleaned up but still unreadable
+> * Haven't touched this project for a week because of exams, so I'm just trying to figure out how stuff works again
+> * Just a little save stat before I overhaul the configs and how it's handled
 
 ## Installation
-Requirements: Git, Cargo and the Rust Compiler
 
-Executable size: ~12.5MB
+### Install from crates.io
 
 ```bash
-# Install from crates.io (might not be as up-to-date as the one on GitHub)
 cargo install youtube-tui
 ```
+### Clone from GitHub and build
 
 ```bash
-# Install from GitHub with cargo install (The binary will be placed in ~/.cargo/bin, and can be called with `youtube-tui`)
-git clone https://github.com/siriusmart/youtube-tui && cd youtube-tui && cargo install --path . && cd .. && rm -rf youtube-tui
+git clone https://github.com/sirusmart/youtube-tui && cd youtube-tui && cargo build --release
 ```
 
-## Features
-* View the Trending and Popular tab of YouTube
-* View your Watch history
-* Download videos and audio
-* Watch videos and audio
-* Video and playlist support
+The binary is located at `./target/release/youtube-tui`, go move it to other locations so that you can launch the program with `youtube-tui` command.
 
-## Movement
-* Use the arrow keys to move around the screen
-* Press enter to select an item
-* When item is selected all your keys will be passed into it
-* Press escape to exit the item
-* Press q to quit the program
+## Usage
 
-## Layout
-* Each divided area is one item
-* Red shows the item your currently on
-* Blue shows the selected item
-* Yellow shows an item in a special state
+### To launch
 
-## Storage
-* Cache is stored in `~/.cache/youtube-tui`, it is cleared when you quit the program
-* Storage is stored in `~/.local/share/youtube-tui`
-* Config files are stored in `~/.config/youtube-tui`
+```bash
+youtube-tui # or path to the binary
+```
 
-## Config files
-The config files are located in `~/.config/youtube-tui`, run the program once to create the config files. The following are the default config files:
+### Movement
 
-> ### `main.yml`
-> ```yaml
-> # The program's main config file
-> ---
-> yt_dl: # Donwload location for your downloaded videos
->   video_path: ~/Downloads/%(title)s.%(ext)s
->   audio_path: ~/Downloads/%(title)s.%(ext)s
-> max_watch_history: 50 # Maximum length of watch history
-> ```
+|Key|What does it do|
+|---|---|
+|Arrow keys|Move in corresponding direction|
+|Right arrow|Move cursor right
+|Enter|Select/Launch|
+|Q|Quit the program|
 
-> ### `commands.yml`
-> ```yaml
-> # Command arguments to use when launching applications
-> ---
-> video_player:
->   command: mpv
->   open_in_console: false
->   args:
->     - "--no-terminal"
->     - "{url}"
-> audio_player:
->   command: mpv
->   open_in_console: true
->   args:
->     - "--no-video"
->     - "{url}"
-> image_viewer:
->   command: mpv
->   open_in_console: false
->   args:
->     - "{url}"
->     - "--no-terminal"
-> video_downloader:
->   command: yt-dlp
->   open_in_console: true
->   args:
->     - "{url}"
->     - "-o"
->     - "{video_save_location}"
-> audio_downloader:
->   command: yt-dlp
->   open_in_console: true
->   args:
->     - "{url}"
->     - "-o"
->     - "{audio_save_location}"
->     - "-x"
-> terminal:
->   command: konsole
->   open_in_console: false
->   args:
->     - "-e"
->     - "{command}"
-> playlist_audio_all:
->   command: mpv
->   open_in_console: true
->   args:
->     - "--no-video"
->     - "{url}"
-> playlist_video_all:
->   command: mpv
->   open_in_console: false
->   args:
->     - "{url}"
->     - "--no-terminal"
-> playlist_shuffle_audio_all:
->   command: mpv
->   open_in_console: true
->   args:
->     - "--no-video"
->     - "{url}"
->     - "--shuffle"
-> download_all_audio:
->   command: yt-dlp
->   open_in_console: true
->   args:
->     - "{url}"
->     - "-o"
->     - "{audio_save_location}"
->     - "-x"
-> download_all_video:
->   command: yt-dlp
->   open_in_console: true
->   args:
->     - "{url}"
->     - "-o"
->     - "{video_save_location}"
-> ```
-## To Do
-* Update notice (e.g. when a new version is released on GitHub or crates.io, can be disabled in the config file)
-* Keybind options (e.g. change the keybinds in the config file)
-* Channel search + item sorting
+> ### Note
+>
+> These keys only work when nothing is selected. When something is selected, your key presses are passed directly to the "object" you've selected. Press escape (Esc) if you want to deselect.
 
-## Bugs
-* If there is a bug please open a GitHub issue thx :)
+## Credits
+
+* [ytfzf](https://github.com/pystardust/ytfzf) by [pystardust](https://github.com/pystardust) - The TUI I used to watch YouTube, gave me an idea how this program is going to work
+* [Terminal Typeracer](https://gitlab.com/ttyperacer/terminal-typeracer) by [Darrien Glasser](https://gitlab.com/DarrienG) - A very clean looking TUI for typing speed test, gave me idea on how this program should look like
+* [Invidious](https://invidious.io) - For having a nice API for doing YouTube searches and stuff. (I made a wrapper for the API you can check it [here](https://crates.io/crates/invidious) out if you want to)
+
+
+... and of course, credits to myself for not having the ability to read the docs for ytfzf and decided to make my own instead. 
+## Bug reports
+
+If there is an issue with this program, please open an issue on GitHub, thank you :D

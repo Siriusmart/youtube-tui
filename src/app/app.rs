@@ -6,7 +6,7 @@ use std::{
 use crate::{
     app::pages::main_menu::*,
     structs::{AppHistory, Item, Page, Row, SearchSettings, WatchHistory},
-    traits::{KeyInput, SelectItem},
+    traits::{ItemTrait, PageTrait},
 };
 use crossterm::event::KeyCode;
 use invidious::blocking::Client;
@@ -23,7 +23,7 @@ use super::{
     pages::{channel::Channel, item_info::ItemInfo, search::Search},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct App {
     pub config: Config,
     pub page: Page,
@@ -96,47 +96,11 @@ impl App {
     pub fn key_input(mut self, key: KeyCode) -> App {
         if let Some((x, y)) = self.selected {
             if key != KeyCode::Esc {
-                match &mut self.state[y].items[x].item {
-                    Item::Global(item) => {
-                        let mut item = item.clone();
-                        let hold = item.key_input(key, self);
-                        self = hold.1;
-                        if hold.0 {
-                            self.state[y].items[x].item = Item::Global(item);
-                        }
-                    }
-                    Item::MainMenu(item) => {
-                        let mut item = item.clone();
-                        let hold = item.key_input(key, self);
-                        self = hold.1;
-                        if hold.0 {
-                            self.state[y].items[x].item = Item::MainMenu(item);
-                        }
-                    }
-                    Item::ItemInfo(item) => {
-                        let mut item = item.clone();
-                        let hold = item.key_input(key, self);
-                        self = hold.1;
-                        if hold.0 {
-                            self.state[y].items[x].item = Item::ItemInfo(item);
-                        }
-                    }
-                    Item::Search(item) => {
-                        let mut item = item.clone();
-                        let hold = item.key_input(key, self);
-                        self = hold.1;
-                        if hold.0 {
-                            self.state[y].items[x].item = Item::Search(item);
-                        }
-                    }
-                    Item::Channel(item) => {
-                        let mut item = item.clone();
-                        let hold = item.key_input(key, self);
-                        self = hold.1;
-                        if hold.0 {
-                            self.state[y].items[x].item = Item::Channel(item);
-                        }
-                    }
+                let mut item = self.state[y].items[x].item.clone();
+                let updated;
+                (updated, self) = item.key_input(key, self);
+                if updated {
+                    self.state[y].items[x].item = item;
                 }
 
                 return self;
@@ -148,7 +112,9 @@ impl App {
                 if self.hover.is_some() && self.selected.is_none() {
                     let (mut x, mut y) = self.hover.unwrap();
                     (x, y) = self.selectable[y][x];
-                    match self.state[y]
+
+                    let select;
+                    (self, select) = self.state[y]
                         .items
                         .iter()
                         .nth(x)
@@ -156,42 +122,9 @@ impl App {
                         .unwrap()
                         .item
                         .clone()
-                    {
-                        Item::Global(mut item) => {
-                            let held = item.select(self);
-                            self = held.0;
-                            if held.1 {
-                                self.selected = Some((x, y));
-                            }
-                        }
-                        Item::MainMenu(mut item) => {
-                            let held = item.select(self);
-                            self = held.0;
-                            if held.1 {
-                                self.selected = Some((x, y));
-                            }
-                        }
-                        Item::ItemInfo(mut item) => {
-                            let held = item.select(self);
-                            self = held.0;
-                            if held.1 {
-                                self.selected = Some((x, y));
-                            }
-                        }
-                        Item::Search(mut item) => {
-                            let held = item.select(self);
-                            self = held.0;
-                            if held.1 {
-                                self.selected = Some((x, y));
-                            }
-                        }
-                        Item::Channel(mut item) => {
-                            let held = item.select(self);
-                            self = held.0;
-                            if held.1 {
-                                self.selected = Some((x, y));
-                            }
-                        }
+                        .select(self);
+                    if select {
+                        self.selected = Some((x, y));
                     }
 
                     return self;
@@ -268,9 +201,10 @@ impl App {
         self
     }
 
-    pub fn render<B: Backend>(&mut self, frame: &mut Frame<B>) {
+    pub fn render<B: Backend>(mut self, frame: &mut Frame<B>) -> Self {
         let size = frame.size();
         let mut popups = Vec::new();
+        let mut modified = Vec::new();
 
         let min = match self.page {
             Page::MainMenu(_) => MainMenu::min(),
@@ -288,7 +222,7 @@ impl App {
             .style(Style::default().fg(Color::Red))
             .wrap(Wrap { trim: true });
             frame.render_widget(paragraph, size);
-            return;
+            return self;
         }
 
         let hover_selected = if let Some((x, y)) = self.hover {
@@ -307,9 +241,10 @@ impl App {
             )
             .split(size);
 
-        for (y, (row, row_chunk)) in self
-            .state
-            .iter_mut()
+        let state = self.state.clone();
+
+        for (y, (row, row_chunk)) in state
+            .iter()
             .zip(vertical_chunks.clone().into_iter())
             .enumerate()
         {
@@ -348,73 +283,40 @@ impl App {
 
             frame.render_widget(Block::default(), chunks.next().unwrap());
 
-            for (x, (chunk, item)) in chunks
-                .zip(row.items.iter_mut().map(|i| &mut i.item))
-                .enumerate()
-            {
+            for (x, (chunk, item)) in chunks.zip(row.items.iter().map(|i| &i.item)).enumerate() {
                 let selected = self.selected == Some((x, y));
 
                 let hover = hover_selected == Some((x, y));
+                let popup_focus = self.popup_focus;
 
-                if match item {
-                    Item::Global(i) => i.render_item(
-                        frame,
-                        chunk,
-                        selected,
-                        hover,
-                        false,
-                        &*self.message.lock().unwrap(),
-                        &mut self.search_settings,
-                        &self.search_text,
-                    ),
-                    Item::MainMenu(i) => {
-                        i.render_item(frame, chunk, selected, hover, self.popup_focus, &self.page);
-                        false
-                    }
+                let hold =
+                    item.render_item(frame, chunk, self, selected, hover, popup_focus, false);
 
-                    Item::ItemInfo(i) => {
-                        i.render_item(frame, chunk, selected, hover, self.popup_focus);
-                        false
-                    }
+                self = hold.2;
 
-                    Item::Search(i) => {
-                        i.render_item(frame, chunk, selected, hover, self.popup_focus);
-                        false
-                    }
+                if let Some(item) = hold.1 {
+                    modified.push((x, y, item));
+                }
 
-                    Item::Channel(i) => {
-                        i.render_item(frame, chunk, selected, hover, self.popup_focus, &self.page);
-                        false
-                    }
-                } {
-                    popups.push((item, selected, hover, chunk));
+                if hold.0 {
+                    popups.push((item, selected, hover, chunk, x, y));
                 }
             }
         }
 
-        for (item, selected, hover, chunk) in popups {
-            match item {
-                Item::Global(i) => {
-                    i.render_item(
-                        frame,
-                        chunk,
-                        selected,
-                        hover,
-                        true,
-                        &*self.message.lock().unwrap(),
-                        &mut self.search_settings,
-                        &self.search_text,
-                    );
-                }
-                _ => {} // Item::MainMenu(i) => {
-                        //     i.render_item(frame, chunk, selected, hover, &self.page);
-                        // }
+        for (item, selected, hover, chunk, x, y) in popups {
+            let hold = item.render_item(frame, chunk, self, selected, hover, true, true);
+            self = hold.2;
 
-                        // Item::ItemInfo(i) => {
-                        //     i.render_item(frame, chunk, selected, hover);
-                        // }
+            if let Some(item) = hold.1 {
+                modified.push((x, y, item));
             }
         }
+
+        for (x, y, item) in modified {
+            self.state[y].items[x].item = item;
+        }
+        self
     }
 
     pub fn pop(mut self) -> (App, bool) {

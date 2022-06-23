@@ -12,8 +12,8 @@ use tui::{
 use crate::{
     app::app::App,
     functions::center_rect,
-    structs::{Page, SearchSettings},
-    traits::{KeyInput, SelectItem},
+    structs::{Item, Page, WatchHistory},
+    traits::{ItemTrait, PageTrait},
     widgets::{force_clear::ForceClear, horizontal_split::HorizontalSplit},
 };
 
@@ -50,7 +50,7 @@ impl Mode {
     }
 }
 
-impl SelectItem for GlobalItem {
+impl ItemTrait for GlobalItem {
     fn select(&mut self, mut app: App) -> (App, bool) {
         let selected = match self {
             GlobalItem::SearchBar => true,
@@ -70,9 +70,7 @@ impl SelectItem for GlobalItem {
             _ => false,
         }
     }
-}
 
-impl KeyInput for GlobalItem {
     fn key_input(&mut self, key: KeyCode, mut app: App) -> (bool, App) {
         match self {
             GlobalItem::SearchBar => match key {
@@ -118,21 +116,28 @@ impl KeyInput for GlobalItem {
 
         (true, app)
     }
-}
 
-impl GlobalItem {
-    pub fn render_item<B: Backend>(
+    fn render_item<B: Backend>(
+        // &self,
+        // frame: &mut Frame<B>,
+        // rect: Rect,
+        // selected: bool,
+        // hover: bool,
+        // popup_render: bool,
+        // message: &Option<String>,
+        // search_settings: &mut SearchSettings,
+        // search_text: &String,
         &self,
         frame: &mut Frame<B>,
         rect: Rect,
+        app: App,
         selected: bool,
         hover: bool,
+        _: bool,
         popup_render: bool,
-        message: &Option<String>,
-        search_settings: &mut SearchSettings,
-        search_text: &String,
-    ) -> bool {
+    ) -> (bool, Option<Item>, App) {
         let area = frame.size();
+        let mut out = (false, None, app);
         match self {
             GlobalItem::SearchBar => {
                 let block = Block::default()
@@ -147,10 +152,15 @@ impl GlobalItem {
                     }))
                     .title("Search YouTube")
                     .title_alignment(Alignment::Center);
-                let paragraph = Paragraph::new(search_text.clone()).block(block);
+                let mut text = out.2.search_text.clone();
+                if selected {
+                    text.push('█');
+                }
+                let paragraph = Paragraph::new(text).block(block);
                 frame.render_widget(paragraph, rect);
             }
             GlobalItem::MessageBar => {
+                let message = out.2.message.lock().unwrap();
                 // let color = Color::LightYellow;
                 let block = Block::default()
                     .border_type(BorderType::Rounded)
@@ -196,32 +206,39 @@ impl GlobalItem {
 
                                 frame.render_widget(split, rect);
 
-                                search_settings.text_list.area(chunks[0]);
+                                out.2.search_settings.text_list.area(chunks[0]);
 
-                                if search_settings.row {
-                                    search_settings
+                                if out.2.search_settings.row {
+                                    out.2
+                                        .search_settings
                                         .text_list
                                         .selected_style(Style::default().fg(Color::LightRed));
 
-                                    search_settings
+                                    out.2
+                                        .search_settings
                                         .select_text_list
                                         .selected_style(Style::default().fg(Color::LightYellow));
                                 } else {
-                                    search_settings
+                                    out.2
+                                        .search_settings
                                         .text_list
                                         .selected_style(Style::default().fg(Color::LightYellow));
 
-                                    search_settings
+                                    out.2
+                                        .search_settings
                                         .select_text_list
                                         .selected_style(Style::default().fg(Color::LightRed));
                                 }
 
-                                frame.render_widget(search_settings.text_list.clone(), chunks[0]);
+                                frame.render_widget(
+                                    out.2.search_settings.text_list.clone(),
+                                    chunks[0],
+                                );
 
-                                search_settings.select_text_list.area(chunks[1]);
+                                out.2.search_settings.select_text_list.area(chunks[1]);
 
                                 frame.render_widget(
-                                    search_settings.select_text_list.clone(),
+                                    out.2.search_settings.select_text_list.clone(),
                                     chunks[1],
                                 );
 
@@ -235,12 +252,18 @@ impl GlobalItem {
                         }
                         //panic!("{:?}", rect);
                     } else {
-                        return true;
+                        out.0 = true;
                     }
                 }
             }
         }
 
-        false
+        out
+    }
+
+    fn load_item(&self, _: &App, _: &mut WatchHistory) -> Result<Item, Box<dyn std::error::Error>> {
+        Ok(Item::Global(self.clone()))
     }
 }
+
+impl GlobalItem {}

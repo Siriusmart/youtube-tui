@@ -3,7 +3,7 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use std::{error::Error, fs, io};
+use std::{error::Error, fs, io, sync::mpsc::channel};
 use tui::{
     backend::{Backend, CrosstermBackend},
     Terminal,
@@ -11,9 +11,8 @@ use tui::{
 use youtube_tui::{
     app::{
         app::App,
-        pages::{channel::Channel, item_info::ItemInfo, main_menu::MainMenu, search::Search},
     },
-    structs::{Item, Page, Row, RowItem},
+    structs::{Row, RowItem},
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -45,92 +44,35 @@ fn main() -> Result<(), Box<dyn Error>> {
 fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(), Box<dyn Error>> {
     loop {
         if app.render {
-            ui(&mut terminal, &mut app)?;
+            let hold = ui(&mut terminal, app);
+            app = hold.0;
+            hold.1?;
         }
 
         if app.load {
-            *app.message.lock().unwrap() = Some(match app.page {
-                Page::MainMenu(_) => MainMenu::message(),
-                Page::ItemDisplay(_) => ItemInfo::message(),
-                Page::Search => Search::message(),
-                Page::Channel(_, _) => Channel::message(),
-            });
+            *app.message.lock().unwrap() = Some(app.page.message());
+            let mut watch_history = app.watch_history.clone();
             terminal.clear()?;
-            ui(&mut terminal, &mut app)?;
+            let hold = ui(&mut terminal, app);
+            app = hold.0;
+            hold.1?;
             let mut new_state = Vec::new();
             for row in app.state.iter() {
                 let mut row_vec = Vec::new();
                 for row_item in row.items.iter() {
-                    match &row_item.item {
-                        Item::MainMenu(item) => match item.load_item(&app) {
-                            Ok(new) => {
-                                row_vec.push(RowItem {
-                                    item: Item::MainMenu(new),
-                                    ..*row_item
-                                });
-                            }
-                            Err(e) => {
-                                row_vec.push(RowItem {
-                                    item: Item::MainMenu(item.clone()),
-                                    ..*row_item
-                                });
-                                *app.message.lock().unwrap() = Some(e.to_string());
-                            }
-                        },
-                        Item::ItemInfo(item) => {
-                            let mut watch_history = app.watch_history.clone();
-                            match item.load_item(&app, &mut watch_history) {
-                                Ok(new) => {
-                                    row_vec.push(RowItem {
-                                        item: Item::ItemInfo(new),
-                                        ..*row_item
-                                    });
-                                }
-                                Err(e) => {
-                                    row_vec.push(RowItem {
-                                        item: Item::ItemInfo(item.clone()),
-                                        ..*row_item
-                                    });
-                                    *app.message.lock().unwrap() = Some(e.to_string());
-                                }
-                            }
-                            app.watch_history = watch_history;
+                    match row_item.item.load_item(&app, &mut watch_history) {
+                        Ok(new) => {
+                            row_vec.push(RowItem {
+                                item: new,
+                                ..*row_item
+                            });
                         }
-                        Item::Search(item) => match item.load_item(&app) {
-                            Ok(new) => {
-                                row_vec.push(RowItem {
-                                    item: Item::Search(new),
-                                    ..*row_item
-                                });
-                            }
-                            Err(e) => {
-                                row_vec.push(RowItem {
-                                    item: Item::Search(item.clone()),
-                                    ..*row_item
-                                });
-                                *app.message.lock().unwrap() = Some(e.to_string());
-                            }
-                        },
-                        Item::Channel(item) => match item.load_item(&app) {
-                            Ok(new) => {
-                                row_vec.push(RowItem {
-                                    item: Item::Channel(new),
-                                    ..*row_item
-                                });
-                            }
-                            Err(e) => {
-                                row_vec.push(RowItem {
-                                    item: Item::Channel(item.clone()),
-                                    ..*row_item
-                                });
-                                *app.message.lock().unwrap() = Some(e.to_string());
-                            }
-                        },
-                        _ => {
+                        Err(e) => {
                             row_vec.push(RowItem {
                                 item: row_item.item.clone(),
                                 ..*row_item
                             });
+                            *app.message.lock().unwrap() = Some(e.to_string());
                         }
                     }
                 }
@@ -141,11 +83,13 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                 });
             }
 
+            app.watch_history = watch_history;
             app.state = new_state;
 
             app.load = false;
             terminal.clear()?;
-            ui(&mut terminal, &mut app)?;
+            let hold = ui(&mut terminal, app);
+            app = hold.0;
         } else {
             match event::read()? {
                 event::Event::Key(key) => {
@@ -188,15 +132,22 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
     }
 }
 
-fn ui<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> Result<(), Box<dyn Error>> {
-    terminal.draw(|mut frame| {
-        app.render(&mut frame);
-    })?;
+fn ui<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> (App, Result<(), Box<dyn Error>>) {
+    let (send, recv) = channel();
+    let res = terminal.draw(|mut frame| {
+        let app = app.render(&mut frame);
+        send.send(app).unwrap();
+    });
+
+    app = recv.recv().unwrap();
 
     *app.message.lock().unwrap() = None;
     app.render = false;
 
-    Ok(())
+    match res {
+        Ok(_) => (app, Ok(())),
+        Err(e) => (app, Err(Box::new(e))),
+    }
 }
 
 fn init() -> Result<(), Box<dyn Error>> {
