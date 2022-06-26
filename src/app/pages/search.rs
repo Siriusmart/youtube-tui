@@ -10,7 +10,7 @@ use tui::{
 };
 
 use crate::{
-    app::app::App,
+    app::{app::App, config::Action},
     functions::download_all_thumbnails,
     structs::{
         Item, ListItem, MiniChannel, MiniPlayList, MiniVideo, Page, Row, RowItem, WatchHistory,
@@ -44,13 +44,18 @@ impl ItemTrait for SearchItem {
     }
 
     fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
+        let action = match app.config.keybindings.0.get(&key) {
+            Some(action) => action,
+            None => return (false, app),
+        };
         match self {
-            SearchItem::Search { results, text_list } => match key {
-                KeyCode::Up => text_list.up(),
-                KeyCode::Down => text_list.down(),
-                KeyCode::PageUp => text_list.selected = 0,
-                KeyCode::PageDown => text_list.selected = text_list.items.len() - 1,
-                KeyCode::Enter => {
+            
+            SearchItem::Search { results, text_list } => match action {
+                Action::Up => text_list.up(),
+                Action::Down => text_list.down(),
+                Action::FirstItem => text_list.selected = 0,
+                Action::LastItem => text_list.selected = text_list.items.len() - 1,
+                Action::Select => {
                     if let Some(results_unwrapped) = results {
                         match results_unwrapped.iter().nth(text_list.selected).unwrap() {
                             ListItem::PageTurner(b) => {

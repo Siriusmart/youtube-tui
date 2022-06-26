@@ -14,11 +14,14 @@ YouTube TUI is a text user interface that provides a clean UI for browsing YouTu
 
 This program is being actively developed and there will be new features coming up every commit.
 
+![Screenshot](https://cdn.discordapp.com/attachments/906941311142219816/990684947830419526/Screenshot_20220626_192433.png)
+
 > ### What's new in this commit
 >
-> * Code is being cleaned up but still unreadable
-> * Haven't touched this project for a week because of exams, so I'm just trying to figure out how stuff works again
-> * Just a little save stat before I overhaul the configs and how it's handled
+> * More code cleanup
+> * Commands to be ran in Item Info page can be changed, items can be add/removed (in `page_commands.yml`)
+> * Keybindings can be created (VIM keybindings are included in default config)
+> * Config soft update (tries to add new options to the config, and if parsing config failed the config will be backed up and a new one will be generated)
 
 ## Installation
 
@@ -35,6 +38,16 @@ git clone https://github.com/sirusmart/youtube-tui && cd youtube-tui && cargo bu
 
 The binary is located at `./target/release/youtube-tui`, go move it to other locations so that you can launch the program with `youtube-tui` command.
 
+> ### Dependencies
+>
+> This program does not requires any dependencies, but it is suggested these three things on your system that can be launched via command:
+>
+> 1. A video player (Default to `mpv`)
+> 2. A terminal emulator (Defaults to `konsole`)
+> 3. A YouTube downloader (Defaults to `yt-dlp`, strongly suggest NOT to use `youtube-dl` because it is now very slow)
+>
+> None of these dependencies are required as you can change them in config (in `commands.yml`)
+
 ## Usage
 
 ### To launch
@@ -47,7 +60,7 @@ youtube-tui # or path to the binary
 
 |Key|What does it do|
 |---|---|
-|Arrow keys|Move in corresponding direction|
+|Arrow/Vim keys|Move in corresponding direction|
 |Right arrow|Move cursor right
 |Enter|Select/Launch|
 |Q|Quit the program|
@@ -55,6 +68,24 @@ youtube-tui # or path to the binary
 > ### Note
 >
 > These keys only work when nothing is selected. When something is selected, your key presses are passed directly to the "object" you've selected. Press escape (Esc) if you want to deselect.
+
+### Config
+
+All config files are loacted at `~/.config/youtube-tui/`, will write documentations for that later
+
+## Todo (First piority on top)
+
+* Put hard coded options into config files
+* User manual + documentations
+* Channel search and channel video sort
+* Recommended videos
+
+## Help needed
+
+Guys please I need help I'm kinda bad at coding tbh, these are stuff that I need help with
+
+* Publishing to the AUR
+* Printing full resolution images to the terminal with Sixels
 
 ## Credits
 
@@ -64,6 +95,7 @@ youtube-tui # or path to the binary
 
 
 ... and of course, credits to myself for not having the ability to read the docs for ytfzf and decided to make my own instead. 
-## Bug reports
 
-If there is an issue with this program, please open an issue on GitHub, thank you :D
+## Anything Missing?
+
+If there is a bug or you got a nice idea on what can be added to this program, feel free to open a GitHub issue. Thx :D

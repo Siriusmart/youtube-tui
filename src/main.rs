@@ -1,5 +1,5 @@
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, KeyCode},
+    event::{self, DisableMouseCapture, EnableMouseCapture},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -9,9 +9,7 @@ use tui::{
     Terminal,
 };
 use youtube_tui::{
-    app::{
-        app::App,
-    },
+    app::{app::App, config::Action},
     structs::{Row, RowItem},
 };
 
@@ -94,11 +92,15 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
             match event::read()? {
                 event::Event::Key(key) => {
                     if app.selected.is_none() {
-                        match key.code {
-                            KeyCode::Char('q') => {
+                        let action = match app.config.keybindings.0.get(&key.code) {
+                            Some(action) => *action,
+                            None => continue,
+                        };
+                        match action {
+                            Action::Exit => {
                                 return Ok(());
                             }
-                            KeyCode::Backspace => {
+                            Action::Back => {
                                 let holder = app.pop();
                                 app = holder.0;
                                 if holder.1 {
@@ -107,11 +109,11 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                                 app.render = true;
                                 continue;
                             }
-                            KeyCode::End => {
+                            Action::ClearHistory => {
                                 app.history = Vec::new();
                                 continue;
                             }
-                            KeyCode::Home => {
+                            Action::Home => {
                                 terminal.clear()?;
                                 app.home();
                                 continue;

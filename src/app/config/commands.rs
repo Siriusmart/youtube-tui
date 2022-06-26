@@ -1,240 +1,167 @@
-use std::{
-    error::Error,
-    fs::{self, OpenOptions},
-    io::Write,
-};
-
 use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, thread};
 
-use crate::functions::insert_vec;
+use crate::traits::ConfigItem;
 
-use super::{Config, EnvVar};
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct CommandsConfigTransitional {
-    video_player: Option<CommandConfig>,
-    audio_player: Option<CommandConfig>,
-    image_viewer: Option<CommandConfig>,
-    video_downloader: Option<CommandConfig>,
-    audio_downloader: Option<CommandConfig>,
-    terminal: Option<CommandConfig>,
-    playlist_audio_all: Option<CommandConfig>,
-    playlist_video_all: Option<CommandConfig>,
-    playlist_shuffle_audio_all: Option<CommandConfig>,
-    download_all_audio: Option<CommandConfig>,
-    download_all_video: Option<CommandConfig>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CommandsConfig {
-    pub video_player: CommandConfig,
-    pub audio_player: CommandConfig,
-    pub image_viewer: CommandConfig,
-    pub video_downloader: CommandConfig,
-    pub audio_downloader: CommandConfig,
-    pub terminal: CommandConfig,
-    pub playlist_audio_all: CommandConfig,
-    pub playlist_video_all: CommandConfig,
-    pub playlist_shuffle_audio_all: CommandConfig,
-    pub download_all_audio: CommandConfig,
-    pub download_all_video: CommandConfig,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CommandConfig {
-    pub command: String,
-    pub open_in_console: bool,
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct Command {
     pub args: Vec<String>,
+    pub message: String,
 }
 
-impl CommandConfig {
-    pub fn as_vec(&self) -> Vec<String> {
-        let mut args = self.args.clone();
-        args.insert(0, self.command.clone());
-        args
-    }
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct CommandsConfig(pub HashMap<String, Command>);
 
-    pub fn as_command_vec(self, env: EnvVar, config: &Config) -> Result<Vec<String>, ()> {
-        let mut out;
-        if self.open_in_console {
-            out = config.commands.terminal.as_vec();
-            let index = match out.iter().position(|x| x == "{command}") {
-                Some(index) => {
-                    out.swap_remove(index);
-                    index
-                }
-                None => out.len(),
-            };
+impl Command {
+    pub fn as_vec(&self, variables: &HashMap<String, String>) -> Result<Vec<String>, String> {
+        let mut out = Vec::new();
 
-            insert_vec(&mut out, self.as_vec(), index);
-        } else {
-            out = self.as_vec();
-        }
-
-        for x in out.iter_mut() {
-            match x.as_str() {
-                "{url}" => {
-                    if let Some(url) = &env.url {
-                        *x = url.clone();
-                    } else {
-                        return Err(());
-                    }
-                }
-
-                "{video_save_location}" => {
-                    *x = config.main.yt_dl.video_path.clone();
-                }
-
-                "{audio_save_location}" => {
-                    *x = config.main.yt_dl.audio_path.clone();
-                }
-
-                _ => {}
-            }
+        for arg in self.args.iter() {
+            out.push(match check_arg(arg) {
+                ArgType::Normal(s) => s,
+                ArgType::Variable(s) => match variables.get(s) {
+                    Some(s) => s.to_string(),
+                    None => return Err(s.to_string()),
+                },
+            })
         }
 
         Ok(out)
+    }
+
+    pub fn run_command(&self, variables: &HashMap<String, String>) -> Option<String> {
+        let mut args = match self.as_vec(variables) {
+            Ok(args) => args,
+            Err(s) => return Some(s),
+        }
+        .into_iter();
+        thread::spawn(move || {
+            let mut command = std::process::Command::new(args.next().unwrap());
+            for arg in args {
+                command.arg(arg);
+            }
+
+            let _ = command.output();
+        });
+
+        None
     }
 }
 
 impl Default for CommandsConfig {
     fn default() -> Self {
-        Self {
-            video_player: CommandConfig {
-                command: String::from("mpv"),
-                open_in_console: false,
-                args: vec![String::from("--no-terminal"), String::from("{url}")],
-            },
-            audio_player: CommandConfig {
-                command: String::from("mpv"),
-                open_in_console: true,
-                args: vec![String::from("--no-video"), String::from("{url}")],
-            },
-            image_viewer: CommandConfig {
-                command: String::from("mpv"),
-                open_in_console: false,
-                args: vec![String::from("{url}"), String::from("--no-terminal")],
-            },
-            video_downloader: CommandConfig {
-                command: String::from("yt-dlp"),
-                open_in_console: true,
-                args: vec![
-                    String::from("{url}"),
-                    String::from("-o"),
-                    String::from("{video_save_location}"),
-                ],
-            },
-            audio_downloader: CommandConfig {
-                command: String::from("yt-dlp"),
-                open_in_console: true,
-                args: vec![
-                    String::from("{url}"),
-                    String::from("-o"),
-                    String::from("{audio_save_location}"),
-                    String::from("-x"),
-                ],
-            },
-            terminal: CommandConfig {
-                command: String::from("konsole"),
-                open_in_console: false,
-                args: vec![String::from("-e"), String::from("{command}")],
-            },
-            playlist_audio_all: CommandConfig {
-                command: String::from("mpv"),
-                open_in_console: true,
-                args: vec![String::from("--no-video"), String::from("{url}")],
-            },
-            playlist_video_all: CommandConfig {
-                command: String::from("mpv"),
-                open_in_console: false,
-                args: vec![String::from("{url}"), String::from("--no-terminal")],
-            },
-            playlist_shuffle_audio_all: CommandConfig {
-                command: String::from("mpv"),
-                open_in_console: true,
-                args: vec![
-                    String::from("--no-video"),
-                    String::from("{url}"),
-                    String::from("--shuffle"),
-                ],
-            },
-            download_all_audio: CommandConfig {
-                command: String::from("yt-dlp"),
-                open_in_console: true,
-                args: vec![
-                    String::from("{url}"),
-                    String::from("-o"),
-                    String::from("{audio_save_location}"),
-                    String::from("-x"),
-                ],
-            },
-            download_all_video: CommandConfig {
-                command: String::from("yt-dlp"),
-                open_in_console: true,
-                args: vec![
-                    String::from("{url}"),
-                    String::from("-o"),
-                    String::from("{video_save_location}"),
-                ],
-            },
-        }
-    }
-}
+        let mut out = Self::blank();
 
-impl From<CommandsConfigTransitional> for CommandsConfig {
-    fn from(original: CommandsConfigTransitional) -> CommandsConfig {
-        let mut out = Self::default();
+        out.insert(
+            "video_player",
+            vec!["mpv", "{embed_url}", "--no-terminal"],
+            "Launched mpv",
+        );
+        out.insert(
+            "audio_player",
+            vec!["konsole", "-e", "mpv", "{embed_url}", "--no-video"],
+            "Opened mpv in new konsole window",
+        );
+        out.insert(
+            "audio_playlist_shuffle",
+            vec![
+                "konsole",
+                "-e",
+                "mpv",
+                "{embed_url}",
+                "--no-video",
+                "--shuffle",
+            ],
+            "Opened mpv in new konsole window",
+        );
+        out.insert(
+            "audio_playlist_loop",
+            vec![
+                "konsole",
+                "-e",
+                "mpv",
+                "{embed_url}",
+                "--no-video",
+                "--loop-playlist=inf",
+            ],
+            "Opened mpv in new konsole window",
+        );
+        out.insert(
+            "audio_playlist_shuffle_loop",
+            vec![
+                "konsole",
+                "-e",
+                "mpv",
+                "{embed_url}",
+                "--no-video",
+                "--loop-playlist=inf",
+                "--shuffle",
+            ],
+            "Opened mpv in new konsole window",
+        );
+        out.insert(
+            "video_downloader",
+            vec![
+                "konsole",
+                "-e",
+                "yt-dlp",
+                "{embed_url}",
+                "-o",
+                "{download_location}",
+            ],
+            "Download has started",
+        );
 
-        if let Some(video_player) = original.video_player {
-            out.video_player = video_player;
-        }
-
-        if let Some(audio_player) = original.audio_player {
-            out.audio_player = audio_player;
-        }
-
-        if let Some(image_viewer) = original.image_viewer {
-            out.image_viewer = image_viewer;
-        }
-
-        if let Some(video_downloader) = original.video_downloader {
-            out.video_downloader = video_downloader;
-        }
-
-        if let Some(audio_downloader) = original.audio_downloader {
-            out.audio_downloader = audio_downloader;
-        }
-
-        if let Some(terminal) = original.terminal {
-            out.terminal = terminal;
-        }
+        out.insert(
+            "audio_downloader",
+            vec![
+                "konsole",
+                "-e",
+                "yt-dlp",
+                "{embed_url}",
+                "-o",
+                "{download_location}",
+                "-x",
+            ],
+            "Download has started",
+        );
 
         out
     }
 }
 
 impl CommandsConfig {
-    pub fn load() -> Result<Self, Box<dyn Error>> {
-        let mut config = home::home_dir().expect("Cannot get your home directory");
-        let mut commands = CommandsConfig::default();
-        config.push(".config");
-        config.push("youtube-tui");
-        config.push("commands.yml");
+    fn blank() -> Self {
+        Self(HashMap::default())
+    }
 
-        if config.exists() {
-            let content = fs::read_to_string(config.as_os_str())?;
-            let commands_transitional: CommandsConfigTransitional = serde_yaml::from_str(&content)?;
-            commands = commands_transitional.into();
-        }
+    fn insert(&mut self, label: &str, command: Vec<&str>, msg: &str) {
+        self.0.insert(
+            label.to_string(),
+            Command {
+                args: command
+                    .into_iter()
+                    .map(|item| item.to_string())
+                    .collect::<Vec<_>>(),
+                message: msg.to_string(),
+            },
+        );
+    }
+}
 
-        let mut file = OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .create(true)
-            .open(config.as_os_str())?;
+impl ConfigItem<'_> for CommandsConfig {
+    type Struct = CommandsConfig;
+    const FILE_NAME: &'static str = "commands.yml";
+}
+enum ArgType<'a> {
+    Normal(String),
+    Variable(&'a str),
+}
 
-        write!(file, "{}", serde_yaml::to_string(&commands)?)?;
-
-        Ok(commands)
+fn check_arg(s: &str) -> ArgType {
+    if s.starts_with('{') && s.ends_with('}') {
+        ArgType::Variable(&s[1..s.len() - 1])
+    } else {
+        ArgType::Normal(s.to_string())
     }
 }

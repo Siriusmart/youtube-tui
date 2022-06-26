@@ -1,85 +1,50 @@
-use std::{
-    error::Error,
-    fs::{self, OpenOptions},
-    io::Write,
-};
+use std::collections::HashMap;
 
+use crate::traits::ConfigItem;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct MainConfigTransitional {
-    pub yt_dl: Option<YtDlConfig>,
-    pub max_watch_history: Option<usize>,
+fn max_watch_history_default() -> usize {
+    50
+}
+
+fn server_url_default() -> String {
+    String::from("https://vid.puffyan.us")
+}
+
+fn env_default() -> HashMap<String, String> {
+    let mut out = HashMap::default();
+
+    out.insert(
+        String::from("download_location"),
+        String::from("~/Downloads/%(title)s.%(ext)s"),
+    );
+
+    out
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MainConfig {
-    pub yt_dl: YtDlConfig,
+    #[serde(default = "max_watch_history_default")]
     pub max_watch_history: usize,
+
+    #[serde(default = "server_url_default")]
+    pub server_url: String,
+
+    #[serde(default = "env_default")]
+    pub env: HashMap<String, String>,
 }
 
 impl Default for MainConfig {
     fn default() -> Self {
         Self {
-            yt_dl: YtDlConfig::default(),
-            max_watch_history: 50,
+            max_watch_history: max_watch_history_default(),
+            server_url: server_url_default(),
+            env: env_default(),
         }
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct YtDlConfig {
-    pub video_path: String,
-    pub audio_path: String,
-}
-
-impl Default for YtDlConfig {
-    fn default() -> Self {
-        Self {
-            video_path: String::from("~/Downloads/%(title)s.%(ext)s"),
-            audio_path: String::from("~/Downloads/%(title)s.%(ext)s"),
-        }
-    }
-}
-
-impl From<MainConfigTransitional> for MainConfig {
-    fn from(config: MainConfigTransitional) -> Self {
-        let mut out = MainConfig::default();
-
-        if let Some(yt_dl) = config.yt_dl {
-            out.yt_dl = yt_dl;
-        }
-
-        if let Some(max_watch_history) = config.max_watch_history {
-            out.max_watch_history = max_watch_history;
-        }
-
-        out
-    }
-}
-
-impl MainConfig {
-    pub fn load() -> Result<Self, Box<dyn Error>> {
-        let mut config = home::home_dir().expect("Cannot get your home directory");
-        let mut main = MainConfig::default();
-        config.push(".config");
-        config.push("youtube-tui");
-        config.push("main.yml");
-
-        if config.exists() {
-            let content = fs::read_to_string(config.as_os_str())?;
-            let main_transitional: MainConfigTransitional = serde_yaml::from_str(&content)?;
-            main = main_transitional.into();
-        }
-
-        let mut file = OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .create(true)
-            .open(config.as_os_str())?;
-
-        write!(file, "{}", serde_yaml::to_string(&main)?)?;
-
-        Ok(main)
-    }
+impl ConfigItem<'_> for MainConfig {
+    type Struct = MainConfig;
+    const FILE_NAME: &'static str = "main.yml";
 }

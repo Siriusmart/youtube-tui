@@ -1,6 +1,9 @@
 use crossterm::event::KeyCode;
 
-use crate::widgets::text_list::TextList;
+use crate::{
+    app::config::{Action, Config},
+    widgets::text_list::TextList,
+};
 
 #[derive(Debug, Clone)]
 pub struct SearchSettings {
@@ -63,9 +66,14 @@ impl SearchSettings {
         vec
     }
 
-    pub fn key_input(&mut self, keycode: KeyCode) {
-        match keycode {
-            KeyCode::Up => {
+    pub fn key_input(&mut self, keycode: KeyCode, config: &Config) {
+        let action = match config.keybindings.0.get(&keycode) {
+            Some(action) => *action,
+            None => return,
+        };
+
+        match action {
+            Action::Up => {
                 if self.row {
                     self.text_list.up();
                     self.update_left()
@@ -94,7 +102,7 @@ impl SearchSettings {
                     }
                 }
             }
-            KeyCode::Down => {
+            Action::Down => {
                 if self.row {
                     self.text_list.down();
                     self.update_left()
@@ -123,13 +131,13 @@ impl SearchSettings {
                     }
                 }
             }
-            KeyCode::Left => {
+            Action::Left => {
                 self.row = true;
             }
-            KeyCode::Right => {
+            Action::Right => {
                 self.row = false;
             }
-            KeyCode::Enter => {
+            Action::Select => {
                 if self.text_list.selected == 4 && !self.row {
                     *self = Self::default();
                     self.text_list.selected = 4;
@@ -189,8 +197,8 @@ impl AsUrlString for SearchSettingsSortBy {
             match self {
                 SearchSettingsSortBy::Relevance => String::from("relevance"),
                 SearchSettingsSortBy::Rating => String::from("rating"),
-                SearchSettingsSortBy::Date => String::from("upload_date"),
-                SearchSettingsSortBy::ViewCount => String::from("view_count"),
+                SearchSettingsSortBy::Date => String::from("date"),
+                SearchSettingsSortBy::ViewCount => String::from("views"),
             }
         )
     }

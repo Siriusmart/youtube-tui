@@ -10,7 +10,7 @@ use tui::{
 };
 
 use crate::{
-    app::app::App,
+    app::{app::App, config::Action},
     functions::download_all_thumbnails,
     structs::{
         FullChannel, Item, ListItem, MiniPlayList, MiniVideo, Page, Row, RowItem, WatchHistory,
@@ -294,22 +294,27 @@ impl ItemTrait for ChannelItem {
     }
 
     fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
+        let action = match app.config.keybindings.0.get(&key) {
+            Some(action) => action,
+            None => return (false, app),
+        };
+
         match self {
             ChannelItem::InfoDisplay(displayitem) => match displayitem {
-                ChannelDisplayItem::Videos(videos, textlist) => match key {
-                    KeyCode::Up => {
+                ChannelDisplayItem::Videos(videos, textlist) => match action {
+                    Action::Up => {
                         textlist.up();
                     }
-                    KeyCode::Down => {
+                    Action::Down => {
                         textlist.down();
                     }
-                    KeyCode::PageUp => {
+                    Action::FirstItem => {
                         textlist.selected = 0;
                     }
-                    KeyCode::PageDown => {
+                    Action::LastItem => {
                         textlist.selected = textlist.items.len() - 1;
                     }
-                    KeyCode::Enter => {
+                    Action::Select => {
                         let state = ItemInfo::default();
                         let mut history = app.history.clone();
                         history.push(app.into());
@@ -330,20 +335,20 @@ impl ItemTrait for ChannelItem {
                     _ => {}
                 },
 
-                ChannelDisplayItem::Playlists(playlists, textlist) => match key {
-                    KeyCode::Up => {
+                ChannelDisplayItem::Playlists(playlists, textlist) => match action {
+                    Action::Up => {
                         textlist.up();
                     }
-                    KeyCode::Down => {
+                    Action::Down => {
                         textlist.down();
                     }
-                    KeyCode::PageUp => {
+                    Action::FirstItem => {
                         textlist.selected = 0;
                     }
-                    KeyCode::PageDown => {
+                    Action::LastItem => {
                         textlist.selected = textlist.items.len() - 1;
                     }
-                    KeyCode::Enter => {
+                    Action::Select => {
                         let state = ItemInfo::default();
                         let mut history = app.history.clone();
                         history.push(app.into());

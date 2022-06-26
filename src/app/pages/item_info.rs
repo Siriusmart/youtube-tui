@@ -1,13 +1,14 @@
 use std::{
     collections::LinkedList,
     error::Error,
-    process::Command,
-    sync::{Arc, Mutex},
-    thread,
 };
 
 use crate::{
-    app::{app::App, config::EnvVar, pages::global::*},
+    app::{
+        app::App,
+        config::{Action, PageCommand},
+        pages::{channel::*, global::*},
+    },
     functions::download_all_thumbnails,
     structs::{FullPlayList, FullVideo, Item, ListItem, Page, Row, RowItem, WatchHistory},
     traits::{ItemTrait, PageTrait},
@@ -21,10 +22,7 @@ use tui::{
     Frame,
 };
 
-use super::{
-    channel::{Channel, ChannelPage},
-    global::GlobalItem,
-};
+use super::global::GlobalItem;
 
 #[derive(Debug, Clone)]
 pub enum ItemInfoItem {
@@ -38,6 +36,7 @@ pub struct VideoItemInfo {
     video: FullVideo,
     list: TextList,
     mode: Mode,
+    commands: Vec<PageCommand>,
 }
 
 #[derive(Debug, Clone)]
@@ -47,6 +46,7 @@ pub struct PlayListItemInfo {
     playlist_view_list: TextList,
     display_view: PlayListDisplayView,
     mode: Mode,
+    commands: Vec<PageCommand>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -76,173 +76,22 @@ impl ItemTrait for ItemInfoItem {
     }
 
     fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
+        let action = match app.config.keybindings.0.get(&key) {
+            Some(action) => *action,
+            None => return (false, app),
+        };
         match self {
-            ItemInfoItem::Video(videoinfo) => match key {
-                KeyCode::Up => videoinfo.list.up(),
-                KeyCode::Down => videoinfo.list.down(),
-                KeyCode::PageUp => videoinfo.list.selected = 0,
-                KeyCode::PageDown => videoinfo.list.selected = videoinfo.list.items.len() - 1,
-                KeyCode::Enter => {
-                    if videoinfo.list.selected < 5 {
-                        *app.message.lock().unwrap() = Some(String::from("Launched application"));
-                    }
+            ItemInfoItem::Video(videoinfo) => match action {
+                Action::Up => videoinfo.list.up(),
+                Action::Down => videoinfo.list.down(),
+                Action::FirstItem => videoinfo.list.selected = 0,
+                Action::LastItem => videoinfo.list.selected = videoinfo.list.items.len() - 1,
+                Action::Select => {
+                    let command = &videoinfo.commands[videoinfo.list.selected];
 
-                    match videoinfo.list.selected {
-                        0 => {
-                            let command =
-                                match app.config.commands.video_player.clone().as_command_vec(
-                                    EnvVar {
-                                        url: Some(match videoinfo.mode {
-                                            Mode::Youtube => {
-                                                format!(
-                                                    "https://youtu.be/{}",
-                                                    videoinfo.video.video_id
-                                                )
-                                            }
-                                            Mode::Invidious => {
-                                                format!(
-                                                    "{}/embed/{}",
-                                                    app.client.server, videoinfo.video.video_id
-                                                )
-                                            }
-                                        }),
-                                        ..Default::default()
-                                    },
-                                    &app.config,
-                                ) {
-                                    Ok(command) => command,
-                                    Err(_) => {
-                                        *app.message.lock().unwrap() =
-                                            Some(String::from("Error in parsing launch command"));
-                                        return (false, app);
-                                    }
-                                };
-
-                            run_command(command, app.message.clone());
-                        }
-                        1 => {
-                            let command =
-                                match app.config.commands.audio_player.clone().as_command_vec(
-                                    EnvVar {
-                                        url: Some(match videoinfo.mode {
-                                            Mode::Youtube => {
-                                                format!(
-                                                    "https://youtu.be/{}",
-                                                    videoinfo.video.video_id
-                                                )
-                                            }
-                                            Mode::Invidious => {
-                                                format!(
-                                                    "{}/embed/{}",
-                                                    app.client.server, videoinfo.video.video_id
-                                                )
-                                            }
-                                        }),
-                                        ..Default::default()
-                                    },
-                                    &app.config,
-                                ) {
-                                    Ok(command) => command,
-                                    Err(_) => {
-                                        *app.message.lock().unwrap() =
-                                            Some(String::from("Error in parsing launch command"));
-                                        return (false, app);
-                                    }
-                                };
-
-                            run_command(command, app.message.clone());
-                        }
-                        2 => {
-                            let command =
-                                match app.config.commands.video_downloader.clone().as_command_vec(
-                                    EnvVar {
-                                        url: Some(match videoinfo.mode {
-                                            Mode::Youtube => {
-                                                format!(
-                                                    "https://youtu.be/{}",
-                                                    videoinfo.video.video_id
-                                                )
-                                            }
-                                            Mode::Invidious => {
-                                                format!(
-                                                    "{}/embed/{}",
-                                                    app.client.server, videoinfo.video.video_id
-                                                )
-                                            }
-                                        }),
-                                        ..Default::default()
-                                    },
-                                    &app.config,
-                                ) {
-                                    Ok(command) => command,
-                                    Err(_) => {
-                                        *app.message.lock().unwrap() =
-                                            Some(String::from("Error in parsing launch command"));
-                                        return (false, app);
-                                    }
-                                };
-
-                            run_command(command, app.message.clone());
-                        }
-                        3 => {
-                            let command =
-                                match app.config.commands.audio_downloader.clone().as_command_vec(
-                                    EnvVar {
-                                        url: Some(match videoinfo.mode {
-                                            Mode::Youtube => {
-                                                format!(
-                                                    "https://youtu.be/{}",
-                                                    videoinfo.video.video_id
-                                                )
-                                            }
-                                            Mode::Invidious => {
-                                                format!(
-                                                    "{}/embed/{}",
-                                                    app.client.server, videoinfo.video.video_id
-                                                )
-                                            }
-                                        }),
-                                        ..Default::default()
-                                    },
-                                    &app.config,
-                                ) {
-                                    Ok(command) => command,
-                                    Err(_) => {
-                                        *app.message.lock().unwrap() =
-                                            Some(String::from("Error in parsing launch command"));
-                                        return (false, app);
-                                    }
-                                };
-
-                            run_command(command, app.message.clone());
-                        }
-                        4 => {
-                            let mut dir = home::home_dir().unwrap();
-
-                            dir.push(".cache");
-                            dir.push("youtube-tui");
-                            dir.push("thumbnails");
-                            dir.push(format!("{}.png", videoinfo.video.video_id));
-
-                            let command =
-                                match app.config.commands.image_viewer.clone().as_command_vec(
-                                    EnvVar {
-                                        url: Some((*dir.as_path().to_string_lossy()).to_string()),
-                                        ..Default::default()
-                                    },
-                                    &app.config,
-                                ) {
-                                    Ok(command) => command,
-                                    Err(_) => {
-                                        *app.message.lock().unwrap() =
-                                            Some(String::from("Error in parsing launch command"));
-                                        return (false, app);
-                                    }
-                                };
-
-                            run_command(command, app.message.clone());
-                        }
-                        5 => {
+                    match command.command.as_str() {
+                        "{toggle_mode}" => videoinfo.mode.toggle(),
+                        "{goto_channel}" => {
                             let state = Channel::default();
                             let mut history = app.history.clone();
                             history.push(app.into());
@@ -261,259 +110,61 @@ impl ItemTrait for ItemInfoItem {
                                 },
                             );
                         }
-                        6 => {
-                            videoinfo.mode.toggle();
-                        }
+                        _ => {
+                            match app.config.commands.0.get(&command.command) {
+                                Some(command) => {
+                                    let mut env = app.config.main.env.clone();
 
-                        _ => {}
-                    }
+                                    env.insert(
+                                        String::from("embed_url"),
+                                        format!(
+                                            "{}/embed/{}",
+                                            match videoinfo.mode {
+                                                Mode::Invidious => app.client.server.as_str(),
+                                                Mode::Youtube => "https://youtube.com",
+                                            },
+                                            videoinfo.video.video_id
+                                        ),
+                                    );
+
+                                    match command.run_command(&env) {
+                                        Some(e) => {
+                                            *app.message.lock().unwrap() =
+                                                Some(format!("Unknown variable `{}`", e))
+                                        }
+                                        None => {
+                                            *app.message.lock().unwrap() =
+                                                Some(command.message.clone())
+                                        }
+                                    }
+                                }
+                                None => {
+                                    *app.message.lock().unwrap() =
+                                        Some(format!("Unkown command `{}`", &command.command));
+                                }
+                            };
+                        }
+                    };
                 }
                 _ => {}
             },
 
             ItemInfoItem::PlayList(playlistinfo) => match playlistinfo.display_view {
-                PlayListDisplayView::PlayListView => match key {
-                    KeyCode::Up => playlistinfo.playlist_view_list.up(),
-                    KeyCode::Down => playlistinfo.playlist_view_list.down(),
-                    KeyCode::PageUp => playlistinfo.playlist_view_list.selected = 0,
-                    KeyCode::PageDown => {
+                PlayListDisplayView::PlayListView => match action {
+                    Action::Up => playlistinfo.playlist_view_list.up(),
+                    Action::Down => playlistinfo.playlist_view_list.down(),
+                    Action::FirstItem => playlistinfo.playlist_view_list.selected = 0,
+                    Action::LastItem => {
                         playlistinfo.playlist_view_list.selected =
                             playlistinfo.playlist_view_list.items.len() - 1
                     }
-                    KeyCode::Enter => {
-                        if playlistinfo.playlist_view_list.selected > 0
-                            && playlistinfo.playlist_view_list.selected < 7
-                        {
-                            *app.message.lock().unwrap() =
-                                Some(String::from("Launched application"));
-                        }
+                    Action::Select => {
+                        let command =
+                            &playlistinfo.commands[playlistinfo.playlist_view_list.selected];
 
-                        match playlistinfo.playlist_view_list.selected {
-                            0 => {
-                                playlistinfo.display_view = playlistinfo.display_view.toggle();
-                            }
-
-                            1 => {
-                                let command = match app
-                                    .config
-                                    .commands
-                                    .playlist_video_all
-                                    .clone()
-                                    .as_command_vec(
-                                        EnvVar {
-                                            url: Some(match playlistinfo.mode {
-                                                Mode::Youtube => {
-                                                    format!(
-                                                        "https://www.youtube.com/playlist?list={}",
-                                                        playlistinfo.playlist.playlist_id
-                                                    )
-                                                }
-                                                Mode::Invidious => {
-                                                    format!(
-                                                        "{}/playlist?list={}",
-                                                        app.client.server,
-                                                        playlistinfo.playlist.playlist_id
-                                                    )
-                                                }
-                                            }),
-                                            ..Default::default()
-                                        },
-                                        &app.config,
-                                    ) {
-                                    Ok(command) => command,
-                                    Err(_) => {
-                                        *app.message.lock().unwrap() =
-                                            Some(String::from("Error in parsing launch command"));
-                                        return (false, app);
-                                    }
-                                };
-
-                                run_command(command, app.message.clone());
-                            }
-
-                            2 => {
-                                let command = match app
-                                    .config
-                                    .commands
-                                    .playlist_audio_all
-                                    .clone()
-                                    .as_command_vec(
-                                        EnvVar {
-                                            url: Some(match playlistinfo.mode {
-                                                Mode::Youtube => {
-                                                    format!(
-                                                        "https://www.youtube.com/playlist?list={}",
-                                                        playlistinfo.playlist.playlist_id
-                                                    )
-                                                }
-                                                Mode::Invidious => {
-                                                    format!(
-                                                        "{}/playlist?list={}",
-                                                        app.client.server,
-                                                        playlistinfo.playlist.playlist_id
-                                                    )
-                                                }
-                                            }),
-                                            ..Default::default()
-                                        },
-                                        &app.config,
-                                    ) {
-                                    Ok(command) => command,
-                                    Err(_) => {
-                                        *app.message.lock().unwrap() =
-                                            Some(String::from("Error in parsing launch command"));
-                                        return (false, app);
-                                    }
-                                };
-
-                                run_command(command, app.message.clone());
-                            }
-
-                            3 => {
-                                let command = match app
-                                    .config
-                                    .commands
-                                    .playlist_shuffle_audio_all
-                                    .clone()
-                                    .as_command_vec(
-                                        EnvVar {
-                                            url: Some(match playlistinfo.mode {
-                                                Mode::Youtube => {
-                                                    format!(
-                                                        "https://www.youtube.com/playlist?list={}",
-                                                        playlistinfo.playlist.playlist_id
-                                                    )
-                                                }
-                                                Mode::Invidious => {
-                                                    format!(
-                                                        "{}/playlist?list={}",
-                                                        app.client.server,
-                                                        playlistinfo.playlist.playlist_id
-                                                    )
-                                                }
-                                            }),
-                                            ..Default::default()
-                                        },
-                                        &app.config,
-                                    ) {
-                                    Ok(command) => command,
-                                    Err(_) => {
-                                        *app.message.lock().unwrap() =
-                                            Some(String::from("Error in parsing launch command"));
-                                        return (false, app);
-                                    }
-                                };
-
-                                run_command(command, app.message.clone());
-                            }
-
-                            4 => {
-                                let command = match app
-                                    .config
-                                    .commands
-                                    .download_all_video
-                                    .clone()
-                                    .as_command_vec(
-                                        EnvVar {
-                                            url: Some(match playlistinfo.mode {
-                                                Mode::Youtube => {
-                                                    format!(
-                                                        "https://www.youtube.com/playlist?list={}",
-                                                        playlistinfo.playlist.playlist_id
-                                                    )
-                                                }
-                                                Mode::Invidious => {
-                                                    format!(
-                                                        "{}/playlist?list={}",
-                                                        app.client.server,
-                                                        playlistinfo.playlist.playlist_id
-                                                    )
-                                                }
-                                            }),
-                                            ..Default::default()
-                                        },
-                                        &app.config,
-                                    ) {
-                                    Ok(command) => command,
-                                    Err(_) => {
-                                        *app.message.lock().unwrap() =
-                                            Some(String::from("Error in parsing launch command"));
-                                        return (false, app);
-                                    }
-                                };
-
-                                run_command(command, app.message.clone());
-                            }
-
-                            5 => {
-                                let command = match app
-                                    .config
-                                    .commands
-                                    .download_all_audio
-                                    .clone()
-                                    .as_command_vec(
-                                        EnvVar {
-                                            url: Some(match playlistinfo.mode {
-                                                Mode::Youtube => {
-                                                    format!(
-                                                        "https://www.youtube.com/playlist?list={}",
-                                                        playlistinfo.playlist.playlist_id
-                                                    )
-                                                }
-                                                Mode::Invidious => {
-                                                    format!(
-                                                        "{}/playlist?list={}",
-                                                        app.client.server,
-                                                        playlistinfo.playlist.playlist_id
-                                                    )
-                                                }
-                                            }),
-                                            ..Default::default()
-                                        },
-                                        &app.config,
-                                    ) {
-                                    Ok(command) => command,
-                                    Err(_) => {
-                                        *app.message.lock().unwrap() =
-                                            Some(String::from("Error in parsing launch command"));
-                                        return (false, app);
-                                    }
-                                };
-
-                                run_command(command, app.message.clone());
-                            }
-
-                            6 => {
-                                let mut dir = home::home_dir().unwrap();
-
-                                dir.push(".cache");
-                                dir.push("youtube-tui");
-                                dir.push("thumbnails");
-                                dir.push(format!("{}.png", playlistinfo.playlist.playlist_id));
-
-                                let command =
-                                    match app.config.commands.image_viewer.clone().as_command_vec(
-                                        EnvVar {
-                                            url: Some(
-                                                (*dir.as_path().to_string_lossy()).to_string(),
-                                            ),
-                                            ..Default::default()
-                                        },
-                                        &app.config,
-                                    ) {
-                                        Ok(command) => command,
-                                        Err(_) => {
-                                            *app.message.lock().unwrap() = Some(String::from(
-                                                "Error in parsing launch command",
-                                            ));
-                                            return (false, app);
-                                        }
-                                    };
-
-                                run_command(command, app.message.clone());
-                            }
-
-                            7 => {
+                        match command.command.as_str() {
+                            "{toggle_mode}" => playlistinfo.mode.toggle(),
+                            "{goto_channel}" => {
                                 let state = Channel::default();
                                 let mut history = app.history.clone();
                                 history.push(app.into());
@@ -524,35 +175,66 @@ impl ItemTrait for ItemInfoItem {
                                         history,
                                         page: Page::Channel(
                                             ChannelPage::Home,
-                                            playlistinfo.playlist.author_id.clone(),
+                                            playlistinfo.playlist.playlist_id.clone(),
                                         ),
                                         selectable: App::selectable(&state),
                                         state,
-                                        load: true,
                                         ..Default::default()
                                     },
                                 );
                             }
 
-                            8 => {
-                                playlistinfo.mode.toggle();
+                            "{switch_view}" => {
+                                playlistinfo.display_view = playlistinfo.display_view.toggle()
                             }
+                            _ => {
+                                match app.config.commands.0.get(&command.command) {
+                                    Some(command) => {
+                                        let mut env = app.config.main.env.clone();
 
-                            _ => {}
-                        }
+                                        env.insert(
+                                            String::from("embed_url"),
+                                            format!(
+                                                "{}/playlist?list={}",
+                                                match playlistinfo.mode {
+                                                    Mode::Invidious => app.client.server.as_str(),
+                                                    Mode::Youtube => "https://youtube.com",
+                                                },
+                                                playlistinfo.playlist.playlist_id
+                                            ),
+                                        );
+
+                                        match command.run_command(&env) {
+                                            Some(e) => {
+                                                *app.message.lock().unwrap() =
+                                                    Some(format!("Unknown variable `{}`", e))
+                                            }
+                                            None => {
+                                                *app.message.lock().unwrap() =
+                                                    Some(command.message.clone())
+                                            }
+                                        }
+                                    }
+                                    None => {
+                                        *app.message.lock().unwrap() =
+                                            Some(format!("Unkown command `{}`", &command.command));
+                                    }
+                                };
+                            }
+                        };
                     }
 
                     _ => {}
                 },
-                PlayListDisplayView::VideoList => match key {
-                    KeyCode::Up => playlistinfo.video_view_list.up(),
-                    KeyCode::Down => playlistinfo.video_view_list.down(),
-                    KeyCode::PageUp => playlistinfo.video_view_list.selected = 0,
-                    KeyCode::PageDown => {
+                PlayListDisplayView::VideoList => match action {
+                    Action::Up => playlistinfo.video_view_list.up(),
+                    Action::Down => playlistinfo.video_view_list.down(),
+                    Action::FirstItem => playlistinfo.video_view_list.selected = 0,
+                    Action::LastItem => {
                         playlistinfo.video_view_list.selected =
                             playlistinfo.video_view_list.items.len() - 1
                     }
-                    KeyCode::Enter => match playlistinfo.video_view_list.selected {
+                    Action::Select => match playlistinfo.video_view_list.selected {
                         0 => {
                             playlistinfo.display_view = playlistinfo.display_view.toggle();
                         }
@@ -603,20 +285,20 @@ impl ItemTrait for ItemInfoItem {
                             video.video_thumbnail.clone(),
                             video.video_id.clone(),
                         )]));
-                        list.items(vec![
-                            String::from("Watch video"),
-                            String::from("Play audio"),
-                            String::from("Download video"),
-                            String::from("Download audio"),
-                            String::from("View thumbnail"),
-                            String::from("Visit channel"),
-                            String::from("Mode placeholder"),
-                        ]);
+                        let commands = app
+                            .config
+                            .page_commands
+                            .0
+                            .get("item_info:video")
+                            .unwrap_or(&Vec::new())
+                            .clone();
+                        list.items(commands.iter().map(|item| item.label.to_string()).collect());
 
                         let iteminfo = VideoItemInfo {
                             video,
                             list,
                             mode: Mode::Youtube,
+                            commands,
                         };
 
                         watch_history.push(
@@ -645,17 +327,15 @@ impl ItemTrait for ItemInfoItem {
                             .items
                             .extend(playlist.videos.iter().map(|v| v.title.clone()));
 
-                        playlist_text_list.items(vec![
-                            String::from("Switch view"),
-                            String::from("Watch all"),
-                            String::from("Play all audio"),
-                            String::from("Shuffle play all audio"),
-                            String::from("Download all video"),
-                            String::from("Download all audio"),
-                            String::from("View thumbnail"),
-                            String::from("Visit channel"),
-                            String::from("Mode placeholder"),
-                        ]);
+                        let commands = app
+                            .config
+                            .page_commands
+                            .0
+                            .get("item_info:playlist")
+                            .unwrap_or(&Vec::new())
+                            .clone();
+                        playlist_text_list
+                            .items(commands.iter().map(|item| item.label.to_string()).collect());
 
                         let iteminfo = PlayListItemInfo {
                             playlist: playlist,
@@ -663,6 +343,7 @@ impl ItemTrait for ItemInfoItem {
                             playlist_view_list: playlist_text_list,
                             mode: Mode::Youtube,
                             display_view: PlayListDisplayView::PlayListView,
+                            commands,
                         };
 
                         watch_history.push(
@@ -682,12 +363,6 @@ impl ItemTrait for ItemInfoItem {
     }
 
     fn render_item<B: Backend>(
-        // &mut self,
-        // frame: &mut Frame<B>,
-        // rect: Rect,
-        // selected: bool,
-        // hover: bool,
-        // popup_focus: bool,
         &self,
         frame: &mut Frame<B>,
         rect: Rect,
@@ -701,7 +376,12 @@ impl ItemTrait for ItemInfoItem {
         match self {
             ItemInfoItem::Video(videoinfo) => {
                 let mut list = videoinfo.list.clone();
-                list.items[videoinfo.list.items.len() - 1] = format!("Mode: {}", videoinfo.mode);
+
+                list.items.iter_mut().for_each(|item| match item.as_str() {
+                    "{mode}" => *item = format!("Mode: {}", videoinfo.mode),
+                    _ => {}
+                });
+                // list.items[videoinfo.list.items.len() - 1] = format!("Mode: {}", videoinfo.mode);
 
                 let split = HorizontalSplit::default()
                     .percentages(vec![40, 60])
@@ -771,12 +451,15 @@ impl ItemTrait for ItemInfoItem {
                         frame.render_widget(list, chunks[1]);
                     }
                     PlayListDisplayView::PlayListView => {
-                        let mut playlist_view_list = playlistinfo.playlist_view_list.clone();
-                        playlist_view_list.items[playlistinfo.playlist_view_list.items.len() - 1] =
-                            format!("Mode: {}", playlistinfo.mode);
-
                         let mut list = playlistinfo.playlist_view_list.clone();
+
+                        list.items.iter_mut().for_each(|item| match item.as_str() {
+                            "{mode}" => *item = format!("Mode: {}", playlistinfo.mode),
+                            _ => {}
+                        });
+
                         list.area(chunks[1]);
+
                         if selected {
                             list.selected_style(Style::default().fg(Color::LightRed));
                         } else {
@@ -860,24 +543,3 @@ impl PageTrait for ItemInfo {
 }
 
 impl ItemInfoItem {}
-
-fn run_command(args: Vec<String>, message: Arc<Mutex<Option<String>>>) {
-    thread::spawn(move || {
-        let mut args = args.into_iter();
-        let mut command = Command::new(args.next().unwrap());
-        for arg in args {
-            command.arg(arg);
-        }
-
-        let res = command.spawn();
-        if let Err(e) = res {
-            *message.lock().unwrap() = Some(
-                e.to_string()
-                    .lines()
-                    .next()
-                    .unwrap_or("An error occured")
-                    .to_string(),
-            );
-        }
-    });
-}

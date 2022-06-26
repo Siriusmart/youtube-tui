@@ -3,6 +3,7 @@ use std::{collections::LinkedList, error::Error, fs};
 use crate::{
     app::{
         app::App,
+        config::Action,
         pages::{global::*, item_info::*},
     },
     functions::download_all_thumbnails,
@@ -254,45 +255,51 @@ impl ItemTrait for MainMenuItem {
 
     fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
         match self {
-            MainMenuItem::VideoList(Some((list, textlist, _))) => match key {
-                KeyCode::Up => textlist.up(),
-                KeyCode::Down => textlist.down(),
-                KeyCode::PageUp => textlist.selected = 0,
-                KeyCode::PageDown => textlist.selected = textlist.items.len() - 1,
-                KeyCode::Enter => {
-                    let state = ItemInfo::default();
-                    let mut history = app.history.clone();
-                    history.push(app.into());
+            MainMenuItem::VideoList(Some((list, textlist, _))) => {
+                let action = match app.config.keybindings.0.get(&key) {
+                    Some(action) => action,
+                    None => return (false, app),
+                };
+                match action {
+                    Action::Up => textlist.up(),
+                    Action::Down => textlist.down(),
+                    Action::FirstItem => textlist.selected = 0,
+                    Action::LastItem => textlist.selected = textlist.items.len() - 1,
+                    Action::Select => {
+                        let state = ItemInfo::default();
+                        let mut history = app.history.clone();
+                        history.push(app.into());
 
-                    return (
-                        false,
-                        App {
-                            history,
-                            page: Page::ItemDisplay(
-                                match list.iter().nth(textlist.selected).unwrap() {
-                                    ListItem::FullVideo(item) => {
-                                        DisplayItem::Video(item.video_id.clone())
-                                    }
-                                    ListItem::FullPlayList(item) => {
-                                        DisplayItem::PlayList(item.playlist_id.clone())
-                                    }
-                                    ListItem::MiniPlayList(item) => {
-                                        DisplayItem::PlayList(item.playlist_id.clone())
-                                    }
-                                    ListItem::MiniVideo(item) => {
-                                        DisplayItem::Video(item.video_id.clone())
-                                    }
-                                    _ => unreachable!(),
-                                },
-                            ),
-                            selectable: App::selectable(&state),
-                            state,
-                            ..Default::default()
-                        },
-                    );
+                        return (
+                            false,
+                            App {
+                                history,
+                                page: Page::ItemDisplay(
+                                    match list.iter().nth(textlist.selected).unwrap() {
+                                        ListItem::FullVideo(item) => {
+                                            DisplayItem::Video(item.video_id.clone())
+                                        }
+                                        ListItem::FullPlayList(item) => {
+                                            DisplayItem::PlayList(item.playlist_id.clone())
+                                        }
+                                        ListItem::MiniPlayList(item) => {
+                                            DisplayItem::PlayList(item.playlist_id.clone())
+                                        }
+                                        ListItem::MiniVideo(item) => {
+                                            DisplayItem::Video(item.video_id.clone())
+                                        }
+                                        _ => unreachable!(),
+                                    },
+                                ),
+                                selectable: App::selectable(&state),
+                                state,
+                                ..Default::default()
+                            },
+                        );
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
+            }
             _ => {}
         }
 

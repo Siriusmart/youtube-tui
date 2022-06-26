@@ -26,7 +26,7 @@ pub enum GlobalItem {
     MessageBar,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Mode {
     Youtube,
     Invidious,
@@ -109,7 +109,7 @@ impl ItemTrait for GlobalItem {
                 _ => {}
             },
             GlobalItem::SearchSettings => {
-                app.search_settings.key_input(key);
+                app.search_settings.key_input(key, &app.config);
             }
             _ => {}
         }
@@ -118,15 +118,6 @@ impl ItemTrait for GlobalItem {
     }
 
     fn render_item<B: Backend>(
-        // &self,
-        // frame: &mut Frame<B>,
-        // rect: Rect,
-        // selected: bool,
-        // hover: bool,
-        // popup_render: bool,
-        // message: &Option<String>,
-        // search_settings: &mut SearchSettings,
-        // search_text: &String,
         &self,
         frame: &mut Frame<B>,
         rect: Rect,

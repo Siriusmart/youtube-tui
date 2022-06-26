@@ -19,7 +19,7 @@ use tui::{
 };
 
 use super::{
-    config::Config,
+    config::{Action, Config},
     pages::{channel::Channel, item_info::ItemInfo, search::Search},
 };
 
@@ -45,13 +45,14 @@ pub struct App {
 
 impl Default for App {
     fn default() -> Self {
+        let config = Config::load().unwrap();
         let state = MainMenu::default();
         let selectable = App::selectable(&state);
         Self {
             page: Page::default(),
             state,
             selectable,
-            client: Client::new(String::from("https://vid.puffyan.us")),
+            client: Client::new(config.main.server_url.clone()),
             selected: None,
             hover: None,
             message: Arc::new(Mutex::new(None)),
@@ -59,7 +60,7 @@ impl Default for App {
             render: true,
             popup_focus: false,
             history: Vec::new(),
-            config: Config::load().unwrap(),
+            config,
             watch_history: WatchHistory::load(),
             search_settings: SearchSettings::default(),
             search_text: String::new(),
@@ -94,8 +95,10 @@ impl App {
     }
 
     pub fn key_input(mut self, key: KeyCode) -> App {
+        let action = self.config.keybindings.0.get(&key);
+
         if let Some((x, y)) = self.selected {
-            if key != KeyCode::Esc {
+            if action != Some(&Action::Deselect) {
                 let mut item = self.state[y].items[x].item.clone();
                 let updated;
                 (updated, self) = item.key_input(key, self);
@@ -107,8 +110,13 @@ impl App {
             }
         }
 
-        match key {
-            KeyCode::Enter => {
+        let action = match action {
+            Some(action) => *action,
+            None => return self,
+        };
+
+        match action {
+            Action::Select => {
                 if self.hover.is_some() && self.selected.is_none() {
                     let (mut x, mut y) = self.hover.unwrap();
                     (x, y) = self.selectable[y][x];
@@ -130,7 +138,7 @@ impl App {
                     return self;
                 }
             }
-            KeyCode::Esc => {
+            Action::Deselect => {
                 if self.selected.is_some() {
                     self.selected = None;
                     self.popup_focus = false;
@@ -142,8 +150,8 @@ impl App {
         }
 
         match &mut self.hover {
-            Some((x, y)) => match key {
-                KeyCode::Up => {
+            Some((x, y)) => match action {
+                Action::Up => {
                     if *y > 0 {
                         let temp_y = *y - 1;
                         if *x > self.selectable[temp_y].len() {
@@ -158,7 +166,7 @@ impl App {
                         }
                     }
                 }
-                KeyCode::Down => {
+                Action::Down => {
                     if *y < self.selectable.len() - 1 {
                         *y += 1;
                         if *x > self.selectable[*y].len() - 1 {
@@ -167,13 +175,13 @@ impl App {
                     }
                 }
 
-                KeyCode::Left => {
+                Action::Left => {
                     if *x > 0 {
                         *x -= 1;
                     }
                 }
 
-                KeyCode::Right => {
+                Action::Right => {
                     if *x < self.selectable[*y].len() - 1 {
                         *x += 1;
                     }
@@ -181,17 +189,17 @@ impl App {
 
                 _ => {}
             },
-            None => match key {
-                KeyCode::Up => {
+            None => match action {
+                Action::Up => {
                     self.hover = Some((0, 0));
                 }
-                KeyCode::Down => {
+                Action::Down => {
                     self.hover = Some((0, self.selectable.len() - 1));
                 }
-                KeyCode::Left => {
+                Action::Left => {
                     self.hover = Some((0, 0));
                 }
-                KeyCode::Right => {
+                Action::Right => {
                     self.hover = Some((0, self.selectable.len() - 1));
                 }
                 _ => {}
