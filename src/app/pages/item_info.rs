@@ -1,7 +1,4 @@
-use std::{
-    collections::LinkedList,
-    error::Error,
-};
+use std::{collections::LinkedList, error::Error};
 
 use crate::{
     app::{
@@ -84,8 +81,8 @@ impl ItemTrait for ItemInfoItem {
             ItemInfoItem::Video(videoinfo) => match action {
                 Action::Up => videoinfo.list.up(),
                 Action::Down => videoinfo.list.down(),
-                Action::FirstItem => videoinfo.list.selected = 0,
-                Action::LastItem => videoinfo.list.selected = videoinfo.list.items.len() - 1,
+                Action::FirstItem => videoinfo.list.first(),
+                Action::LastItem => videoinfo.list.last(),
                 Action::Select => {
                     let command = &videoinfo.commands[videoinfo.list.selected];
 
@@ -153,11 +150,8 @@ impl ItemTrait for ItemInfoItem {
                 PlayListDisplayView::PlayListView => match action {
                     Action::Up => playlistinfo.playlist_view_list.up(),
                     Action::Down => playlistinfo.playlist_view_list.down(),
-                    Action::FirstItem => playlistinfo.playlist_view_list.selected = 0,
-                    Action::LastItem => {
-                        playlistinfo.playlist_view_list.selected =
-                            playlistinfo.playlist_view_list.items.len() - 1
-                    }
+                    Action::FirstItem => playlistinfo.playlist_view_list.first(),
+                    Action::LastItem => playlistinfo.playlist_view_list.last(),
                     Action::Select => {
                         let command =
                             &playlistinfo.commands[playlistinfo.playlist_view_list.selected];
@@ -229,11 +223,8 @@ impl ItemTrait for ItemInfoItem {
                 PlayListDisplayView::VideoList => match action {
                     Action::Up => playlistinfo.video_view_list.up(),
                     Action::Down => playlistinfo.video_view_list.down(),
-                    Action::FirstItem => playlistinfo.video_view_list.selected = 0,
-                    Action::LastItem => {
-                        playlistinfo.video_view_list.selected =
-                            playlistinfo.video_view_list.items.len() - 1
-                    }
+                    Action::FirstItem => playlistinfo.video_view_list.first(),
+                    Action::LastItem => playlistinfo.video_view_list.last(),
                     Action::Select => match playlistinfo.video_view_list.selected {
                         0 => {
                             playlistinfo.display_view = playlistinfo.display_view.toggle();
@@ -363,24 +354,23 @@ impl ItemTrait for ItemInfoItem {
     }
 
     fn render_item<B: Backend>(
-        &self,
+        &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
         app: App,
         selected: bool,
         hover: bool,
         popup_focus: bool,
-        _: bool,
-    ) -> (bool, Option<Item>, App) {
-        let out = (false, None, app);
+        popup_render: bool,
+    ) -> (bool, App) {
+        let out = (false, app);
+
+        if popup_render {
+            return out;
+        }
+
         match self {
             ItemInfoItem::Video(videoinfo) => {
-                let mut list = videoinfo.list.clone();
-
-                list.items.iter_mut().for_each(|item| match item.as_str() {
-                    "{mode}" => *item = format!("Mode: {}", videoinfo.mode),
-                    _ => {}
-                });
                 // list.items[videoinfo.list.items.len() - 1] = format!("Mode: {}", videoinfo.mode);
 
                 let split = HorizontalSplit::default()
@@ -395,7 +385,14 @@ impl ItemTrait for ItemInfoItem {
 
                 let chunks = split.inner(rect);
 
-                list.area(chunks[1]);
+                videoinfo.list.area(chunks[1]);
+
+                let mut list = videoinfo.list.clone();
+
+                list.items.iter_mut().for_each(|item| match item.as_str() {
+                    "{mode}" => *item = format!("Mode: {}", videoinfo.mode),
+                    _ => {}
+                });
                 if selected {
                     list.selected_style(Style::default().fg(Color::LightRed));
                 } else {
@@ -440,6 +437,7 @@ impl ItemTrait for ItemInfoItem {
 
                 match playlistinfo.display_view {
                     PlayListDisplayView::VideoList => {
+                        playlistinfo.video_view_list.area(chunks[1]);
                         let mut list = playlistinfo.video_view_list.clone();
                         list.area(chunks[1]);
                         if selected {
@@ -451,6 +449,7 @@ impl ItemTrait for ItemInfoItem {
                         frame.render_widget(list, chunks[1]);
                     }
                     PlayListDisplayView::PlayListView => {
+                        playlistinfo.playlist_view_list.area(chunks[1]);
                         let mut list = playlistinfo.playlist_view_list.clone();
 
                         list.items.iter_mut().for_each(|item| match item.as_str() {

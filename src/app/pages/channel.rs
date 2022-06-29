@@ -125,7 +125,7 @@ impl ItemTrait for ChannelItem {
         // hover: bool,
         // popup_focus: bool,
         // page: &Page,
-        &self,
+        &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
         app: App,
@@ -133,8 +133,8 @@ impl ItemTrait for ChannelItem {
         hover: bool,
         popup_focus: bool,
         _: bool,
-    ) -> (bool, Option<Item>, App) {
-        let mut out = (false, None, app);
+    ) -> (bool, App) {
+        let mut out = (false, app);
 
         let mut style = Style::default().fg(if selected {
             Color::LightBlue
@@ -184,15 +184,22 @@ impl ItemTrait for ChannelItem {
 
                     frame.render_widget(split, rect);
 
-                    let mut textlist = textlist.clone();
+                    match &mut textlist.area {
+                        Some(area) if *area != chunks[0] => {
+                            *area = chunks[0];
+                            out.0 = true;
+                        }
+                        None => {
+                            textlist.area = Some(chunks[0]);
+                            out.0 = true;
+                        }
+
+                        _ => {}
+                    };
 
                     textlist.area(chunks[0]);
 
-                    let hold_textlist = if textlist.area == textlist.prev_area {
-                        None
-                    } else {
-                        Some(textlist.clone())
-                    };
+                    let mut textlist = textlist.clone();
 
                     if selected {
                         textlist.selected_style(Style::default().fg(Color::LightRed));
@@ -212,12 +219,6 @@ impl ItemTrait for ChannelItem {
                     }
 
                     frame.render_widget(textlist, chunks[0]);
-
-                    if let Some(textlist) = hold_textlist {
-                        out.1 = Some(Item::Channel(ChannelItem::InfoDisplay(
-                            ChannelDisplayItem::Videos(videos.clone(), textlist),
-                        )));
-                    }
                 }
                 ChannelDisplayItem::Playlists(playlists, textlist) => {
                     let split = HorizontalSplit::default()
@@ -234,15 +235,9 @@ impl ItemTrait for ChannelItem {
 
                     frame.render_widget(split, rect);
 
-                    let mut textlist = textlist.clone();
-
                     textlist.area(chunks[0]);
 
-                    let hold_textlist = if textlist.area == textlist.prev_area {
-                        None
-                    } else {
-                        Some(textlist.clone())
-                    };
+                    let mut textlist = textlist.clone();
 
                     if selected {
                         textlist.selected_style(Style::default().fg(Color::LightRed));
@@ -262,17 +257,11 @@ impl ItemTrait for ChannelItem {
                     }
 
                     frame.render_widget(textlist, chunks[0]);
-
-                    if let Some(textlist) = hold_textlist {
-                        out.1 = Some(Item::Channel(ChannelItem::InfoDisplay(
-                            ChannelDisplayItem::Playlists(playlists.clone(), textlist),
-                        )));
-                    }
                 }
             },
             ChannelItem::SelectItems(selected_page) => {
                 if !hover {
-                    if let Page::Channel(channel_page, _) = &out.2.page {
+                    if let Page::Channel(channel_page, _) = &out.1.page {
                         if *selected_page == *channel_page {
                             style = style.fg(Color::LightYellow);
                         }
@@ -308,12 +297,8 @@ impl ItemTrait for ChannelItem {
                     Action::Down => {
                         textlist.down();
                     }
-                    Action::FirstItem => {
-                        textlist.selected = 0;
-                    }
-                    Action::LastItem => {
-                        textlist.selected = textlist.items.len() - 1;
-                    }
+                    Action::FirstItem => textlist.first(),
+                    Action::LastItem => textlist.last(),
                     Action::Select => {
                         let state = ItemInfo::default();
                         let mut history = app.history.clone();
@@ -342,12 +327,8 @@ impl ItemTrait for ChannelItem {
                     Action::Down => {
                         textlist.down();
                     }
-                    Action::FirstItem => {
-                        textlist.selected = 0;
-                    }
-                    Action::LastItem => {
-                        textlist.selected = textlist.items.len() - 1;
-                    }
+                    Action::FirstItem => textlist.first(),
+                    Action::LastItem => textlist.last(),
                     Action::Select => {
                         let state = ItemInfo::default();
                         let mut history = app.history.clone();

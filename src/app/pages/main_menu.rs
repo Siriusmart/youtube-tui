@@ -134,23 +134,21 @@ impl ItemTrait for MainMenuItem {
     }
 
     fn render_item<B: Backend>(
-        // &mut self,
-        // frame: &mut Frame<B>,
-        // rect: Rect,
-        // selected: bool,
-        // hover: bool,
-        // popup_focus: bool,
-        // page: &Page,
-        &self,
+        &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
         app: App,
         selected: bool,
         hover: bool,
         popup_focus: bool,
-        _: bool,
-    ) -> (bool, Option<Item>, App) {
-        let mut out = (false, None, app);
+        popup_render: bool,
+    ) -> (bool, App) {
+        let out = (false, app);
+
+        if popup_render {
+            return out;
+        }
+
         let mut style = Style::default().fg(if selected {
             Color::LightBlue
         } else if hover {
@@ -161,7 +159,7 @@ impl ItemTrait for MainMenuItem {
 
         match self {
             MainMenuItem::SeletorTab(selector) => {
-                if !hover && &out.2.page == &(Page::MainMenu(*selector)) {
+                if !hover && &out.1.page == &(Page::MainMenu(*selector)) {
                     style = style.fg(Color::LightYellow);
                 }
                 let text = match selector {
@@ -195,17 +193,7 @@ impl ItemTrait for MainMenuItem {
 
                 frame.render_widget(split, rect);
 
-                if let Some((videos, list, index)) = data {
-                    let mut list = list.clone();
-
-                    list.area(chunks[0]);
-
-                    let hold_textlist = if list.area == list.prev_area {
-                        None
-                    } else {
-                        Some(list.clone())
-                    };
-
+                if let Some((videos, list, _)) = data {
                     if selected {
                         list.selected_style(Style::default().fg(Color::LightRed));
                     } else {
@@ -218,15 +206,11 @@ impl ItemTrait for MainMenuItem {
                         }
                     }
 
-                    frame.render_widget(list, chunks[0]);
+                    list.area(chunks[0]);
 
-                    if let Some(textlist) = hold_textlist {
-                        out.1 = Some(Item::MainMenu(MainMenuItem::VideoList(Some((
-                            videos.clone(),
-                            textlist,
-                            *index,
-                        )))));
-                    }
+                    let list = list.clone();
+
+                    frame.render_widget(list, chunks[0]);
                 }
             }
         }
@@ -263,8 +247,8 @@ impl ItemTrait for MainMenuItem {
                 match action {
                     Action::Up => textlist.up(),
                     Action::Down => textlist.down(),
-                    Action::FirstItem => textlist.selected = 0,
-                    Action::LastItem => textlist.selected = textlist.items.len() - 1,
+                    Action::FirstItem => textlist.first(),
+                    Action::LastItem => textlist.last(),
                     Action::Select => {
                         let state = ItemInfo::default();
                         let mut history = app.history.clone();

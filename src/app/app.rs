@@ -212,7 +212,6 @@ impl App {
     pub fn render<B: Backend>(mut self, frame: &mut Frame<B>) -> Self {
         let size = frame.size();
         let mut popups = Vec::new();
-        let mut modified = Vec::new();
 
         let min = match self.page {
             Page::MainMenu(_) => MainMenu::min(),
@@ -249,11 +248,11 @@ impl App {
             )
             .split(size);
 
-        let state = self.state.clone();
+        let mut state = self.state.clone();
 
         for (y, (row, row_chunk)) in state
-            .iter()
-            .zip(vertical_chunks.clone().into_iter())
+            .iter_mut()
+            .zip(vertical_chunks.clone().iter_mut())
             .enumerate()
         {
             let mut constraints = LinkedList::new();
@@ -286,12 +285,15 @@ impl App {
             let mut chunks = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints(constraints.into_iter().collect::<Vec<Constraint>>())
-                .split(row_chunk)
+                .split(*row_chunk)
                 .into_iter();
 
             frame.render_widget(Block::default(), chunks.next().unwrap());
 
-            for (x, (chunk, item)) in chunks.zip(row.items.iter().map(|i| &i.item)).enumerate() {
+            for (x, (chunk, item)) in chunks
+                .zip(row.items.iter_mut().map(|i| &mut i.item))
+                .enumerate()
+            {
                 let selected = self.selected == Some((x, y));
 
                 let hover = hover_selected == Some((x, y));
@@ -300,30 +302,22 @@ impl App {
                 let hold =
                     item.render_item(frame, chunk, self, selected, hover, popup_focus, false);
 
-                self = hold.2;
-
-                if let Some(item) = hold.1 {
-                    modified.push((x, y, item));
-                }
+                self = hold.1;
 
                 if hold.0 {
-                    popups.push((item, selected, hover, chunk, x, y));
+                    popups.push((item, selected, hover, chunk));
                 }
             }
         }
 
-        for (item, selected, hover, chunk, x, y) in popups {
+        for (item, selected, hover, chunk) in popups {
             let hold = item.render_item(frame, chunk, self, selected, hover, true, true);
-            self = hold.2;
+            self = hold.1;
 
-            if let Some(item) = hold.1 {
-                modified.push((x, y, item));
-            }
         }
 
-        for (x, y, item) in modified {
-            self.state[y].items[x].item = item;
-        }
+        self.state = state;
+
         self
     }
 

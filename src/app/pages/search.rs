@@ -49,12 +49,11 @@ impl ItemTrait for SearchItem {
             None => return (false, app),
         };
         match self {
-            
             SearchItem::Search { results, text_list } => match action {
                 Action::Up => text_list.up(),
                 Action::Down => text_list.down(),
-                Action::FirstItem => text_list.selected = 0,
-                Action::LastItem => text_list.selected = text_list.items.len() - 1,
+                Action::FirstItem => text_list.first(),
+                Action::LastItem => text_list.last(),
                 Action::Select => {
                     if let Some(results_unwrapped) = results {
                         match results_unwrapped.iter().nth(text_list.selected).unwrap() {
@@ -286,16 +285,21 @@ impl ItemTrait for SearchItem {
     }
 
     fn render_item<B: Backend>(
-        &self,
+        &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
         app: App,
         selected: bool,
         hover: bool,
         popup_focus: bool,
-        _: bool,
-    ) -> (bool, Option<Item>, App) {
-        let out = (false, None, app);
+        popup_render: bool,
+    ) -> (bool, App) {
+        let out = (false, app);
+
+        if popup_render {
+            return out;
+        }
+
         match self {
             SearchItem::Search { results, text_list } => {
                 let split = HorizontalSplit::default()
@@ -312,8 +316,9 @@ impl ItemTrait for SearchItem {
 
                 frame.render_widget(split, rect);
 
-                let mut text_list = text_list.clone();
                 text_list.area(chunks[0]);
+
+                let mut text_list = text_list.clone();
 
                 if let Some(result) = results {
                     if let Some(item) = result.iter().nth(text_list.selected) {

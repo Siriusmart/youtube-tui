@@ -18,10 +18,8 @@ This program is being actively developed and there will be new features coming u
 
 > ### What's new in this commit
 >
-> * More code cleanup
-> * Commands to be ran in Item Info page can be changed, items can be add/removed (in `page_commands.yml`)
-> * Keybindings can be created (VIM keybindings are included in default config)
-> * Config soft update (tries to add new options to the config, and if parsing config failed the config will be backed up and a new one will be generated)
+> * Fixed text list not scrolling with cursor bug (where the cursor just goes out of the screen)
+> * Improvements to the `render()` method
 
 ## Installation
 
@@ -73,10 +71,23 @@ youtube-tui # or path to the binary
 
 All config files are loacted at `~/.config/youtube-tui/`, will write documentations for that later
 
+## Known issues
+
+### Missing hash key: "selected"
+
+When viewing the playlists page in a channel, it gives you `Missing hash key: "selected"`. This is because Invidious was not able to fetch the requested playlists.
+
+You should also see an error when visiting [this URL](https://vid.puffyan.us/api/v1/channels/UCAkuTH35kk3W1EL9vq6dj6A/playlists)
+
+Here's the [opened issue](https://github.com/iv-org/invidious/issues/3154)
+
 ## Todo (First piority on top)
 
 * Put hard coded options into config files
 * User manual + documentations
+* Go directly to a page by URL
+* Vim-like commands in status bar
+* Command line launch options
 * Channel search and channel video sort
 * Recommended videos
 

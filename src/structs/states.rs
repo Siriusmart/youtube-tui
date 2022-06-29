@@ -41,7 +41,7 @@ impl Item {
     }
 
     pub fn render_item<B: Backend>(
-        &self,
+        &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
         app: App,
@@ -49,7 +49,7 @@ impl Item {
         hover: bool,
         popup_focus: bool,
         popup_render: bool,
-    ) -> (bool, Option<Item>, App) {
+    ) -> (bool, App) {
         match self {
             Item::Global(item) => {
                 item.render_item(frame, rect, app, selected, hover, popup_focus, popup_render)

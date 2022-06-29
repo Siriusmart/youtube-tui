@@ -15,7 +15,6 @@ pub struct TextList {
     pub selected: usize,
     pub scroll: usize,
     pub area: Option<Rect>,
-    pub prev_area: Option<Rect>,
     pub style: Style,
     pub selected_style: Style,
 }
@@ -120,7 +119,6 @@ impl Default for TextList {
             selected: 0,
             scroll: 0,
             area: None,
-            prev_area: None,
             style: Style::default(),
             selected_style: Style::default().fg(Color::Yellow),
         }
@@ -129,8 +127,8 @@ impl Default for TextList {
 
 impl TextList {
     pub fn area(&mut self, area: Rect) {
-        self.prev_area = self.area;
         self.area = Some(area);
+        self.update_scroll();
     }
 
     pub fn items(&mut self, items: Vec<String>) {
@@ -140,21 +138,35 @@ impl TextList {
     pub fn down(&mut self) {
         if self.selected < self.items.len() - 1 {
             self.selected += 1;
-
-            if let Some(area) = self.area {
-                if self.selected > self.scroll + area.height as usize - 3 {
-                    //panic!("Selected");
-                    self.scroll = self.selected + 3 - area.height as usize;
-                }
-            }
         }
+        self.update_scroll()
     }
 
     pub fn up(&mut self) {
         if self.selected > 0 {
             self.selected -= 1;
-            if self.selected < self.scroll {
-                self.scroll = self.selected;
+        }
+        self.update_scroll();
+    }
+
+    pub fn first(&mut self) {
+        self.selected = 0;
+        self.update_scroll();
+    }
+
+    pub fn last(&mut self) {
+        self.selected = self.items.len() - 1;
+        self.update_scroll();
+    }
+
+    pub fn update_scroll(&mut self) {
+        if self.selected < self.scroll {
+            self.scroll = self.selected;
+        }
+
+        if let Some(area) = self.area {
+            if self.selected > self.scroll + area.height as usize - 3 {
+                self.scroll = self.selected + 3 - area.height as usize;
             }
         }
     }

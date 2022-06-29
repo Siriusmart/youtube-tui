@@ -10,7 +10,7 @@ use tui::{backend::Backend, layout::Rect, Frame};
 pub trait ItemTrait {
     fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App);
     fn render_item<B: Backend>(
-        &self,
+        &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
         app: App,
@@ -18,7 +18,7 @@ pub trait ItemTrait {
         hover: bool,
         popup_focus: bool,
         popup_render: bool,
-    ) -> (bool, Option<Item>, App);
+    ) -> (bool, App);
     fn select(&mut self, app: App) -> (App, bool);
     fn selectable(&self) -> bool;
     fn load_item(

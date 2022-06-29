@@ -118,7 +118,7 @@ impl ItemTrait for GlobalItem {
     }
 
     fn render_item<B: Backend>(
-        &self,
+        &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
         app: App,
@@ -126,9 +126,9 @@ impl ItemTrait for GlobalItem {
         hover: bool,
         _: bool,
         popup_render: bool,
-    ) -> (bool, Option<Item>, App) {
+    ) -> (bool, App) {
         let area = frame.size();
-        let mut out = (false, None, app);
+        let mut out = (false, app);
         match self {
             GlobalItem::SearchBar => {
                 let block = Block::default()
@@ -143,7 +143,7 @@ impl ItemTrait for GlobalItem {
                     }))
                     .title("Search YouTube")
                     .title_alignment(Alignment::Center);
-                let mut text = out.2.search_text.clone();
+                let mut text = out.1.search_text.clone();
                 if selected {
                     text.push('█');
                 }
@@ -151,7 +151,7 @@ impl ItemTrait for GlobalItem {
                 frame.render_widget(paragraph, rect);
             }
             GlobalItem::MessageBar => {
-                let message = out.2.message.lock().unwrap();
+                let message = out.1.message.lock().unwrap();
                 // let color = Color::LightYellow;
                 let block = Block::default()
                     .border_type(BorderType::Rounded)
@@ -197,39 +197,39 @@ impl ItemTrait for GlobalItem {
 
                                 frame.render_widget(split, rect);
 
-                                out.2.search_settings.text_list.area(chunks[0]);
+                                out.1.search_settings.text_list.area(chunks[0]);
 
-                                if out.2.search_settings.row {
-                                    out.2
+                                if out.1.search_settings.row {
+                                    out.1
                                         .search_settings
                                         .text_list
                                         .selected_style(Style::default().fg(Color::LightRed));
 
-                                    out.2
+                                    out.1
                                         .search_settings
                                         .select_text_list
                                         .selected_style(Style::default().fg(Color::LightYellow));
                                 } else {
-                                    out.2
+                                    out.1
                                         .search_settings
                                         .text_list
                                         .selected_style(Style::default().fg(Color::LightYellow));
 
-                                    out.2
+                                    out.1
                                         .search_settings
                                         .select_text_list
                                         .selected_style(Style::default().fg(Color::LightRed));
                                 }
 
                                 frame.render_widget(
-                                    out.2.search_settings.text_list.clone(),
+                                    out.1.search_settings.text_list.clone(),
                                     chunks[0],
                                 );
 
-                                out.2.search_settings.select_text_list.area(chunks[1]);
+                                out.1.search_settings.select_text_list.area(chunks[1]);
 
                                 frame.render_widget(
-                                    out.2.search_settings.select_text_list.clone(),
+                                    out.1.search_settings.select_text_list.clone(),
                                     chunks[1],
                                 );
 
