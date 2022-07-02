@@ -1,13 +1,12 @@
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     error::Error,
-    fmt::Debug,
     fs::{self, rename},
     io::Write,
 };
 
 pub trait ConfigItem<'a> {
-    type Struct: Serialize + DeserializeOwned + Debug + Clone + Default;
+    type Struct: Serialize + DeserializeOwned + Clone + Default;
     const FILE_NAME: &'static str;
 
     fn load() -> Result<Self::Struct, Box<dyn Error>>

@@ -23,7 +23,7 @@ use super::{
     pages::{channel::Channel, item_info::ItemInfo, search::Search},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct App {
     pub config: Config,
     pub page: Page,
@@ -32,7 +32,7 @@ pub struct App {
     pub hover: Option<(usize, usize)>, // x, y
     pub selected: Option<(usize, usize)>,
     pub client: Client,
-    pub message: Arc<Mutex<Option<String>>>,
+    pub message: Option<String>,
     pub load: bool,
     pub render: bool,
     pub popup_focus: bool,
@@ -43,10 +43,72 @@ pub struct App {
     pub page_no: usize,
 }
 
+pub struct AppNoState {
+    pub config: Config,
+    pub page: Page,
+    pub selectable: Vec<Vec<(usize, usize)>>,
+    pub hover: Option<(usize, usize)>, // x, y
+    pub selected: Option<(usize, usize)>,
+    pub client: Client,
+    pub message: Option<String>,
+    pub load: bool,
+    pub render: bool,
+    pub popup_focus: bool,
+    pub history: Vec<AppHistory>,
+    pub watch_history: WatchHistory,
+    pub search_settings: SearchSettings,
+    pub search_text: String,
+    pub page_no: usize,
+}
+
+impl AppNoState {
+    pub fn split(app: App) -> (Self, Vec<Row>) {
+        let out = Self {
+            config: app.config,
+            page: app.page,
+            selectable: app.selectable,
+            hover: app.hover,
+            selected: app.selected,
+            client: app.client,
+            message: app.message,
+            load: app.load,
+            render: app.render,
+            popup_focus: app.popup_focus,
+            history: app.history,
+            watch_history: app.watch_history,
+            search_settings: app.search_settings,
+            search_text: app.search_text,
+            page_no: app.page_no,
+        };
+        (out, app.state)
+    }
+
+    pub fn join(app: Self, state: Vec<Row>) -> App {
+        App {
+            config: app.config,
+            page: app.page,
+            selectable: app.selectable,
+            hover: app.hover,
+            selected: app.selected,
+            client: app.client,
+            message: app.message,
+            load: app.load,
+            render: app.render,
+            popup_focus: app.popup_focus,
+            history: app.history,
+            watch_history: app.watch_history,
+            search_settings: app.search_settings,
+            search_text: app.search_text,
+            page_no: app.page_no,
+            state,
+        }
+    }
+}
+
 impl Default for App {
     fn default() -> Self {
         let config = Config::load().unwrap();
-        let state = MainMenu::default();
+        let state = config.layouts.main_menu.clone().into();
         let selectable = App::selectable(&state);
         Self {
             page: Page::default(),
@@ -55,7 +117,7 @@ impl Default for App {
             client: Client::new(config.main.server_url.clone()),
             selected: None,
             hover: None,
-            message: Arc::new(Mutex::new(None)),
+            message: None,
             load: true,
             render: true,
             popup_focus: false,
@@ -213,12 +275,7 @@ impl App {
         let size = frame.size();
         let mut popups = Vec::new();
 
-        let min = match self.page {
-            Page::MainMenu(_) => MainMenu::min(),
-            Page::ItemDisplay(_) => ItemInfo::min(),
-            Page::Search => Search::min(),
-            Page::Channel(_, _) => Channel::min(),
-        };
+        let min = self.page.min(&self.config);
 
         if size.width < min.0 || size.height < min.1 {
             let paragraph = Paragraph::new(format!(
@@ -248,7 +305,7 @@ impl App {
             )
             .split(size);
 
-        let mut state = self.state.clone();
+        let (mut app, mut state) = AppNoState::split(self);
 
         for (y, (row, row_chunk)) in state
             .iter_mut()
@@ -294,15 +351,14 @@ impl App {
                 .zip(row.items.iter_mut().map(|i| &mut i.item))
                 .enumerate()
             {
-                let selected = self.selected == Some((x, y));
+                let selected = app.selected == Some((x, y));
 
                 let hover = hover_selected == Some((x, y));
-                let popup_focus = self.popup_focus;
+                let popup_focus = app.popup_focus;
 
-                let hold =
-                    item.render_item(frame, chunk, self, selected, hover, popup_focus, false);
+                let hold = item.render_item(frame, chunk, app, selected, hover, popup_focus, false);
 
-                self = hold.1;
+                app = hold.1;
 
                 if hold.0 {
                     popups.push((item, selected, hover, chunk));
@@ -311,19 +367,17 @@ impl App {
         }
 
         for (item, selected, hover, chunk) in popups {
-            let hold = item.render_item(frame, chunk, self, selected, hover, true, true);
-            self = hold.1;
-
+            let hold = item.render_item(frame, chunk, app, selected, hover, true, true);
+            app = hold.1;
         }
 
-        self.state = state;
-
+        self = AppNoState::join(app, state);
         self
     }
 
     pub fn pop(mut self) -> (App, bool) {
         if self.history.len() == 0 {
-            *self.message.lock().unwrap() = Some(String::from("This is the beginning of history"));
+            self.message = Some(String::from("This is the beginning of history"));
             return (self, false);
         }
 

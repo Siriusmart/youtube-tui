@@ -48,7 +48,7 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
         }
 
         if app.load {
-            *app.message.lock().unwrap() = Some(app.page.message());
+            app.message = Some(app.page.message(&app.config));
             let mut watch_history = app.watch_history.clone();
             terminal.clear()?;
             let hold = ui(&mut terminal, app);
@@ -70,7 +70,7 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                                 item: row_item.item.clone(),
                                 ..*row_item
                             });
-                            *app.message.lock().unwrap() = Some(e.to_string());
+                            app.message = Some(e.to_string());
                         }
                     }
                 }
@@ -143,7 +143,7 @@ fn ui<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> (App, Result<(), 
 
     app = recv.recv().unwrap();
 
-    *app.message.lock().unwrap() = None;
+    app.message = None;
     app.render = false;
 
     match res {

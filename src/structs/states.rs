@@ -1,6 +1,6 @@
-use std::error::Error;
-
 use crossterm::event::KeyCode;
+use serde::{Deserialize, Serialize};
+use std::error::Error;
 use tui::{
     backend::Backend,
     layout::{Constraint, Rect},
@@ -9,7 +9,7 @@ use tui::{
 
 use crate::{
     app::{
-        app::App,
+        app::{App, AppNoState},
         pages::{
             channel::ChannelItem, global::GlobalItem, item_info::ItemInfoItem,
             main_menu::MainMenuItem, search::SearchItem,
@@ -20,7 +20,7 @@ use crate::{
 
 use super::WatchHistory;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum Item {
     Global(GlobalItem),
     MainMenu(MainMenuItem),
@@ -44,12 +44,12 @@ impl Item {
         &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
-        app: App,
+        app: AppNoState,
         selected: bool,
         hover: bool,
         popup_focus: bool,
         popup_render: bool,
-    ) -> (bool, App) {
+    ) -> (bool, AppNoState) {
         match self {
             Item::Global(item) => {
                 item.render_item(frame, rect, app, selected, hover, popup_focus, popup_render)
@@ -94,14 +94,14 @@ impl Item {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Row {
     pub items: Vec<RowItem>,
     pub centered: bool,
     pub height: Constraint,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct RowItem {
     pub item: Item,
     pub constraint: Constraint,

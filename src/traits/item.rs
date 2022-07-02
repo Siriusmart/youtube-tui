@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use crate::{
-    app::app::App,
+    app::app::{App, AppNoState},
     structs::{Item, WatchHistory},
 };
 use crossterm::event::KeyCode;
@@ -13,12 +13,12 @@ pub trait ItemTrait {
         &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
-        app: App,
+        app: AppNoState,
         selected: bool,
         hover: bool,
         popup_focus: bool,
         popup_render: bool,
-    ) -> (bool, App);
+    ) -> (bool, AppNoState);
     fn select(&mut self, app: App) -> (App, bool);
     fn selectable(&self) -> bool;
     fn load_item(

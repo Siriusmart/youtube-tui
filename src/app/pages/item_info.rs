@@ -2,33 +2,36 @@ use std::{collections::LinkedList, error::Error};
 
 use crate::{
     app::{
-        app::App,
-        config::{Action, PageCommand},
+        app::{App, AppNoState},
+        config::{
+            Action, ConstraintTransitional, ItemTransitional, LayoutConfig, PageCommand,
+            RowItemTransitional, RowTransitional,
+        },
         pages::{channel::*, global::*},
     },
     functions::download_all_thumbnails,
-    structs::{FullPlayList, FullVideo, Item, ListItem, Page, Row, RowItem, WatchHistory},
+    structs::{FullPlayList, FullVideo, Item, ListItem, Page, WatchHistory},
     traits::{ItemTrait, PageTrait},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
 use crossterm::event::KeyCode;
 use tui::{
     backend::Backend,
-    layout::{Constraint, Rect},
+    layout::Rect,
     style::{Color, Style},
     Frame,
 };
 
 use super::global::GlobalItem;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum ItemInfoItem {
     Unknown,
     Video(VideoItemInfo),
     PlayList(PlayListItemInfo),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct VideoItemInfo {
     video: FullVideo,
     list: TextList,
@@ -36,7 +39,7 @@ pub struct VideoItemInfo {
     commands: Vec<PageCommand>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct PlayListItemInfo {
     playlist: FullPlayList,
     video_view_list: TextList,
@@ -46,7 +49,7 @@ pub struct PlayListItemInfo {
     commands: Vec<PageCommand>,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub enum PlayListDisplayView {
     VideoList,
     PlayListView,
@@ -72,7 +75,7 @@ impl ItemTrait for ItemInfoItem {
         true
     }
 
-    fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
+    fn key_input(&mut self, key: KeyCode, mut app: App) -> (bool, App) {
         let action = match app.config.keybindings.0.get(&key) {
             Some(action) => *action,
             None => return (false, app),
@@ -89,7 +92,7 @@ impl ItemTrait for ItemInfoItem {
                     match command.command.as_str() {
                         "{toggle_mode}" => videoinfo.mode.toggle(),
                         "{goto_channel}" => {
-                            let state = Channel::default();
+                            let state = app.config.layouts.channel.clone().into();
                             let mut history = app.history.clone();
                             history.push(app.into());
 
@@ -126,17 +129,13 @@ impl ItemTrait for ItemInfoItem {
 
                                     match command.run_command(&env) {
                                         Some(e) => {
-                                            *app.message.lock().unwrap() =
-                                                Some(format!("Unknown variable `{}`", e))
+                                            app.message = Some(format!("Unknown variable `{}`", e))
                                         }
-                                        None => {
-                                            *app.message.lock().unwrap() =
-                                                Some(command.message.clone())
-                                        }
+                                        None => app.message = Some(command.message.clone()),
                                     }
                                 }
                                 None => {
-                                    *app.message.lock().unwrap() =
+                                    app.message =
                                         Some(format!("Unkown command `{}`", &command.command));
                                 }
                             };
@@ -159,7 +158,7 @@ impl ItemTrait for ItemInfoItem {
                         match command.command.as_str() {
                             "{toggle_mode}" => playlistinfo.mode.toggle(),
                             "{goto_channel}" => {
-                                let state = Channel::default();
+                                let state = app.config.layouts.channel.clone().into();
                                 let mut history = app.history.clone();
                                 history.push(app.into());
 
@@ -200,17 +199,14 @@ impl ItemTrait for ItemInfoItem {
 
                                         match command.run_command(&env) {
                                             Some(e) => {
-                                                *app.message.lock().unwrap() =
+                                                app.message =
                                                     Some(format!("Unknown variable `{}`", e))
                                             }
-                                            None => {
-                                                *app.message.lock().unwrap() =
-                                                    Some(command.message.clone())
-                                            }
+                                            None => app.message = Some(command.message.clone()),
                                         }
                                     }
                                     None => {
-                                        *app.message.lock().unwrap() =
+                                        app.message =
                                             Some(format!("Unkown command `{}`", &command.command));
                                     }
                                 };
@@ -231,7 +227,7 @@ impl ItemTrait for ItemInfoItem {
                         }
 
                         x => {
-                            let state = ItemInfo::default();
+                            let state = app.config.layouts.channel.clone().into();
                             let mut history = app.history.clone();
                             history.push(app.into());
 
@@ -357,12 +353,12 @@ impl ItemTrait for ItemInfoItem {
         &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
-        app: App,
+        app: AppNoState,
         selected: bool,
         hover: bool,
         popup_focus: bool,
         popup_render: bool,
-    ) -> (bool, App) {
+    ) -> (bool, AppNoState) {
         let out = (false, app);
 
         if popup_render {
@@ -495,50 +491,43 @@ pub enum DisplayItem {
 }
 
 pub struct ItemInfo;
-
 impl PageTrait for ItemInfo {
-    fn message() -> String {
-        String::from("Loading item info...")
-    }
-
-    fn min() -> (u16, u16) {
-        (21, 12)
-    }
-
-    fn default() -> Vec<Row> {
-        vec![
-            Row {
-                items: vec![
-                    RowItem {
-                        item: Item::Global(GlobalItem::SearchBar),
-                        constraint: Constraint::Min(16),
-                    },
-                    RowItem {
-                        item: Item::Global(GlobalItem::SearchSettings),
-                        constraint: Constraint::Length(5),
-                    },
-                ],
-                centered: false,
-                height: Constraint::Length(3),
-            },
-            Row {
-                items: vec![RowItem {
-                    item: Item::ItemInfo(ItemInfoItem::Unknown),
-                    constraint: Constraint::Percentage(100),
-                }],
-                centered: false,
-                height: Constraint::Min(6),
-            },
-            Row {
-                items: vec![RowItem {
-                    item: Item::Global(GlobalItem::MessageBar),
-                    constraint: Constraint::Percentage(100),
-                }],
-                centered: false,
-                height: Constraint::Length(3),
-            },
-        ]
+    fn default() -> LayoutConfig {
+        LayoutConfig {
+            layout: vec![
+                RowTransitional {
+                    items: vec![
+                        RowItemTransitional {
+                            item: ItemTransitional::Global(GlobalItem::SearchBar),
+                            constraint: ConstraintTransitional::Min(16),
+                        },
+                        RowItemTransitional {
+                            item: ItemTransitional::Global(GlobalItem::SearchSettings),
+                            constraint: ConstraintTransitional::Length(5),
+                        },
+                    ],
+                    centered: false,
+                    height: ConstraintTransitional::Length(3),
+                },
+                RowTransitional {
+                    items: vec![RowItemTransitional {
+                        item: ItemTransitional::ItemInfo,
+                        constraint: ConstraintTransitional::Percentage(100),
+                    }],
+                    centered: false,
+                    height: ConstraintTransitional::Min(6),
+                },
+                RowTransitional {
+                    items: vec![RowItemTransitional {
+                        item: ItemTransitional::Global(GlobalItem::MessageBar),
+                        constraint: ConstraintTransitional::Percentage(100),
+                    }],
+                    centered: false,
+                    height: ConstraintTransitional::Length(3),
+                },
+            ],
+            min: (21, 12),
+            message: String::from("Loading item info..."),
+        }
     }
 }
-
-impl ItemInfoItem {}

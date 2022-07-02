@@ -4,17 +4,21 @@ use crossterm::event::KeyCode;
 use invidious::structs::hidden::SearchItem as InvidiousSearchItem;
 use tui::{
     backend::Backend,
-    layout::{Constraint, Rect},
+    layout::Rect,
     style::{Color, Style},
     Frame,
 };
 
 use crate::{
-    app::{app::App, config::Action},
-    functions::download_all_thumbnails,
-    structs::{
-        Item, ListItem, MiniChannel, MiniPlayList, MiniVideo, Page, Row, RowItem, WatchHistory,
+    app::{
+        app::{App, AppNoState},
+        config::{
+            Action, ConstraintTransitional, ItemTransitional, LayoutConfig, RowItemTransitional,
+            RowTransitional, SearchItemTransitional,
+        },
     },
+    functions::download_all_thumbnails,
+    structs::{Item, ListItem, MiniChannel, MiniPlayList, MiniVideo, Page, WatchHistory},
     traits::{ItemTrait, PageTrait},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
@@ -68,7 +72,7 @@ impl ItemTrait for SearchItem {
                                 *results = None;
                                 *text_list = TextList::default();
 
-                                let state = Search::default();
+                                let state = app.config.layouts.search.clone().into();
                                 let mut history = app.history.clone();
                                 let search_text = app.search_text.clone();
                                 let search_settings = app.search_settings.clone();
@@ -91,7 +95,7 @@ impl ItemTrait for SearchItem {
                             }
 
                             ListItem::MiniVideo(video) => {
-                                let state = ItemInfo::default();
+                                let state = app.config.layouts.item_info.clone().into();
                                 let mut history = app.history.clone();
                                 history.push(app.into());
 
@@ -110,7 +114,7 @@ impl ItemTrait for SearchItem {
                             }
 
                             ListItem::MiniPlayList(playlist) => {
-                                let state = ItemInfo::default();
+                                let state = app.config.layouts.item_info.clone().into();
                                 let mut history = app.history.clone();
                                 history.push(app.into());
 
@@ -129,7 +133,7 @@ impl ItemTrait for SearchItem {
                             }
 
                             ListItem::MiniChannel(channel) => {
-                                let state = Channel::default();
+                                let state = app.config.layouts.channel.clone().into();
                                 let mut history = app.history.clone();
                                 history.push(app.into());
 
@@ -238,9 +242,7 @@ impl ItemTrait for SearchItem {
                     items.push_front(ListItem::PageTurner(false));
                 }
 
-                if items.len() == minimum_length {
-                    *app.message.lock().unwrap() = Some(String::from("No results found"));
-                } else {
+                if items.len() != minimum_length {
                     items.push_back(ListItem::PageTurner(true));
                 }
 
@@ -288,12 +290,12 @@ impl ItemTrait for SearchItem {
         &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
-        app: App,
+        app: AppNoState,
         selected: bool,
         hover: bool,
         popup_focus: bool,
         popup_render: bool,
-    ) -> (bool, App) {
+    ) -> (bool, AppNoState) {
         let out = (false, app);
 
         if popup_render {
@@ -345,49 +347,42 @@ impl ItemTrait for SearchItem {
 pub struct Search;
 
 impl PageTrait for Search {
-    fn message() -> String {
-        String::from("Loading search results...")
-    }
-
-    fn min() -> (u16, u16) {
-        (45, 12)
-    }
-
-    fn default() -> Vec<Row> {
-        vec![
-            Row {
-                items: vec![
-                    RowItem {
-                        item: Item::Global(GlobalItem::SearchBar),
-                        constraint: Constraint::Min(16),
-                    },
-                    RowItem {
-                        item: Item::Global(GlobalItem::SearchSettings),
-                        constraint: Constraint::Length(5),
-                    },
-                ],
-                centered: false,
-                height: Constraint::Length(3),
-            },
-            Row {
-                items: vec![RowItem {
-                    item: Item::Search(SearchItem::Search {
-                        results: None,
-                        text_list: TextList::default(),
-                    }),
-                    constraint: Constraint::Percentage(100),
-                }],
-                centered: false,
-                height: Constraint::Min(6),
-            },
-            Row {
-                items: vec![RowItem {
-                    item: Item::Global(GlobalItem::MessageBar),
-                    constraint: Constraint::Percentage(100),
-                }],
-                centered: false,
-                height: Constraint::Length(3),
-            },
-        ]
+    fn default() -> LayoutConfig {
+        LayoutConfig {
+            layout: vec![
+                RowTransitional {
+                    items: vec![
+                        RowItemTransitional {
+                            item: ItemTransitional::Global(GlobalItem::SearchBar),
+                            constraint: ConstraintTransitional::Min(16),
+                        },
+                        RowItemTransitional {
+                            item: ItemTransitional::Global(GlobalItem::SearchSettings),
+                            constraint: ConstraintTransitional::Length(5),
+                        },
+                    ],
+                    centered: false,
+                    height: ConstraintTransitional::Length(3),
+                },
+                RowTransitional {
+                    items: vec![RowItemTransitional {
+                        item: ItemTransitional::Search(SearchItemTransitional::Search),
+                        constraint: ConstraintTransitional::Percentage(100),
+                    }],
+                    centered: false,
+                    height: ConstraintTransitional::Min(6),
+                },
+                RowTransitional {
+                    items: vec![RowItemTransitional {
+                        item: ItemTransitional::Global(GlobalItem::MessageBar),
+                        constraint: ConstraintTransitional::Percentage(100),
+                    }],
+                    centered: false,
+                    height: ConstraintTransitional::Length(3),
+                },
+            ],
+            min: (45, 12),
+            message: String::from("Loading search results..."),
+        }
     }
 }

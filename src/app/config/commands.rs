@@ -3,13 +3,13 @@ use std::{collections::HashMap, thread};
 
 use crate::traits::ConfigItem;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Command {
     pub args: Vec<String>,
     pub message: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct CommandsConfig(pub HashMap<String, Command>);
 
 impl Command {
@@ -96,6 +96,18 @@ impl Default for CommandsConfig {
                 "--no-video",
                 "--loop-playlist=inf",
                 "--shuffle",
+            ],
+            "Opened mpv in new konsole window",
+        );
+        out.insert(
+            "audio_loop",
+            vec![
+                "konsole",
+                "-e",
+                "mpv",
+                "{embed_url}",
+                "--no-video",
+                "--loop",
             ],
             "Opened mpv in new konsole window",
         );

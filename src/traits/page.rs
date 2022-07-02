@@ -1,11 +1,5 @@
-use crate::structs::Row;
+use crate::app::config::LayoutConfig;
 
 pub trait PageTrait {
-    fn message() -> String {
-        String::from("Loading page...")
-    }
-
-    fn min() -> (u16, u16);
-
-    fn default() -> Vec<Row>;
+    fn default() -> LayoutConfig;
 }

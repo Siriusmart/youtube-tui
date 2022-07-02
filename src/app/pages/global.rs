@@ -1,6 +1,7 @@
 use std::fmt;
 
 use crossterm::event::KeyCode;
+use serde::{Deserialize, Serialize};
 use tui::{
     backend::Backend,
     layout::{Alignment, Rect},
@@ -10,7 +11,7 @@ use tui::{
 };
 
 use crate::{
-    app::app::App,
+    app::app::{App, AppNoState},
     functions::center_rect,
     structs::{Item, Page, WatchHistory},
     traits::{ItemTrait, PageTrait},
@@ -19,7 +20,7 @@ use crate::{
 
 use super::search::Search;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum GlobalItem {
     SearchBar,
     SearchSettings,
@@ -82,10 +83,9 @@ impl ItemTrait for GlobalItem {
                 }
                 KeyCode::Enter => {
                     if app.search_text.len() == 0 {
-                        *app.message.lock().unwrap() =
-                            Some(String::from("Search term cannot be empty"));
+                        app.message = Some(String::from("Search term cannot be empty"));
                     } else {
-                        let state = Search::default();
+                        let state = app.config.layouts.search.clone().into();
                         let mut history = app.history.clone();
                         let search_text = app.search_text.clone();
                         let search_settings = app.search_settings.clone();
@@ -121,12 +121,12 @@ impl ItemTrait for GlobalItem {
         &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
-        app: App,
+        app: AppNoState,
         selected: bool,
         hover: bool,
         _: bool,
         popup_render: bool,
-    ) -> (bool, App) {
+    ) -> (bool, AppNoState) {
         let area = frame.size();
         let mut out = (false, app);
         match self {
@@ -151,8 +151,7 @@ impl ItemTrait for GlobalItem {
                 frame.render_widget(paragraph, rect);
             }
             GlobalItem::MessageBar => {
-                let message = out.1.message.lock().unwrap();
-                // let color = Color::LightYellow;
+                let message = out.1.message.clone();
                 let block = Block::default()
                     .border_type(BorderType::Rounded)
                     .borders(Borders::ALL)

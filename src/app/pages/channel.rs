@@ -1,20 +1,25 @@
 use std::{collections::LinkedList, error::Error};
 
 use crossterm::event::KeyCode;
+use serde::{Deserialize, Serialize};
 use tui::{
     backend::Backend,
-    layout::{Alignment, Constraint, Rect},
+    layout::{Alignment, Rect},
     style::{Color, Style},
     widgets::{Block, BorderType, Borders, Paragraph},
     Frame,
 };
 
 use crate::{
-    app::{app::App, config::Action},
-    functions::download_all_thumbnails,
-    structs::{
-        FullChannel, Item, ListItem, MiniPlayList, MiniVideo, Page, Row, RowItem, WatchHistory,
+    app::{
+        app::{App, AppNoState},
+        config::{
+            Action, ChannelItemTransitional, ConstraintTransitional, ItemTransitional,
+            LayoutConfig, RowItemTransitional, RowTransitional,
+        },
     },
+    functions::download_all_thumbnails,
+    structs::{FullChannel, Item, ListItem, MiniPlayList, MiniVideo, Page, WatchHistory},
     traits::{ItemTrait, PageTrait},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
@@ -24,7 +29,7 @@ use super::{
     item_info::{DisplayItem, ItemInfo},
 };
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum ChannelPage {
     Home,
     Playlists,
@@ -118,22 +123,15 @@ impl ItemTrait for ChannelItem {
     }
 
     fn render_item<B: Backend>(
-        // &mut self,
-        // frame: &mut Frame<B>,
-        // rect: Rect,
-        // selected: bool,
-        // hover: bool,
-        // popup_focus: bool,
-        // page: &Page,
         &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
-        app: App,
+        app: AppNoState,
         selected: bool,
         hover: bool,
         popup_focus: bool,
         _: bool,
-    ) -> (bool, App) {
+    ) -> (bool, AppNoState) {
         let mut out = (false, app);
 
         let mut style = Style::default().fg(if selected {
@@ -300,7 +298,7 @@ impl ItemTrait for ChannelItem {
                     Action::FirstItem => textlist.first(),
                     Action::LastItem => textlist.last(),
                     Action::Select => {
-                        let state = ItemInfo::default();
+                        let state = app.config.layouts.item_info.clone().into();
                         let mut history = app.history.clone();
                         history.push(app.into());
 
@@ -330,7 +328,7 @@ impl ItemTrait for ChannelItem {
                     Action::FirstItem => textlist.first(),
                     Action::LastItem => textlist.last(),
                     Action::Select => {
-                        let state = ItemInfo::default();
+                        let state = app.config.layouts.item_info.clone().into();
                         let mut history = app.history.clone();
                         history.push(app.into());
 
@@ -370,7 +368,7 @@ impl ItemTrait for ChannelItem {
                         return (app, false);
                     }
 
-                    let state = Channel::default();
+                    let state = app.config.layouts.channel.clone().into();
                     let mut history = app.history.clone();
                     history.push(app.into());
 
@@ -399,64 +397,66 @@ impl ItemTrait for ChannelItem {
 pub struct Channel;
 
 impl PageTrait for Channel {
-    fn message() -> String {
-        String::from("Loading channel info...")
-    }
-
-    fn min() -> (u16, u16) {
-        (45, 15)
-    }
-
-    fn default() -> Vec<Row> {
-        vec![
-            Row {
-                items: vec![
-                    RowItem {
-                        item: Item::Global(GlobalItem::SearchBar),
-                        constraint: Constraint::Min(16),
-                    },
-                    RowItem {
-                        item: Item::Global(GlobalItem::SearchSettings),
-                        constraint: Constraint::Length(5),
-                    },
-                ],
-                centered: false,
-                height: Constraint::Length(3),
-            },
-            Row {
-                items: vec![
-                    RowItem {
-                        item: Item::Channel(ChannelItem::SelectItems(ChannelPage::Home)),
-                        constraint: Constraint::Length(15),
-                    },
-                    RowItem {
-                        item: Item::Channel(ChannelItem::SelectItems(ChannelPage::Videos)),
-                        constraint: Constraint::Length(15),
-                    },
-                    RowItem {
-                        item: Item::Channel(ChannelItem::SelectItems(ChannelPage::Playlists)),
-                        constraint: Constraint::Length(15),
-                    },
-                ],
-                centered: true,
-                height: Constraint::Length(3),
-            },
-            Row {
-                items: vec![RowItem {
-                    item: Item::Channel(ChannelItem::InfoDisplay(ChannelDisplayItem::Unknown)),
-                    constraint: Constraint::Percentage(100),
-                }],
-                centered: false,
-                height: Constraint::Min(6),
-            },
-            Row {
-                items: vec![RowItem {
-                    item: Item::Global(GlobalItem::MessageBar),
-                    constraint: Constraint::Percentage(100),
-                }],
-                centered: false,
-                height: Constraint::Length(3),
-            },
-        ]
+    fn default() -> LayoutConfig {
+        LayoutConfig {
+            layout: vec![
+                RowTransitional {
+                    items: vec![
+                        RowItemTransitional {
+                            item: ItemTransitional::Global(GlobalItem::SearchBar),
+                            constraint: ConstraintTransitional::Min(16),
+                        },
+                        RowItemTransitional {
+                            item: ItemTransitional::Global(GlobalItem::SearchSettings),
+                            constraint: ConstraintTransitional::Length(5),
+                        },
+                    ],
+                    centered: false,
+                    height: ConstraintTransitional::Length(3),
+                },
+                RowTransitional {
+                    items: vec![
+                        RowItemTransitional {
+                            item: ItemTransitional::Channel(ChannelItemTransitional::SelectItems(
+                                ChannelPage::Home,
+                            )),
+                            constraint: ConstraintTransitional::Length(15),
+                        },
+                        RowItemTransitional {
+                            item: ItemTransitional::Channel(ChannelItemTransitional::SelectItems(
+                                ChannelPage::Videos,
+                            )),
+                            constraint: ConstraintTransitional::Length(15),
+                        },
+                        RowItemTransitional {
+                            item: ItemTransitional::Channel(ChannelItemTransitional::SelectItems(
+                                ChannelPage::Playlists,
+                            )),
+                            constraint: ConstraintTransitional::Length(15),
+                        },
+                    ],
+                    centered: true,
+                    height: ConstraintTransitional::Length(3),
+                },
+                RowTransitional {
+                    items: vec![RowItemTransitional {
+                        item: ItemTransitional::Channel(ChannelItemTransitional::InfoDisplay),
+                        constraint: ConstraintTransitional::Percentage(100),
+                    }],
+                    centered: false,
+                    height: ConstraintTransitional::Min(6),
+                },
+                RowTransitional {
+                    items: vec![RowItemTransitional {
+                        item: ItemTransitional::Global(GlobalItem::MessageBar),
+                        constraint: ConstraintTransitional::Percentage(100),
+                    }],
+                    centered: false,
+                    height: ConstraintTransitional::Length(3),
+                },
+            ],
+            min: (46, 15),
+            message: String::from("Loading channel info..."),
+        }
     }
 }

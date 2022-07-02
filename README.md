@@ -18,8 +18,8 @@ This program is being actively developed and there will be new features coming u
 
 > ### What's new in this commit
 >
-> * Fixed text list not scrolling with cursor bug (where the cursor just goes out of the screen)
-> * Improvements to the `render()` method
+> * `layouts.yml` in `.config/youtube-tui`, now you can customize your screen layout
+> * More improvements to the `render()` method (no more `.clone()` used)
 
 ## Installation
 
@@ -40,7 +40,7 @@ The binary is located at `./target/release/youtube-tui`, go move it to other loc
 >
 > This program does not requires any dependencies, but it is suggested these three things on your system that can be launched via command:
 >
-> 1. A video player (Default to `mpv`)
+> 1. A video player (Defaults to `mpv`)
 > 2. A terminal emulator (Defaults to `konsole`)
 > 3. A YouTube downloader (Defaults to `yt-dlp`, strongly suggest NOT to use `youtube-dl` because it is now very slow)
 >
@@ -59,7 +59,6 @@ youtube-tui # or path to the binary
 |Key|What does it do|
 |---|---|
 |Arrow/Vim keys|Move in corresponding direction|
-|Right arrow|Move cursor right
 |Enter|Select/Launch|
 |Q|Quit the program|
 

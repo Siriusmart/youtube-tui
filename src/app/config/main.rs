@@ -22,7 +22,7 @@ fn env_default() -> HashMap<String, String> {
     out
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MainConfig {
     #[serde(default = "max_watch_history_default")]
     pub max_watch_history: usize,

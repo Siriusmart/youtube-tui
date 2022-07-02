@@ -9,7 +9,7 @@ use crate::{
 
 use super::SearchSettings;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct AppHistory {
     pub page: Page,
     pub state: Vec<Row>, // Item
@@ -17,7 +17,7 @@ pub struct AppHistory {
     pub hover: Option<(usize, usize)>, // x, y
     pub selected: Option<(usize, usize)>,
     pub client: Client,
-    pub message: Arc<Mutex<Option<String>>>,
+    pub message: Option<String>,
     pub load: bool,
     pub render: bool,
     pub popup_focus: bool,

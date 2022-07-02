@@ -2,19 +2,23 @@ use std::{collections::LinkedList, error::Error, fs};
 
 use crate::{
     app::{
-        app::App,
-        config::Action,
+        app::{App, AppNoState},
+        config::{
+            Action, ConstraintTransitional, ItemTransitional, LayoutConfig,
+            MainMenuItemTransitional, RowItemTransitional, RowTransitional,
+        },
         pages::{global::*, item_info::*},
     },
     functions::download_all_thumbnails,
-    structs::{Item, ListItem, Page, Row, RowItem, WatchHistory},
+    structs::{Item, ListItem, Page, WatchHistory},
     traits::{ItemTrait, PageTrait},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
 use crossterm::event::KeyCode;
+use serde::{Deserialize, Serialize};
 use tui::{
     backend::Backend,
-    layout::{Alignment, Constraint, Rect},
+    layout::{Alignment, Rect},
     style::{Color, Style},
     widgets::{Block, BorderType, Borders, Paragraph},
     Frame,
@@ -137,12 +141,12 @@ impl ItemTrait for MainMenuItem {
         &mut self,
         frame: &mut Frame<B>,
         rect: Rect,
-        app: App,
+        app: AppNoState,
         selected: bool,
         hover: bool,
         popup_focus: bool,
         popup_render: bool,
-    ) -> (bool, App) {
+    ) -> (bool, AppNoState) {
         let out = (false, app);
 
         if popup_render {
@@ -250,7 +254,7 @@ impl ItemTrait for MainMenuItem {
                     Action::FirstItem => textlist.first(),
                     Action::LastItem => textlist.last(),
                     Action::Select => {
-                        let state = ItemInfo::default();
+                        let state = app.config.layouts.item_info.clone().into();
                         let mut history = app.history.clone();
                         history.push(app.into());
 
@@ -297,7 +301,7 @@ pub fn textlist_from_video_list(original: &LinkedList<ListItem>) -> Vec<String> 
     original.iter().map(|item| item.to_string()).collect()
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum MainMenuSelector {
     Trending,
     Popular,
@@ -311,66 +315,67 @@ impl Default for MainMenuSelector {
 }
 
 pub struct MainMenu;
-
 impl PageTrait for MainMenu {
-    fn message() -> String {
-        String::from("Loading home page...")
-    }
-
-    fn min() -> (u16, u16) {
-        (45, 15)
-    }
-
-    fn default() -> Vec<Row> {
-        vec![
-            Row {
-                items: vec![
-                    RowItem {
-                        item: Item::Global(GlobalItem::SearchBar),
-                        constraint: Constraint::Min(16),
-                    },
-                    RowItem {
-                        item: Item::Global(GlobalItem::SearchSettings),
-                        constraint: Constraint::Length(5),
-                    },
-                ],
-                centered: false,
-                height: Constraint::Length(3),
-            },
-            Row {
-                items: vec![
-                    RowItem {
-                        item: Item::MainMenu(MainMenuItem::SeletorTab(MainMenuSelector::Popular)),
-                        constraint: Constraint::Length(15),
-                    },
-                    RowItem {
-                        item: Item::MainMenu(MainMenuItem::SeletorTab(MainMenuSelector::Trending)),
-                        constraint: Constraint::Length(15),
-                    },
-                    RowItem {
-                        item: Item::MainMenu(MainMenuItem::SeletorTab(MainMenuSelector::History)),
-                        constraint: Constraint::Length(15),
-                    },
-                ],
-                centered: true,
-                height: Constraint::Length(3),
-            },
-            Row {
-                items: vec![RowItem {
-                    item: Item::MainMenu(MainMenuItem::VideoList(None)),
-                    constraint: Constraint::Percentage(100),
-                }],
-                centered: false,
-                height: Constraint::Min(6),
-            },
-            Row {
-                items: vec![RowItem {
-                    item: Item::Global(GlobalItem::MessageBar),
-                    constraint: Constraint::Percentage(100),
-                }],
-                centered: false,
-                height: Constraint::Length(3),
-            },
-        ]
+    fn default() -> LayoutConfig {
+        LayoutConfig {
+            layout: vec![
+                RowTransitional {
+                    items: vec![
+                        RowItemTransitional {
+                            item: ItemTransitional::Global(GlobalItem::SearchBar),
+                            constraint: ConstraintTransitional::Min(16),
+                        },
+                        RowItemTransitional {
+                            item: ItemTransitional::Global(GlobalItem::SearchSettings),
+                            constraint: ConstraintTransitional::Length(5),
+                        },
+                    ],
+                    centered: false,
+                    height: ConstraintTransitional::Length(3),
+                },
+                RowTransitional {
+                    items: vec![
+                        RowItemTransitional {
+                            item: ItemTransitional::MainMenu(
+                                MainMenuItemTransitional::SelectorTab(MainMenuSelector::Popular),
+                            ),
+                            constraint: ConstraintTransitional::Length(15),
+                        },
+                        RowItemTransitional {
+                            item: ItemTransitional::MainMenu(
+                                MainMenuItemTransitional::SelectorTab(MainMenuSelector::Trending),
+                            ),
+                            constraint: ConstraintTransitional::Length(15),
+                        },
+                        RowItemTransitional {
+                            item: ItemTransitional::MainMenu(
+                                MainMenuItemTransitional::SelectorTab(MainMenuSelector::History),
+                            ),
+                            constraint: ConstraintTransitional::Length(15),
+                        },
+                    ],
+                    centered: true,
+                    height: ConstraintTransitional::Length(3),
+                },
+                RowTransitional {
+                    items: vec![RowItemTransitional {
+                        item: ItemTransitional::MainMenu(MainMenuItemTransitional::VideoList),
+                        constraint: ConstraintTransitional::Percentage(100),
+                    }],
+                    centered: false,
+                    height: ConstraintTransitional::Min(6),
+                },
+                RowTransitional {
+                    items: vec![RowItemTransitional {
+                        item: ItemTransitional::Global(GlobalItem::MessageBar),
+                        constraint: ConstraintTransitional::Percentage(100),
+                    }],
+                    centered: false,
+                    height: ConstraintTransitional::Length(3),
+                },
+            ],
+            min: (45, 15),
+            message: String::from("Loading home page..."),
+        }
     }
 }

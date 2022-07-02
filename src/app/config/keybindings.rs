@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
 use crossterm::event::KeyCode;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::traits::ConfigItem;
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 pub enum Action {
     Up,
     Down,
@@ -21,7 +21,7 @@ pub enum Action {
     ClearHistory,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 pub enum KeyCodeTransitional {
     Backspace,
     Enter,
@@ -64,7 +64,7 @@ impl Into<KeyCode> for KeyCodeTransitional {
             Self::Char(c) => KeyCode::Char(c),
             Self::Null => KeyCode::Null,
             Self::Esc => KeyCode::Esc,
-        } 
+        }
     }
 }
 
@@ -80,8 +80,8 @@ impl Into<KeybindingsConfig> for KeybindingsConfigTransitional {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct KeybindingsConfigTransitional (pub HashMap<KeyCodeTransitional, Action>);
+#[derive(Serialize, Deserialize, Clone)]
+pub struct KeybindingsConfigTransitional(pub HashMap<KeyCodeTransitional, Action>);
 
 impl Default for KeybindingsConfigTransitional {
     fn default() -> Self {
@@ -103,7 +103,7 @@ impl Default for KeybindingsConfigTransitional {
         out.insert(KeyCodeTransitional::Enter, Action::Select);
         out.insert(KeyCodeTransitional::Esc, Action::Deselect);
         out.insert(KeyCodeTransitional::Char('q'), Action::Exit);
-        
+
         out.insert(KeyCodeTransitional::Home, Action::Home);
         out.insert(KeyCodeTransitional::Backspace, Action::Back);
         out.insert(KeyCodeTransitional::End, Action::ClearHistory);
@@ -118,11 +118,10 @@ impl Default for KeybindingsConfig {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct KeybindingsConfig (pub HashMap<KeyCode, Action>);
+#[derive(Clone)]
+pub struct KeybindingsConfig(pub HashMap<KeyCode, Action>);
 
-
-impl ConfigItem<'_>  for KeybindingsConfig {
+impl ConfigItem<'_> for KeybindingsConfig {
     type Struct = KeybindingsConfigTransitional;
     const FILE_NAME: &'static str = "keybindings.yml";
 }

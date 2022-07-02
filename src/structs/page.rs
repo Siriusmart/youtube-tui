@@ -1,9 +1,12 @@
 use crate::{
-    app::pages::{
-        channel::{Channel, ChannelPage},
-        item_info::{DisplayItem, ItemInfo},
-        main_menu::{MainMenu, MainMenuSelector},
-        search::Search,
+    app::{
+        config::Config,
+        pages::{
+            channel::{Channel, ChannelPage},
+            item_info::{DisplayItem, ItemInfo},
+            main_menu::{MainMenu, MainMenuSelector},
+            search::Search,
+        },
     },
     traits::PageTrait,
 };
@@ -23,12 +26,21 @@ impl Default for Page {
 }
 
 impl Page {
-    pub fn message(&self) -> String {
+    pub fn message(&self, config: &Config) -> String {
         match self {
-            Self::MainMenu(_) => MainMenu::message(),
-            Self::ItemDisplay(_) => ItemInfo::message(),
-            Self::Channel(_, _) => Channel::message(),
-            Self::Search => Search::message(),
+            Self::MainMenu(_) => config.layouts.main_menu.message.clone(),
+            Self::ItemDisplay(_) => config.layouts.item_info.message.clone(),
+            Self::Channel(_, _) => config.layouts.channel.message.clone(),
+            Self::Search => config.layouts.search.message.clone(),
+        }
+    }
+
+    pub fn min(&self, config: &Config) -> (u16, u16) {
+        match self {
+            Self::MainMenu(_) => config.layouts.main_menu.min,
+            Self::ItemDisplay(_) => config.layouts.item_info.min,
+            Self::Channel(_, _) => config.layouts.channel.min,
+            Self::Search => config.layouts.search.min,
         }
     }
 }

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::traits::ConfigItem;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PageCommandsConfig(pub HashMap<String, Vec<PageCommand>>);
 
 impl PageCommandsConfig {
@@ -22,6 +22,7 @@ impl Default for PageCommandsConfig {
             vec![
                 PageCommand::from("Watch video", "video_player"),
                 PageCommand::from("Play audio", "audio_player"),
+                PageCommand::from("Play audio (loop)", "audio_loop"),
                 PageCommand::from("Download video", "video_downloader"),
                 PageCommand::from("Download audio", "audio_downloader"),
                 PageCommand::from("Visit channel", "{goto_channel}"),
@@ -51,7 +52,7 @@ impl Default for PageCommandsConfig {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PageCommand {
     pub label: String,
     pub command: String,
