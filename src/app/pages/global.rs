@@ -14,11 +14,9 @@ use crate::{
     app::app::{App, AppNoState},
     functions::center_rect,
     structs::{Item, Page, WatchHistory},
-    traits::{ItemTrait, PageTrait},
+    traits::ItemTrait,
     widgets::{force_clear::ForceClear, horizontal_split::HorizontalSplit},
 };
-
-use super::search::Search;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum GlobalItem {

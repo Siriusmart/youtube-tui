@@ -1,14 +1,6 @@
-use crate::{
-    app::{
-        config::Config,
-        pages::{
-            channel::{Channel, ChannelPage},
-            item_info::{DisplayItem, ItemInfo},
-            main_menu::{MainMenu, MainMenuSelector},
-            search::Search,
-        },
-    },
-    traits::PageTrait,
+use crate::app::{
+    config::Config,
+    pages::{channel::ChannelPage, item_info::DisplayItem, main_menu::MainMenuSelector},
 };
 
 #[derive(Debug, PartialEq, Clone)]

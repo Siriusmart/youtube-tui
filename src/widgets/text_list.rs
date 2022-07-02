@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 use tui::{
     buffer::Buffer,
     layout::Rect,

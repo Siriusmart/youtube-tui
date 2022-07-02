@@ -24,10 +24,7 @@ use crate::{
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
 
-use super::{
-    global::GlobalItem,
-    item_info::{DisplayItem, ItemInfo},
-};
+use super::{global::GlobalItem, item_info::DisplayItem};
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum ChannelPage {

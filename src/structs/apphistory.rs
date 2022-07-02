@@ -1,5 +1,3 @@
-use std::sync::{Arc, Mutex};
-
 use invidious::blocking::Client;
 
 use crate::{

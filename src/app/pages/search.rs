@@ -24,9 +24,7 @@ use crate::{
 };
 
 use super::{
-    channel::{Channel, ChannelPage},
-    global::GlobalItem,
-    item_info::{DisplayItem, ItemInfo},
+    channel::ChannelPage, global::GlobalItem, item_info::DisplayItem,
     main_menu::textlist_from_video_list,
 };
 

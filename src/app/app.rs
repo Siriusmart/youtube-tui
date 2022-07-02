@@ -1,12 +1,8 @@
-use std::{
-    collections::LinkedList,
-    sync::{Arc, Mutex},
-};
+use std::collections::LinkedList;
 
 use crate::{
-    app::pages::main_menu::*,
     structs::{AppHistory, Item, Page, Row, SearchSettings, WatchHistory},
-    traits::{ItemTrait, PageTrait},
+    traits::ItemTrait,
 };
 use crossterm::event::KeyCode;
 use invidious::blocking::Client;
@@ -18,10 +14,7 @@ use tui::{
     Frame,
 };
 
-use super::{
-    config::{Action, Config},
-    pages::{channel::Channel, item_info::ItemInfo, search::Search},
-};
+use super::config::{Action, Config};
 
 #[derive(Clone)]
 pub struct App {
