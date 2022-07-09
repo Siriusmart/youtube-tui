@@ -4,48 +4,43 @@
 # then please put 'unknown'.
 
 # Maintainer: Zaedus <nintendozaedus@gmail.com>
-pkgname=youtube-tui
-pkgver=0.0.1
+_pkgname="youtube-tui"
+pkgname="${_pkgname}-git"
+pkgver=r20.611b164
 pkgrel=1
 pkgdesc="An aesthetically pleasing TUI frontend to browsing YouTube written in Rust."
-arch=()
+arch=('x86_64')
 url="https://github.com/Siriusmart/youtube-tui"
 license=('GPL')
-groups=()
 depends=('mpv')
 makedepends=('rust' 'cargo' 'git')
-checkdepends=()
-optdepends=()
-provides=('youtube-tui')
-conflicts=('youtube-tui')
-replaces=()
-backup=()
-options=()
-install=
-changelog=
-source=("$pkgname-$pkgver.tar.gz"
-        "$pkgname-$pkgver.patch")
-noextract=()
-md5sums=()
-validpgpkeys=()
+provides=("${_pkgname}")
+conflicts=("${_pkgname}")
+source=("git+https://github.com/Siriusmart/youtube-tui.git")
+sha512sums=('SKIP')
+
+pkgver() {
+  cd "${srcdir}/${_pkgname}"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
 
 prepare() {
-	cd "$pkgname-$pkgver"
-	patch -p1 -i "$srcdir/$pkgname-$pkgver.patch"
+  cd "${srcdir}/${_pkgname}"
+  cargo fetch --locked
 }
 
 build() {
-	cd "$pkgname-$pkgver"
-	./configure --prefix=/usr
-	make
+  cd "${srcdir}/${_pkgname}"
+  cargo build --release --locked
 }
 
 check() {
-	cd "$pkgname-$pkgver"
-	make -k check
+  cd "${srcdir}/${_pkgname}"
+  cargo test --release --locked
 }
 
 package() {
-	cd "$pkgname-$pkgver"
-	make DESTDIR="$pkgdir/" install
+  cd "${srcdir}/${_pkgname}"
+  install -Dm 755 "target/release/${_pkgname}" "${pkgdir}/usr/bin/${_pkgname}"
+  install -Dm 755 LICENSE "${pkgdir}/usr/share/licenses/${_pkgname}/LICENSE"
 }
