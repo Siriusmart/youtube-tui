@@ -1,10 +1,10 @@
 use std::collections::LinkedList;
 
 use crate::{
-    structs::{AppHistory, Item, Page, Row, SearchSettings, WatchHistory},
+    structs::{AppHistory, Item, Page, SearchSettings, State, WatchHistory},
     traits::ItemTrait,
 };
-use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
 use invidious::blocking::Client;
 use tui::{
     backend::Backend,
@@ -20,7 +20,7 @@ use super::config::{Action, Config};
 pub struct App {
     pub config: Config,
     pub page: Page,
-    pub state: Vec<Row>, // Item
+    pub state: State, // Item
     pub selectable: Vec<Vec<(usize, usize)>>,
     pub hover: Option<(usize, usize)>, // x, y
     pub selected: Option<(usize, usize)>,
@@ -33,6 +33,7 @@ pub struct App {
     pub watch_history: WatchHistory,
     pub search_settings: SearchSettings,
     pub search_text: String,
+    pub search_index: usize,
     pub page_no: usize,
 }
 
@@ -51,11 +52,12 @@ pub struct AppNoState {
     pub watch_history: WatchHistory,
     pub search_settings: SearchSettings,
     pub search_text: String,
+    pub search_index: usize,
     pub page_no: usize,
 }
 
 impl AppNoState {
-    pub fn split(app: App) -> (Self, Vec<Row>) {
+    pub fn split(app: App) -> (Self, State) {
         let out = Self {
             config: app.config,
             page: app.page,
@@ -71,12 +73,13 @@ impl AppNoState {
             watch_history: app.watch_history,
             search_settings: app.search_settings,
             search_text: app.search_text,
+            search_index: app.search_index,
             page_no: app.page_no,
         };
         (out, app.state)
     }
 
-    pub fn join(app: Self, state: Vec<Row>) -> App {
+    pub fn join(app: Self, state: State) -> App {
         App {
             config: app.config,
             page: app.page,
@@ -92,6 +95,7 @@ impl AppNoState {
             watch_history: app.watch_history,
             search_settings: app.search_settings,
             search_text: app.search_text,
+            search_index: app.search_index,
             page_no: app.page_no,
             state,
         }
@@ -101,7 +105,7 @@ impl AppNoState {
 impl Default for App {
     fn default() -> Self {
         let config = Config::load().unwrap();
-        let state = config.layouts.main_menu.clone().into();
+        let state: State = config.layouts.main_menu.clone().into();
         let selectable = App::selectable(&state);
         Self {
             page: Page::default(),
@@ -119,16 +123,17 @@ impl Default for App {
             watch_history: WatchHistory::load(),
             search_settings: SearchSettings::default(),
             search_text: String::new(),
+            search_index: 0,
             page_no: 1,
         }
     }
 }
 
 impl App {
-    pub fn selectable(state: &Vec<Row>) -> Vec<Vec<(usize, usize)>> {
+    pub fn selectable(state: &State) -> Vec<Vec<(usize, usize)>> {
         let mut selectable = Vec::new();
 
-        for (y, row) in state.iter().enumerate() {
+        for (y, row) in state.0.iter().enumerate() {
             let mut row_vec = Vec::new();
             for (x, row_item) in row.items.iter().enumerate() {
                 if match &row_item.item {
@@ -149,16 +154,16 @@ impl App {
         selectable
     }
 
-    pub fn key_input(mut self, key: KeyCode) -> App {
+    pub fn key_input(mut self, key: KeyEvent) -> App {
         let action = self.config.keybindings.0.get(&key);
 
         if let Some((x, y)) = self.selected {
             if action != Some(&Action::Deselect) {
-                let mut item = self.state[y].items[x].item.clone();
+                let mut item = self.state.0[y].items[x].item.clone();
                 let updated;
                 (updated, self) = item.key_input(key, self);
                 if updated {
-                    self.state[y].items[x].item = item;
+                    self.state.0[y].items[x].item = item;
                 }
 
                 return self;
@@ -171,13 +176,17 @@ impl App {
         };
 
         match action {
+            Action::Refresh => {
+                self.state.reset();
+                self.load = true;
+            }
             Action::Select => {
                 if self.hover.is_some() && self.selected.is_none() {
                     let (mut x, mut y) = self.hover.unwrap();
                     (x, y) = self.selectable[y][x];
 
                     let select;
-                    (self, select) = self.state[y]
+                    (self, select) = self.state.0[y]
                         .items
                         .iter()
                         .nth(x)
@@ -292,6 +301,7 @@ impl App {
             .direction(Direction::Vertical)
             .constraints(
                 self.state
+                    .0
                     .iter()
                     .map(|row| row.height)
                     .collect::<Vec<Constraint>>(),
@@ -301,6 +311,7 @@ impl App {
         let (mut app, mut state) = AppNoState::split(self);
 
         for (y, (row, row_chunk)) in state
+            .0
             .iter_mut()
             .zip(vertical_chunks.clone().iter_mut())
             .enumerate()
@@ -392,6 +403,7 @@ impl App {
             search_settings: self.search_settings,
             popup_focus: app_history.popup_focus,
             search_text: app_history.search_text,
+            search_index: app_history.search_index,
             page_no: app_history.page_no,
         };
 

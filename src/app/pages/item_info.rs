@@ -14,7 +14,7 @@ use crate::{
     traits::{ItemTrait, PageTrait},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
-use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
 use tui::{
     backend::Backend,
     layout::Rect,
@@ -65,6 +65,10 @@ impl PlayListDisplayView {
 }
 
 impl ItemTrait for ItemInfoItem {
+    fn reset(&mut self) {
+        // panic!("Got here!");
+        *self = Self::Unknown;
+    }
     fn select(&mut self, app: App) -> (App, bool) {
         let selected = true;
 
@@ -75,7 +79,7 @@ impl ItemTrait for ItemInfoItem {
         true
     }
 
-    fn key_input(&mut self, key: KeyCode, mut app: App) -> (bool, App) {
+    fn key_input(&mut self, key: KeyEvent, mut app: App) -> (bool, App) {
         let action = match app.config.keybindings.0.get(&key) {
             Some(action) => *action,
             None => return (false, app),
@@ -268,10 +272,12 @@ impl ItemTrait for ItemInfoItem {
                     DisplayItem::Video(id) => {
                         let mut list = TextList::default();
                         let video: FullVideo = app.client.video(id, None)?.into();
-                        let _ = download_all_thumbnails(LinkedList::from([(
-                            video.video_thumbnail.clone(),
-                            video.video_id.clone(),
-                        )]));
+                        if app.config.main.display_thumbnails {
+                            let _ = download_all_thumbnails(LinkedList::from([(
+                                video.video_thumbnail.clone(),
+                                video.video_id.clone(),
+                            )]));
+                        }
                         let commands = app
                             .config
                             .page_commands
@@ -301,13 +307,15 @@ impl ItemTrait for ItemInfoItem {
                         let mut videos_text_list = TextList::default();
                         let mut playlist_text_list = TextList::default();
                         let playlist: FullPlayList = app.client.playlist(id, None)?.into();
-                        let _ = download_all_thumbnails(
-                            playlist
-                                .videos
-                                .iter()
-                                .map(|v| (v.video_thumbnail.clone(), v.video_id.clone()))
-                                .collect(),
-                        );
+                        if app.config.main.display_thumbnails {
+                            let _ = download_all_thumbnails(
+                                playlist
+                                    .videos
+                                    .iter()
+                                    .map(|v| (v.video_thumbnail.clone(), v.video_id.clone()))
+                                    .collect(),
+                            );
+                        }
 
                         videos_text_list.items = vec![String::from("Swtich view")];
                         videos_text_list

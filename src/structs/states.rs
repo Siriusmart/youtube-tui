@@ -1,4 +1,4 @@
-use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
 use std::error::Error;
 use tui::{
     backend::Backend,
@@ -20,6 +20,19 @@ use crate::{
 use super::WatchHistory;
 
 #[derive(Clone)]
+pub struct State(pub Vec<Row>);
+
+impl State {
+    pub fn reset(&mut self) {
+        for row in self.0.iter_mut() {
+            for rowitem in row.items.iter_mut() {
+                rowitem.item.reset();
+            }
+        }
+    }
+}
+
+#[derive(Clone)]
 pub enum Item {
     Global(GlobalItem),
     MainMenu(MainMenuItem),
@@ -29,7 +42,7 @@ pub enum Item {
 }
 
 impl Item {
-    pub fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
+    pub fn key_input(&mut self, key: KeyEvent, app: App) -> (bool, App) {
         match self {
             Item::Global(item) => item.key_input(key, app),
             Item::MainMenu(item) => item.key_input(key, app),
@@ -37,6 +50,16 @@ impl Item {
             Item::Search(item) => item.key_input(key, app),
             Item::Channel(item) => item.key_input(key, app),
         }
+    }
+
+    pub fn reset(&mut self) {
+        match self {
+            Item::Global(item) => item.reset(),
+            Item::MainMenu(item) => item.reset(),
+            Item::ItemInfo(item) => item.reset(),
+            Item::Search(item) => item.reset(),
+            Item::Channel(item) => item.reset(),
+        };
     }
 
     pub fn render_item<B: Backend>(

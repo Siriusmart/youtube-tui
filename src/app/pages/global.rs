@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crossterm::event::KeyCode;
+use crossterm::event::{KeyCode, KeyEvent};
 use serde::{Deserialize, Serialize};
 use tui::{
     backend::Backend,
@@ -70,14 +70,32 @@ impl ItemTrait for GlobalItem {
         }
     }
 
-    fn key_input(&mut self, key: KeyCode, mut app: App) -> (bool, App) {
+    fn key_input(&mut self, key: KeyEvent, mut app: App) -> (bool, App) {
         match self {
-            GlobalItem::SearchBar => match key {
+            GlobalItem::SearchBar => match key.code {
                 KeyCode::Char(c) => {
-                    app.search_text.push(c);
+                    app.search_text.insert(app.search_index, c);
+                    app.search_index += 1;
                 }
                 KeyCode::Backspace => {
-                    app.search_text.pop();
+                    if app.search_index != 0 && app.search_text.len() != 0 {
+                        app.search_text = format!(
+                            "{}{}",
+                            &app.search_text[0..app.search_index - 1],
+                            &app.search_text[app.search_index..app.search_text.len()]
+                        );
+                        app.search_index -= 1;
+                    };
+                }
+                KeyCode::Left => {
+                    if app.search_index > 0 {
+                        app.search_index -= 1;
+                    }
+                }
+                KeyCode::Right => {
+                    if app.search_index < app.search_text.len() {
+                        app.search_index += 1;
+                    }
                 }
                 KeyCode::Enter => {
                     if app.search_text.len() == 0 {
@@ -86,6 +104,7 @@ impl ItemTrait for GlobalItem {
                         let state = app.config.layouts.search.clone().into();
                         let mut history = app.history.clone();
                         let search_text = app.search_text.clone();
+                        let search_index = app.search_index;
                         let search_settings = app.search_settings.clone();
                         history.push(app.into());
 
@@ -97,6 +116,7 @@ impl ItemTrait for GlobalItem {
                                 selectable: App::selectable(&state),
                                 state,
                                 search_text,
+                                search_index,
                                 search_settings,
                                 load: true,
                                 ..Default::default()
@@ -143,7 +163,9 @@ impl ItemTrait for GlobalItem {
                     .title_alignment(Alignment::Center);
                 let mut text = out.1.search_text.clone();
                 if selected {
-                    text.push('█');
+                    text.push(' ');
+                    text.replace_range(out.1.search_index..out.1.search_index + 1, "█");
+                    // text = format!("{}█{}", &text[0..out.1.search_index], &text[out.1.search_index+1..text.len()]);
                 }
                 let paragraph = Paragraph::new(text).block(block);
                 frame.render_widget(paragraph, rect);

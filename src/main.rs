@@ -10,7 +10,7 @@ use tui::{
 };
 use youtube_tui::{
     app::{app::App, config::Action},
-    structs::{Row, RowItem},
+    structs::{Row, RowItem, State},
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -55,7 +55,7 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
             app = hold.0;
             hold.1?;
             let mut new_state = Vec::new();
-            for row in app.state.iter() {
+            for row in app.state.0.iter() {
                 let mut row_vec = Vec::new();
                 for row_item in row.items.iter() {
                     match row_item.item.load_item(&app, &mut watch_history) {
@@ -82,7 +82,7 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
             }
 
             app.watch_history = watch_history;
-            app.state = new_state;
+            app.state = State(new_state);
 
             app.load = false;
             terminal.clear()?;
@@ -92,7 +92,7 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
             match event::read()? {
                 event::Event::Key(key) => {
                     if app.selected.is_none() {
-                        let action = match app.config.keybindings.0.get(&key.code) {
+                        let action = match app.config.keybindings.0.get(&key) {
                             Some(action) => *action,
                             None => continue,
                         };
@@ -122,7 +122,7 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                         }
                     }
 
-                    app = app.key_input(key.code);
+                    app = app.key_input(key);
                     app.render = true;
                 }
                 event::Event::Resize(_, _) => {
@@ -158,9 +158,10 @@ fn init() -> Result<(), Box<dyn Error>> {
     let mut dir = home_dir.clone();
 
     dir.push(".cache");
-    if !dir.exists() {
-        fs::create_dir(&dir)?;
+    if dir.exists() {
+        fs::remove_dir_all(&dir)?;
     }
+    fs::create_dir(&dir)?;
 
     dir.push("youtube-tui");
     if !dir.exists() {
@@ -235,7 +236,6 @@ fn exit() -> Result<(), Box<dyn Error>> {
 
     dir.push(".cache");
     dir.push("youtube-tui");
-    dir.push("cache");
 
     if dir.exists() {
         fs::remove_dir_all(&dir)?;

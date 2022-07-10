@@ -6,7 +6,7 @@ use crate::{
         main_menu::{MainMenu, MainMenuItem, MainMenuSelector},
         search::{Search, SearchItem},
     },
-    structs::{Item, Row, RowItem},
+    structs::{Item, Row, RowItem, State},
     traits::{ConfigItem, PageTrait},
     widgets::text_list::TextList,
 };
@@ -64,9 +64,9 @@ pub struct LayoutConfig {
     pub message: String,
 }
 
-impl Into<Vec<Row>> for LayoutConfig {
-    fn into(self) -> Vec<Row> {
-        self.layout.into_iter().map(|item| item.into()).collect()
+impl Into<State> for LayoutConfig {
+    fn into(self) -> State {
+        State(self.layout.into_iter().map(|item| item.into()).collect())
     }
 }
 

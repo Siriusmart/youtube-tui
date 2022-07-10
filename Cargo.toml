@@ -1,6 +1,6 @@
 [package]
 name = "youtube-tui"
-version = "0.4.2"
+version = "0.4.3"
 edition = "2021"
 authors = ["Siriusmart <siriusmart@tuta.io>"]
 description = "An aesthetically pleasing YouTube TUI written in Rust"

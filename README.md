@@ -16,10 +16,17 @@ This program is being actively developed and there will be new features coming u
 
 ![Screenshot](https://cdn.discordapp.com/attachments/906941311142219816/990684947830419526/Screenshot_20220626_192433.png)
 
+## User manual
+
+[YouTube TUI user manual](https://siriusmart.github.io/youtube-tui)
+
 > ### What's new in this commit
 >
-> * `layouts.yml` in `.config/youtube-tui`, now you can customize your screen layout
-> * More improvements to the `render()` method (no more `.clone()` used)
+> * Refresh pages
+> * Fixed cache not being cleared after exit
+> * Key modifiers for key bindings
+> * Image loading can be disabled in main config
+
 
 ## Installation
 
@@ -61,6 +68,8 @@ youtube-tui # or path to the binary
 |Arrow/Vim keys|Move in corresponding direction|
 |Enter|Select/Launch|
 |Q|Quit the program|
+
+Check the user manual [here](https://siriusmart.github.io/youtube-tui)
 
 > ### Note
 >

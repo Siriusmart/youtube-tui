@@ -1,4 +1,4 @@
-use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
 
 use crate::{
     app::config::{Action, Config},
@@ -66,8 +66,8 @@ impl SearchSettings {
         vec
     }
 
-    pub fn key_input(&mut self, keycode: KeyCode, config: &Config) {
-        let action = match config.keybindings.0.get(&keycode) {
+    pub fn key_input(&mut self, key: KeyEvent, config: &Config) {
+        let action = match config.keybindings.0.get(&key) {
             Some(action) => *action,
             None => return,
         };

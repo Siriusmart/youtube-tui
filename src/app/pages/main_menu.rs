@@ -14,7 +14,7 @@ use crate::{
     traits::{ItemTrait, PageTrait},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
-use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
 use serde::{Deserialize, Serialize};
 use tui::{
     backend::Backend,
@@ -47,16 +47,18 @@ impl ItemTrait for MainMenuItem {
                             .map(|t| ListItem::MiniVideo(t.into()))
                             .collect();
 
-                        download_all_thumbnails(
-                            list.iter()
-                                .map(|t| match t {
-                                    ListItem::MiniVideo(v) => {
-                                        (v.video_thumbnail.clone(), v.video_id.clone())
-                                    }
-                                    _ => unreachable!(),
-                                })
-                                .collect(),
-                        )?;
+                        if app.config.main.display_thumbnails {
+                            let _ = download_all_thumbnails(
+                                list.iter()
+                                    .map(|t| match t {
+                                        ListItem::MiniVideo(v) => {
+                                            (v.video_thumbnail.clone(), v.video_id.clone())
+                                        }
+                                        _ => unreachable!(),
+                                    })
+                                    .collect(),
+                            );
+                        }
 
                         if let Some((video_list, text_list, _)) = enum_items {
                             *text_list = TextList::default();
@@ -79,16 +81,18 @@ impl ItemTrait for MainMenuItem {
                             .map(|t| ListItem::MiniVideo(t.into()))
                             .collect();
 
-                        let _ = download_all_thumbnails(
-                            list.iter()
-                                .map(|t| match t {
-                                    ListItem::MiniVideo(v) => {
-                                        (v.video_thumbnail.clone(), v.video_id.clone())
-                                    }
-                                    _ => unreachable!(),
-                                })
-                                .collect(),
-                        );
+                        if app.config.main.display_thumbnails {
+                            let _ = download_all_thumbnails(
+                                list.iter()
+                                    .map(|t| match t {
+                                        ListItem::MiniVideo(v) => {
+                                            (v.video_thumbnail.clone(), v.video_id.clone())
+                                        }
+                                        _ => unreachable!(),
+                                    })
+                                    .collect(),
+                            );
+                        }
 
                         let mut text_list = TextList::default();
 
@@ -220,6 +224,13 @@ impl ItemTrait for MainMenuItem {
         }
         out
     }
+
+    fn reset(&mut self) {
+        if let Self::VideoList(something) = self {
+            *something = None;
+        }
+    }
+
     fn select(&mut self, mut app: App) -> (App, bool) {
         let selected = match self {
             MainMenuItem::SeletorTab(selector) => {
@@ -241,7 +252,7 @@ impl ItemTrait for MainMenuItem {
         true
     }
 
-    fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
+    fn key_input(&mut self, key: KeyEvent, app: App) -> (bool, App) {
         match self {
             MainMenuItem::VideoList(Some((list, textlist, _))) => {
                 let action = match app.config.keybindings.0.get(&key) {

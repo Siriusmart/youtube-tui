@@ -1,6 +1,6 @@
 use std::{collections::LinkedList, error::Error};
 
-use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
 use serde::{Deserialize, Serialize};
 use tui::{
     backend::Backend,
@@ -61,7 +61,9 @@ impl ItemTrait for ChannelItem {
                             channel.authorThumbnails[4].url.clone(),
                             channel.authorId.clone(),
                         ));
-                        let _ = download_all_thumbnails(linked_list);
+                        if app.config.main.display_thumbnails {
+                            let _ = download_all_thumbnails(linked_list);
+                        }
 
                         *displayitem = ChannelDisplayItem::Home(channel.into());
                     }
@@ -85,7 +87,9 @@ impl ItemTrait for ChannelItem {
                                     .push_back((thumbnail.clone(), item.playlist_id.clone()));
                             }
                         }
-                        let _ = download_all_thumbnails(linked_list);
+                        if app.config.main.display_thumbnails {
+                            let _ = download_all_thumbnails(linked_list);
+                        }
 
                         *displayitem = ChannelDisplayItem::Playlists(playlists, textlist);
                     }
@@ -108,8 +112,10 @@ impl ItemTrait for ChannelItem {
                             linked_list
                                 .push_back((item.video_thumbnail.clone(), item.video_id.clone()));
                         }
-                        let _ = download_all_thumbnails(linked_list);
 
+                        if app.config.main.display_thumbnails {
+                            let _ = download_all_thumbnails(linked_list);
+                        }
                         *displayitem = ChannelDisplayItem::Videos(videos, textlist);
                     }
                 }
@@ -277,7 +283,7 @@ impl ItemTrait for ChannelItem {
         out
     }
 
-    fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
+    fn key_input(&mut self, key: KeyEvent, app: App) -> (bool, App) {
         let action = match app.config.keybindings.0.get(&key) {
             Some(action) => action,
             None => return (false, app),

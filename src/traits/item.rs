@@ -4,11 +4,11 @@ use crate::{
     app::app::{App, AppNoState},
     structs::{Item, WatchHistory},
 };
-use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
 use tui::{backend::Backend, layout::Rect, Frame};
 
 pub trait ItemTrait {
-    fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App);
+    fn key_input(&mut self, key: KeyEvent, app: App) -> (bool, App);
     fn render_item<B: Backend>(
         &mut self,
         frame: &mut Frame<B>,
@@ -26,4 +26,5 @@ pub trait ItemTrait {
         app: &App,
         watch_history: &mut WatchHistory,
     ) -> Result<Item, Box<dyn Error>>;
+    fn reset(&mut self) {}
 }

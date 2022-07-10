@@ -14,3 +14,6 @@ pub use keybindings::*;
 
 mod layouts;
 pub use layouts::*;
+
+mod colors;
+pub use colors::*;

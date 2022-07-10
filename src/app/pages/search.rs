@@ -1,6 +1,6 @@
 use std::{collections::LinkedList, error::Error};
 
-use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
 use invidious::structs::hidden::SearchItem as InvidiousSearchItem;
 use tui::{
     backend::Backend,
@@ -45,7 +45,7 @@ impl ItemTrait for SearchItem {
         true
     }
 
-    fn key_input(&mut self, key: KeyCode, app: App) -> (bool, App) {
+    fn key_input(&mut self, key: KeyEvent, app: App) -> (bool, App) {
         let action = match app.config.keybindings.0.get(&key) {
             Some(action) => action,
             None => return (false, app),
@@ -275,7 +275,9 @@ impl ItemTrait for SearchItem {
                     }
                 }
 
-                let _ = download_all_thumbnails(thumbnails);
+                if app.config.main.display_thumbnails {
+                    let _ = download_all_thumbnails(thumbnails);
+                }
 
                 *results = Some(items);
             }

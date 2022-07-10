@@ -1,16 +1,13 @@
 use invidious::blocking::Client;
 
-use crate::{
-    app::app::App,
-    structs::{Page, Row},
-};
+use crate::{app::app::App, structs::Page};
 
-use super::SearchSettings;
+use super::{SearchSettings, State};
 
 #[derive(Clone)]
 pub struct AppHistory {
     pub page: Page,
-    pub state: Vec<Row>, // Item
+    pub state: State, // Item
     pub selectable: Vec<Vec<(usize, usize)>>,
     pub hover: Option<(usize, usize)>, // x, y
     pub selected: Option<(usize, usize)>,
@@ -21,6 +18,7 @@ pub struct AppHistory {
     pub popup_focus: bool,
     pub search_text: String,
     pub search_settings: SearchSettings,
+    pub search_index: usize,
     pub page_no: usize,
 }
 
@@ -31,7 +29,8 @@ impl From<App> for AppHistory {
             state: original.state,
             selectable: original.selectable,
             hover: original.hover,
-            selected: original.selected,
+            // selected: original.selected,
+            selected: None,
             client: original.client,
             message: original.message,
             load: original.load,
@@ -39,6 +38,7 @@ impl From<App> for AppHistory {
             popup_focus: original.popup_focus,
             search_text: original.search_text,
             search_settings: original.search_settings,
+            search_index: original.search_index,
             page_no: original.page_no,
         }
     }

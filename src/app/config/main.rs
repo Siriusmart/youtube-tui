@@ -22,6 +22,10 @@ fn env_default() -> HashMap<String, String> {
     out
 }
 
+fn display_thumbnails_default() -> bool {
+    true
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct MainConfig {
     #[serde(default = "max_watch_history_default")]
@@ -29,6 +33,9 @@ pub struct MainConfig {
 
     #[serde(default = "server_url_default")]
     pub server_url: String,
+
+    #[serde(default = "display_thumbnails_default")]
+    pub display_thumbnails: bool,
 
     #[serde(default = "env_default")]
     pub env: HashMap<String, String>,
@@ -39,6 +46,7 @@ impl Default for MainConfig {
         Self {
             max_watch_history: max_watch_history_default(),
             server_url: server_url_default(),
+            display_thumbnails: display_thumbnails_default(),
             env: env_default(),
         }
     }
