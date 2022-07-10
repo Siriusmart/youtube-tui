@@ -12,7 +12,12 @@ pkgdesc="An aesthetically pleasing TUI frontend to browsing YouTube written in R
 arch=('x86_64')
 url="https://github.com/Siriusmart/youtube-tui"
 license=('GPL')
-depends=('mpv')
+depends=()
+optdepends=(
+  'mpv: default video player'
+  'konsole: default terminal emulator'
+  'yt-dlp: default youtube downloader'
+)
 makedepends=('rust' 'cargo' 'git')
 provides=("${_pkgname}")
 conflicts=("${_pkgname}")
