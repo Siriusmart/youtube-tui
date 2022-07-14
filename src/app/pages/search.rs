@@ -324,8 +324,8 @@ impl ItemTrait for SearchItem {
 
                 if let Some(result) = results {
                     if let Some(item) = result.iter().nth(text_list.selected) {
-                        if !popup_focus {
-                            frame.render_widget(ItemDisplay { item: item.clone() }, chunks[1]);
+                        if !popup_render {
+                            frame.render_widget(ItemDisplay { item: item.clone(), render_image: !popup_focus }, chunks[1]);
                         }
                     }
                 }
@@ -383,6 +383,7 @@ impl PageTrait for Search {
             ],
             min: (45, 12),
             message: String::from("Loading search results..."),
+            def_selected: Some((0,1)),
         }
     }
 }

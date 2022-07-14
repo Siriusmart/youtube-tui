@@ -10,7 +10,7 @@ use crate::{
         pages::{channel::*, global::*},
     },
     functions::download_all_thumbnails,
-    structs::{FullPlayList, FullVideo, Item, ListItem, Page, WatchHistory},
+    structs::{FullPlayList, FullVideo, Item, ListItem, Page, WatchHistory, MessageText},
     traits::{ItemTrait, PageTrait},
     widgets::{horizontal_split::HorizontalSplit, item_display::ItemDisplay, text_list::TextList},
 };
@@ -133,14 +133,14 @@ impl ItemTrait for ItemInfoItem {
 
                                     match command.run_command(&env) {
                                         Some(e) => {
-                                            app.message = Some(format!("Unknown variable `{}`", e))
+                                            app.message = MessageText::Text(format!("Unknown variable `{}`", e))
                                         }
-                                        None => app.message = Some(command.message.clone()),
+                                        None => app.message = MessageText::Text(command.message.clone()),
                                     }
                                 }
                                 None => {
                                     app.message =
-                                        Some(format!("Unkown command `{}`", &command.command));
+                                        MessageText::Text(format!("Unkown command `{}`", &command.command));
                                 }
                             };
                         }
@@ -204,14 +204,14 @@ impl ItemTrait for ItemInfoItem {
                                         match command.run_command(&env) {
                                             Some(e) => {
                                                 app.message =
-                                                    Some(format!("Unknown variable `{}`", e))
+                                                    MessageText::Text(format!("Unknown variable `{}`", e))
                                             }
-                                            None => app.message = Some(command.message.clone()),
+                                            None => app.message = MessageText::Text(command.message.clone()),
                                         }
                                     }
                                     None => {
                                         app.message =
-                                            Some(format!("Unkown command `{}`", &command.command));
+                                            MessageText::Text(format!("Unkown command `{}`", &command.command));
                                     }
                                 };
                             }
@@ -231,7 +231,7 @@ impl ItemTrait for ItemInfoItem {
                         }
 
                         x => {
-                            let state = app.config.layouts.channel.clone().into();
+                            let state = app.config.layouts.item_info.clone().into();
                             let mut history = app.history.clone();
                             history.push(app.into());
 
@@ -270,6 +270,7 @@ impl ItemTrait for ItemInfoItem {
             match &app.page {
                 Page::ItemDisplay(display_item) => match display_item {
                     DisplayItem::Video(id) => {
+                        // panic!("Got here");
                         let mut list = TextList::default();
                         let video: FullVideo = app.client.video(id, None)?.into();
                         if app.config.main.display_thumbnails {
@@ -405,9 +406,10 @@ impl ItemTrait for ItemInfoItem {
 
                 frame.render_widget(split, rect);
 
-                if !popup_focus {
+                if !popup_render {
                     let item_display = ItemDisplay {
                         item: ListItem::FullVideo(videoinfo.video.clone()),
+                        render_image: !popup_focus,
                     };
 
                     frame.render_widget(item_display, chunks[0]);
@@ -431,9 +433,10 @@ impl ItemTrait for ItemInfoItem {
 
                 frame.render_widget(split, rect);
 
-                if !popup_focus {
+                if !popup_render {
                     let item_display = ItemDisplay {
                         item: ListItem::FullPlayList(playlistinfo.playlist.clone()),
+                        render_image: !popup_focus,
                     };
 
                     frame.render_widget(item_display, chunks[0]);
@@ -536,6 +539,7 @@ impl PageTrait for ItemInfo {
             ],
             min: (21, 12),
             message: String::from("Loading item info..."),
+            def_selected: Some((0,1)),
         }
     }
 }

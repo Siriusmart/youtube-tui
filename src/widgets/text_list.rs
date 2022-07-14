@@ -136,6 +136,10 @@ impl TextList {
     }
 
     pub fn down(&mut self) {
+        if self.items.len() == 0 {
+            return;
+        }
+
         if self.selected < self.items.len() - 1 {
             self.selected += 1;
         }
@@ -143,6 +147,9 @@ impl TextList {
     }
 
     pub fn up(&mut self) {
+        if self.items.len() == 0 {
+            return;
+        }
         if self.selected > 0 {
             self.selected -= 1;
         }

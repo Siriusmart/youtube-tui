@@ -62,6 +62,7 @@ pub struct LayoutConfig {
     pub layout: Vec<RowTransitional>,
     pub min: (u16, u16),
     pub message: String,
+    pub def_selected: Option<(usize, usize)>,
 }
 
 impl Into<State> for LayoutConfig {

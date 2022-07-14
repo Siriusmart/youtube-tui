@@ -8,7 +8,7 @@ fn max_watch_history_default() -> usize {
 }
 
 fn server_url_default() -> String {
-    String::from("https://vid.puffyan.us")
+    String::from("https://invidious.flokinet.to")
 }
 
 fn env_default() -> HashMap<String, String> {

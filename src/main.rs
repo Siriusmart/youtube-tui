@@ -10,7 +10,7 @@ use tui::{
 };
 use youtube_tui::{
     app::{app::App, config::Action},
-    structs::{Row, RowItem, State},
+    structs::{Row, RowItem, State, MessageText},
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -42,13 +42,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(), Box<dyn Error>> {
     loop {
         if app.render {
+            if app.term_clear {
+                terminal.clear()?;
+                app.term_clear = false;
+            }
             let hold = ui(&mut terminal, app);
             app = hold.0;
             hold.1?;
         }
 
         if app.load {
-            app.message = Some(app.page.message(&app.config));
+            app.message = MessageText::Text(app.page.message(&app.config));
             let mut watch_history = app.watch_history.clone();
             terminal.clear()?;
             let hold = ui(&mut terminal, app);
@@ -70,7 +74,7 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
                                 item: row_item.item.clone(),
                                 ..*row_item
                             });
-                            app.message = Some(e.to_string());
+                            app.message = MessageText::Text(e.to_string());
                         }
                     }
                 }
@@ -83,11 +87,18 @@ fn run_app<B: Backend>(mut terminal: &mut Terminal<B>, mut app: App) -> Result<(
 
             app.watch_history = watch_history;
             app.state = State(new_state);
+            app.selectable = App::selectable(&app.state);
 
             app.load = false;
             terminal.clear()?;
             let hold = ui(&mut terminal, app);
             app = hold.0;
+
+            let selected = app.page_default();
+
+            app.selected = selected;
+            app.hover = selected;
+            app.render = true;
         } else {
             match event::read()? {
                 event::Event::Key(key) => {
@@ -143,7 +154,7 @@ fn ui<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> (App, Result<(), 
 
     app = recv.recv().unwrap();
 
-    app.message = None;
+    app.message = MessageText::None;
     app.render = false;
 
     match res {

@@ -6,16 +6,16 @@ use tui::{
     backend::Backend,
     layout::{Alignment, Rect},
     style::{Color, Style},
-    widgets::{Block, BorderType, Borders, Clear, Paragraph},
+    widgets::{Block, BorderType, Borders, Paragraph, Clear},
     Frame,
 };
 
 use crate::{
     app::app::{App, AppNoState},
     functions::center_rect,
-    structs::{Item, Page, WatchHistory},
+    structs::{Item, Page, WatchHistory, MessageText},
     traits::ItemTrait,
-    widgets::{force_clear::ForceClear, horizontal_split::HorizontalSplit},
+    widgets::{ horizontal_split::HorizontalSplit},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -55,9 +55,10 @@ impl ItemTrait for GlobalItem {
             GlobalItem::SearchBar => true,
             GlobalItem::SearchSettings => {
                 app.popup_focus = true;
+                app.term_clear = true;
                 true
             }
-            _ => false,
+            GlobalItem::MessageBar => unreachable!()
         };
 
         (app, selected)
@@ -74,11 +75,13 @@ impl ItemTrait for GlobalItem {
         match self {
             GlobalItem::SearchBar => match key.code {
                 KeyCode::Char(c) => {
+                    app.render = true;
                     app.search_text.insert(app.search_index, c);
                     app.search_index += 1;
                 }
                 KeyCode::Backspace => {
                     if app.search_index != 0 && app.search_text.len() != 0 {
+                    app.render = true;
                         app.search_text = format!(
                             "{}{}",
                             &app.search_text[0..app.search_index - 1],
@@ -89,17 +92,20 @@ impl ItemTrait for GlobalItem {
                 }
                 KeyCode::Left => {
                     if app.search_index > 0 {
+                    app.render = true;
                         app.search_index -= 1;
                     }
                 }
                 KeyCode::Right => {
                     if app.search_index < app.search_text.len() {
+                    app.render = true;
                         app.search_index += 1;
                     }
                 }
                 KeyCode::Enter => {
+                    app.render = true;
                     if app.search_text.len() == 0 {
-                        app.message = Some(String::from("Search term cannot be empty"));
+                        app.message = MessageText::Text(String::from("Search term cannot be empty"));
                     } else {
                         let state = app.config.layouts.search.clone().into();
                         let mut history = app.history.clone();
@@ -181,7 +187,7 @@ impl ItemTrait for GlobalItem {
                         Color::Reset
                     }));
                 let paragraph =
-                    Paragraph::new(message.clone().unwrap_or(String::from("All good :)")))
+                    Paragraph::new(message.clone().to_string())
                         .block(block);
                 frame.render_widget(paragraph, rect);
             }
@@ -240,6 +246,9 @@ impl ItemTrait for GlobalItem {
                                         .selected_style(Style::default().fg(Color::LightRed));
                                 }
 
+                                frame.render_widget(Clear, chunks[0]);
+                                frame.render_widget(Clear, chunks[1]);
+
                                 frame.render_widget(
                                     out.1.search_settings.text_list.clone(),
                                     chunks[0],
@@ -252,12 +261,9 @@ impl ItemTrait for GlobalItem {
                                     chunks[1],
                                 );
 
-                                frame.render_widget(ForceClear, chunks[0]);
-
-                                frame.render_widget(ForceClear, chunks[1]);
                             }
-                            Err(rect) => {
-                                frame.render_widget(Clear, rect);
+                            Err(_) => {
+                                out.1.message = MessageText::Text(String::from("Screen too small"));
                             }
                         }
                         //panic!("{:?}", rect);

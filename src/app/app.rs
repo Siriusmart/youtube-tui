@@ -1,7 +1,7 @@
 use std::collections::LinkedList;
 
 use crate::{
-    structs::{AppHistory, Item, Page, SearchSettings, State, WatchHistory},
+    structs::{AppHistory, Item, Page, SearchSettings, State, WatchHistory, MessageText},
     traits::ItemTrait,
 };
 use crossterm::event::KeyEvent;
@@ -14,7 +14,7 @@ use tui::{
     Frame,
 };
 
-use super::config::{Action, Config};
+use super::config::{Action, Config, LayoutConfig};
 
 #[derive(Clone)]
 pub struct App {
@@ -25,7 +25,7 @@ pub struct App {
     pub hover: Option<(usize, usize)>, // x, y
     pub selected: Option<(usize, usize)>,
     pub client: Client,
-    pub message: Option<String>,
+    pub message: MessageText,
     pub load: bool,
     pub render: bool,
     pub popup_focus: bool,
@@ -35,6 +35,7 @@ pub struct App {
     pub search_text: String,
     pub search_index: usize,
     pub page_no: usize,
+    pub term_clear: bool,
 }
 
 pub struct AppNoState {
@@ -44,7 +45,7 @@ pub struct AppNoState {
     pub hover: Option<(usize, usize)>, // x, y
     pub selected: Option<(usize, usize)>,
     pub client: Client,
-    pub message: Option<String>,
+    pub message: MessageText,
     pub load: bool,
     pub render: bool,
     pub popup_focus: bool,
@@ -54,6 +55,7 @@ pub struct AppNoState {
     pub search_text: String,
     pub search_index: usize,
     pub page_no: usize,
+    pub term_clear: bool,
 }
 
 impl AppNoState {
@@ -75,6 +77,7 @@ impl AppNoState {
             search_text: app.search_text,
             search_index: app.search_index,
             page_no: app.page_no,
+            term_clear: app.term_clear,
         };
         (out, app.state)
     }
@@ -98,6 +101,7 @@ impl AppNoState {
             search_index: app.search_index,
             page_no: app.page_no,
             state,
+            term_clear: app.term_clear,
         }
     }
 }
@@ -114,7 +118,7 @@ impl Default for App {
             client: Client::new(config.main.server_url.clone()),
             selected: None,
             hover: None,
-            message: None,
+            message: MessageText::None,
             load: true,
             render: true,
             popup_focus: false,
@@ -125,6 +129,7 @@ impl Default for App {
             search_text: String::new(),
             search_index: 0,
             page_no: 1,
+            term_clear: false,
         }
     }
 }
@@ -179,6 +184,7 @@ impl App {
             Action::Refresh => {
                 self.state.reset();
                 self.load = true;
+                self.render = true;
             }
             Action::Select => {
                 if self.hover.is_some() && self.selected.is_none() {
@@ -199,6 +205,8 @@ impl App {
                         self.selected = Some((x, y));
                     }
 
+                    self.render = true;
+
                     return self;
                 }
             }
@@ -206,6 +214,7 @@ impl App {
                 if self.selected.is_some() {
                     self.selected = None;
                     self.popup_focus = false;
+                    self.render = true;
                     return self;
                 }
             }
@@ -217,6 +226,7 @@ impl App {
             Some((x, y)) => match action {
                 Action::Up => {
                     if *y > 0 {
+                    self.render = true;
                         let temp_y = *y - 1;
                         if *x > self.selectable[temp_y].len() {
                             let temp_x = self.selectable[temp_y].len();
@@ -232,6 +242,7 @@ impl App {
                 }
                 Action::Down => {
                     if *y < self.selectable.len() - 1 {
+                    self.render = true;
                         *y += 1;
                         if *x > self.selectable[*y].len() - 1 {
                             *x = self.selectable[*y].len() - 1;
@@ -241,12 +252,14 @@ impl App {
 
                 Action::Left => {
                     if *x > 0 {
+                    self.render = true;
                         *x -= 1;
                     }
                 }
 
                 Action::Right => {
                     if *x < self.selectable[*y].len() - 1 {
+                    self.render = true;
                         *x += 1;
                     }
                 }
@@ -255,15 +268,19 @@ impl App {
             },
             None => match action {
                 Action::Up => {
+                    self.render = true;
                     self.hover = Some((0, 0));
                 }
                 Action::Down => {
+                    self.render = true;
                     self.hover = Some((0, self.selectable.len() - 1));
                 }
                 Action::Left => {
+                    self.render = true;
                     self.hover = Some((0, 0));
                 }
                 Action::Right => {
+                    self.render = true;
                     self.hover = Some((0, self.selectable.len() - 1));
                 }
                 _ => {}
@@ -351,6 +368,7 @@ impl App {
 
             frame.render_widget(Block::default(), chunks.next().unwrap());
 
+            let popup_focus = app.popup_focus;
             for (x, (chunk, item)) in chunks
                 .zip(row.items.iter_mut().map(|i| &mut i.item))
                 .enumerate()
@@ -358,7 +376,6 @@ impl App {
                 let selected = app.selected == Some((x, y));
 
                 let hover = hover_selected == Some((x, y));
-                let popup_focus = app.popup_focus;
 
                 let hold = item.render_item(frame, chunk, app, selected, hover, popup_focus, false);
 
@@ -381,7 +398,7 @@ impl App {
 
     pub fn pop(mut self) -> (App, bool) {
         if self.history.len() == 0 {
-            self.message = Some(String::from("This is the beginning of history"));
+            self.message = MessageText::Text(String::from("This is the beginning of history"));
             return (self, false);
         }
 
@@ -405,6 +422,7 @@ impl App {
             search_text: app_history.search_text,
             search_index: app_history.search_index,
             page_no: app_history.page_no,
+            term_clear: false,
         };
 
         (self, true)
@@ -412,5 +430,23 @@ impl App {
 
     pub fn home(&mut self) {
         *self = App::default();
+    }
+
+    pub fn page_layout(&self) -> LayoutConfig {
+        match self.page {
+            Page::Search => self.config.layouts.search.clone(),
+            Page::MainMenu(_) => self.config.layouts.main_menu.clone(),
+            Page::ItemDisplay(_) => self.config.layouts.item_info.clone(),
+            Page::Channel(_, _) => self.config.layouts.channel.clone(),
+        }
+    }
+
+    pub fn page_default(&self) -> Option<(usize, usize)> {
+        match self.page {
+            Page::Search => self.config.layouts.search.def_selected, 
+            Page::MainMenu(_) => self.config.layouts.main_menu.def_selected, 
+            Page::ItemDisplay(_) => self.config.layouts.item_info.def_selected, 
+            Page::Channel(_, _) => self.config.layouts.channel.def_selected, 
+        }
     }
 }

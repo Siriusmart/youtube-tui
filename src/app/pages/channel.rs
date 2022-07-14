@@ -133,7 +133,7 @@ impl ItemTrait for ChannelItem {
         selected: bool,
         hover: bool,
         popup_focus: bool,
-        _: bool,
+        popup_render: bool,
     ) -> (bool, AppNoState) {
         let mut out = (false, app);
 
@@ -163,12 +163,15 @@ impl ItemTrait for ChannelItem {
 
                     let inner = block.inner(rect);
                     frame.render_widget(block, rect);
+                    if !popup_render {
                     frame.render_widget(
                         ItemDisplay {
                             item: ListItem::FullChannel(channel.clone()),
+                            render_image: !popup_focus,
                         },
                         inner,
                     );
+                    }
                 }
                 ChannelDisplayItem::Videos(videos, textlist) => {
                     let split = HorizontalSplit::default()
@@ -209,10 +212,11 @@ impl ItemTrait for ChannelItem {
                     }
 
                     if let Some(item) = videos.iter().nth(textlist.selected) {
-                        if !popup_focus {
+                        if !popup_render {
                             frame.render_widget(
                                 ItemDisplay {
                                     item: ListItem::MiniVideo(item.clone()),
+                                    render_image: !popup_focus,
                                 },
                                 chunks[1],
                             );
@@ -251,6 +255,7 @@ impl ItemTrait for ChannelItem {
                             frame.render_widget(
                                 ItemDisplay {
                                     item: ListItem::MiniPlayList(item.clone()),
+                                    render_image: !popup_focus,
                                 },
                                 chunks[1],
                             );
@@ -351,8 +356,9 @@ impl ItemTrait for ChannelItem {
                     _ => {}
                 },
 
+                ChannelDisplayItem::Home(_) => {},
                 _ => unreachable!(),
-            },
+                            },
             _ => {
                 unreachable!()
             }
@@ -460,6 +466,7 @@ impl PageTrait for Channel {
             ],
             min: (46, 15),
             message: String::from("Loading channel info..."),
+            def_selected: None,
         }
     }
 }

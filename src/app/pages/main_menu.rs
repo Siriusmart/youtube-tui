@@ -209,8 +209,8 @@ impl ItemTrait for MainMenuItem {
                     }
 
                     if let Some(item) = videos.iter().nth(list.selected) {
-                        if !popup_focus {
-                            frame.render_widget(ItemDisplay { item: item.clone() }, chunks[1]);
+                        if !popup_render {
+                            frame.render_widget(ItemDisplay { item: item.clone(), render_image: !popup_focus }, chunks[1]);
                         }
                     }
 
@@ -387,6 +387,7 @@ impl PageTrait for MainMenu {
             ],
             min: (45, 15),
             message: String::from("Loading home page..."),
+            def_selected: None,     
         }
     }
 }

@@ -2,7 +2,7 @@ use invidious::blocking::Client;
 
 use crate::{app::app::App, structs::Page};
 
-use super::{SearchSettings, State};
+use super::{SearchSettings, State, MessageText};
 
 #[derive(Clone)]
 pub struct AppHistory {
@@ -12,7 +12,7 @@ pub struct AppHistory {
     pub hover: Option<(usize, usize)>, // x, y
     pub selected: Option<(usize, usize)>,
     pub client: Client,
-    pub message: Option<String>,
+    pub message: MessageText,
     pub load: bool,
     pub render: bool,
     pub popup_focus: bool,
@@ -30,7 +30,7 @@ impl From<App> for AppHistory {
             selectable: original.selectable,
             hover: original.hover,
             // selected: original.selected,
-            selected: None,
+            selected: original.selected,
             client: original.client,
             message: original.message,
             load: original.load,

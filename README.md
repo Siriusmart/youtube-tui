@@ -20,13 +20,17 @@ This program is being actively developed and there will be new features coming u
 
 [YouTube TUI user manual](https://siriusmart.github.io/youtube-tui)
 
-> ### What's new in this commit
->
-> * Refresh pages
-> * Fixed cache not being cleared after exit
-> * Key modifiers for key bindings
-> * Image loading can be disabled in main config
+## Chnagelogs
 
+#### Added
+
+* Added default select item for each page (can be changed in `layouts.yml`)
+
+#### Fixes
+
+* Video list view in playlists not working
+* Channel view scroll causes panic
+* Search options gray backgound + image covering popup
 
 ## Installation
 
@@ -91,10 +95,9 @@ Here's the [opened issue](https://github.com/iv-org/invidious/issues/3154)
 
 ## Todo (First piority on top)
 
-* Put hard coded options into config files
-* User manual + documentations
 * Go directly to a page by URL
 * Vim-like commands in status bar
+* Save as local playlist/video
 * Command line launch options
 * Channel search and channel video sort
 * Recommended videos

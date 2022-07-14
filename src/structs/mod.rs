@@ -33,3 +33,6 @@ pub use minichannel::*;
 
 mod fullchannel;
 pub use fullchannel::*;
+
+mod messagetext;
+pub use messagetext::*;

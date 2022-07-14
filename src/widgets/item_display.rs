@@ -11,6 +11,7 @@ use crate::structs::ListItem;
 #[derive(Clone)]
 pub struct ItemDisplay {
     pub item: ListItem,
+    pub render_image: bool,
 }
 
 impl Widget for ItemDisplay {
@@ -40,7 +41,9 @@ impl Widget for ItemDisplay {
                         ..Default::default()
                     };
 
-                    let _ = print_from_file(path.as_os_str(), &conf);
+                    if self.render_image {
+                        let _ = print_from_file(path.as_os_str(), &conf);
+                    }
                 }
 
                 let mut y = if exists {
@@ -81,7 +84,7 @@ impl Widget for ItemDisplay {
                 if y < area.height + area.y {
                     let rect = Rect {
                         x: area.x,
-                        y: y,
+                        y,
                         width: area.width,
                         height: area.height + area.y - y,
                     };
@@ -114,8 +117,9 @@ impl Widget for ItemDisplay {
                         y: image_transform.y as i16,
                         ..Default::default()
                     };
-
+                    if self.render_image {
                     let _ = print_from_file(path.as_os_str(), &conf);
+                    }
                 }
 
                 let mut y = if exists {
@@ -162,7 +166,7 @@ impl Widget for ItemDisplay {
                 if y < area.height + area.y {
                     let rect = Rect {
                         x: area.x,
-                        y: y,
+                        y,
                         width: area.width,
                         height: area.height + area.y - y,
                     };
@@ -197,8 +201,9 @@ impl Widget for ItemDisplay {
                         y: image_transform.y as i16,
                         ..Default::default()
                     };
-
-                    let _ = print_from_file(path.as_os_str(), &conf);
+                    if self.render_image{
+                        let _ = print_from_file(path.as_os_str(), &conf);
+                    }
                 }
 
                 let mut y = if exists {
@@ -272,8 +277,9 @@ impl Widget for ItemDisplay {
                         y: image_transform.y as i16,
                         ..Default::default()
                     };
-
+                    if self.render_image {
                     let _ = print_from_file(path.as_os_str(), &conf);
+                    }
                 }
 
                 let mut y = if exists {
@@ -339,7 +345,8 @@ impl Widget for ItemDisplay {
                     }
 
                     if item.len() > area.width as usize {
-                        item = format!("{}...", &item[..area.width as usize - 3]);
+                        // item = format!("{}...", &item[..area.width as usize - 3]);
+                        item = format!("{}...", &item.get(..area.width as usize - 3).unwrap_or_default());
                     }
                     buf.set_string(area.x, y, item, style);
                     y += 1;
@@ -348,7 +355,7 @@ impl Widget for ItemDisplay {
                 if y < area.height + area.y {
                     let rect = Rect {
                         x: area.x,
-                        y: y,
+                        y,
                         width: area.width,
                         height: area.height + area.y - y,
                     };
@@ -385,7 +392,9 @@ impl Widget for ItemDisplay {
                         ..Default::default()
                     };
 
+                    if self.render_image{
                     let _ = print_from_file(path.as_os_str(), &conf);
+                    }
                 }
 
                 let mut y = if exists {
@@ -448,7 +457,9 @@ impl Widget for ItemDisplay {
                         ..Default::default()
                     };
 
+                    if self.render_image{
                     let _ = print_from_file(path.as_os_str(), &conf);
+                    }
                 }
 
                 let mut y = if exists {
