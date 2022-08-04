@@ -169,15 +169,17 @@ fn init() -> Result<(), Box<dyn Error>> {
     let mut dir = home_dir.clone();
 
     dir.push(".cache");
-    if dir.exists() {
-        fs::remove_dir_all(&dir)?;
-    }
-    fs::create_dir(&dir)?;
 
-    dir.push("youtube-tui");
     if !dir.exists() {
         fs::create_dir(&dir)?;
     }
+
+    dir.push("youtube-tui");
+    if dir.exists() {
+        fs::remove_dir_all(&dir)?;
+    }
+
+    fs::create_dir(&dir)?;
 
     dir.push("thumbnails");
 

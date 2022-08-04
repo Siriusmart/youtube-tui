@@ -20,19 +20,35 @@ This program is being actively developed and there will be new features coming u
 
 [YouTube TUI user manual](https://siriusmart.github.io/youtube-tui)
 
-## Chnagelogs
+Changelog:
 
-#### Added
+* AM
+* REWRITING
+* THE
+* ENTRIE
+* THING
+* FROM
+* SCRATCH
+* THEN
+* NOTICED
+* A
+* SINGLE
+* TYPO
+* IN
+* THE
+* OLD
+* VERSION
+* GRRRRR
 
-* Added default select item for each page (can be changed in `layouts.yml`)
-
-#### Fixes
-
-* Video list view in playlists not working
-* Channel view scroll causes panic
-* Search options gray backgound + image covering popup
+So I fixed that one single typo and continued with stuff
 
 ## Installation
+
+### Install from the AUR
+
+```bash
+yay -S youtube-tui-git # Or any other AUR helper
+```
 
 ### Install from crates.io
 
