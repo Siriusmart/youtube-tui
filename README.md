@@ -4,7 +4,7 @@
 [![](https://img.shields.io/crates/v/youtube-tui?label=crates.io%20version)](https://crates.io/crates/youtube-tui)
 ![](https://shields.io/github/stars/siriusmart/youtube-tui?style=social)
 
-# YouTube#  TUI
+# YouTube TUI
 
 An aesthetically pleasing YouTube TUI written in Rust.
 
