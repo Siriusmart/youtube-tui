@@ -97,7 +97,7 @@ You should also see an error when visiting [this URL](https://vid.puffyan.us/api
 
 Here's the [opened issue](https://github.com/iv-org/invidious/issues/3154)
 
-## Todo (Priority on top)
+## Todo (First priority on top)
 
 * Go directly to a page by URL
 * Vim-like commands in the status bar
