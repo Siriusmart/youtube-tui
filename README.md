@@ -8,6 +8,46 @@
 
 An aesthetically pleasing YouTube TUI written in Rust.
 
+> ## Warning
+> 
+> The current code on GitHub is a rewritten-from-scratch version of the old code, it is not functional yet. Therefore if you would like to try the TUI out, please install it from `crates.io` (seen Installation).
+> 
+> ### Changes
+> 
+> #### Framework
+> Now uses the TUI framework from `tui-additions` which I wrote specifically for this project. The main benefits of this are that all "items" are no longer related to each other, so changing one of them won't break the others. This modular framework also make fixing bugs in existing items and adding new ones much easier (which is the main reason that I decided to rewrite the entire thing from scratch).
+> 
+> The main drawbacks of using a framework is there are limitations of what I can do (the old code does excatly what I wanted it to, but it's a hella mess), and the performance may take a hit (just slightly, TUIs written in Rust are still ***blazingly fast!!!***).
+> 
+> #### Config files readability
+> 
+> The old config files uses the YAML format, which is usually very easy to read, but when it comes to `tuples` and custom `struct` representation it actually look pure gibberish.
+> 
+> The new config files are also in YAML, but I prevented tuples from appearing in them by removing stuff nobody is gonna change anyways and options that are gonna break the entire thing anyways, so that even a 6 year old Roblox player would have the ability to read and modify their config.
+> 
+> No docs on the config until I finish the whole thing, so if you want to figure out stuff go read the code yourself it's not that bad now.
+> 
+> #### Sixels!
+> 
+> You can now display PNGs in terminal yay! Very slow and lots of delay, trying to get it work multithreaded so that it can still be usable but with no success. If anyone knows how to do that (or just make it faster) please help.
+> 
+> #### Code readability
+> 
+> The code is now more idiomatic and i put comments so yeah go read it and i will memorize the arch wiki
+> 
+> ### Progress
+> 
+> #### Done
+> 
+> - Config files (mostly, more options will be added when I get to that part)
+> - Home page with its basic items
+> 
+> #### To do before release
+> 
+> - Search filters
+> - All pages (search, video/playlist/channel info)
+> - Basically back to where it is before the rewrite
+
 ## Overview
 YouTube TUI is a text user interface that provides a clean TUI for browsing YouTube. It can perform YouTube query searches, view and inspect channels, and play the desired content as a regular video or audio-only stream for saving bandwidth.
 
@@ -18,35 +58,7 @@ YouTube TUI is a text user interface that provides a clean TUI for browsing YouT
 
 [YouTube TUI user manual](https://siriusmart.github.io/youtube-tui)
 
-Changelog:
-
-* AM
-* REWRITING
-* THE
-* ENTRIE
-* THING
-* FROM
-* SCRATCH
-* THEN
-* NOTICED
-* A
-* SINGLE
-* TYPO
-* IN
-* THE
-* OLD
-* VERSION
-* GRRRRR
-
-So I fixed that one single typo and continued with stuff
-
 ## Installation
-
-###Install from the AUR
-
-```bash
-yay -S youtube-tui-git # Or any other AUR helper
-```
 
 ### Install from crates.io
 
@@ -60,8 +72,17 @@ git clone https://github.com/sirusmart/youtube-tui && cd youtube-tui && cargo bu
 ```
 Once build, the compiled binary will be located at `./target/release/youtube-tui`. The program is not in your path yet, so you'll have to manually move to to a place from which you would be able to execute it. A common way to do so is to copy the binary executable to `/usr/local/bin/youtube-tui`. 
 
-### Dependencies
-This program does not require any dependencies, but it is strongly recommended that there are at least three things present in your system's path as executable commands:
+> ### Dependencies
+>
+> This program does not requires any dependencies, but it is suggested these three things on your system that can be launched via command:
+>
+> 1. A video player (Defaults to `mpv`)
+> 2. A terminal emulator (Defaults to `konsole`)
+> 3. A YouTube downloader (Defaults to `yt-dlp`, strongly suggest NOT to use `youtube-dl` because it is now very slow)
+>
+> None of these dependencies are required as you can change them in config (in `commands.yml`)
+
+## Usage
 
 * A video player (Defaults to `MPV`)
 * A terminal emulator (Defaults to `konsole`)
