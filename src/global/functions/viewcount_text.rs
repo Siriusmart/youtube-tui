@@ -13,5 +13,5 @@ pub fn viewcount_text(views: u64) -> String {
         }
     }
 
-    unreachable!()
+    String::from("No views")
 }

@@ -37,7 +37,7 @@ impl Page {
         let pages_config = framework.data.global.get::<PagesConfig>().unwrap();
         match self {
             Self::MainMenu(_) => pages_config.main_menu.clone(),
-            Self::Search(_) => todo!(),
+            Self::Search(_) => pages_config.search.clone(),
         }
     }
 
@@ -46,7 +46,7 @@ impl Page {
         let pages_config = framework.data.global.get::<PagesConfig>().unwrap();
         match self {
             Self::MainMenu(_) => pages_config.main_menu.message.clone(),
-            Self::Search(_) => todo!(),
+            Self::Search(_) => pages_config.main_menu.message.clone(),
         }
     }
 }

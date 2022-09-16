@@ -10,4 +10,6 @@ pub enum KeyAction {
     Select,
     Deselect,
     Exit,
+    Back,
+    Reload,
 }

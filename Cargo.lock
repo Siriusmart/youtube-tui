@@ -1511,8 +1511,6 @@ dependencies = [
 [[package]]
 name = "tui-additions"
 version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2978e90e761ab278f378e954c40e142191178844ca6d05458bcbc0faadd77eba"
 dependencies = [
  "crossterm 0.25.0",
  "dyn-clone",

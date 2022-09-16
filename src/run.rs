@@ -82,6 +82,14 @@ pub fn run(
                         KeyAction::MoveDown => framework.r#move(FrameworkDirection::Down)?,
                         KeyAction::MoveLeft => framework.r#move(FrameworkDirection::Left)?,
                         KeyAction::MoveRight => framework.r#move(FrameworkDirection::Right)?,
+                        KeyAction::Back => {
+                            if framework.revert_last_history().is_err() {
+                                *framework.data.global.get_mut::<Message>().unwrap() =
+                                    Message::Error(String::from(
+                                        "This is already the beginning of history",
+                                    ))
+                            }
+                        }
                         KeyAction::Select => {
                             let _ = framework.select();
                         }

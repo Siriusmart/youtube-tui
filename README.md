@@ -29,7 +29,7 @@ An aesthetically pleasing YouTube TUI written in Rust.
 > 
 > #### Sixels!
 > 
-> You can now display PNGs in terminal yay! Very slow and lots of delay, trying to get it work multithreaded so that it can still be usable but with no success. If anyone knows how to do that (or just make it faster) please help.
+> You can now display PNGs in terminal yay! Terrible performance, but running with `--release` flag improves a bit.
 > 
 > #### Code readability
 > 
@@ -40,12 +40,12 @@ An aesthetically pleasing YouTube TUI written in Rust.
 > #### Done
 > 
 > - Config files (mostly, more options will be added when I get to that part)
-> - Home page with its basic items
+> - Home and search page
 > 
 > #### To do before release
 > 
-> - Search filters
-> - All pages (search, video/playlist/channel info)
+> - All pages (video/playlist/channel info)
+> - Watch history
 > - Basically back to where it is before the rewrite
 
 ## Overview

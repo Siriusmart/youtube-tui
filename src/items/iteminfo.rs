@@ -8,7 +8,7 @@ use viuer::{print_from_file, Config};
 
 use crate::{
     config::{AppearanceConfig, MainConfig},
-    global::item::Item,
+    global::{item::Item, status::Status},
 };
 
 // an item info displays info of any `Item`s
@@ -40,7 +40,9 @@ impl FrameworkItem for ItemInfo {
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
 
         // The scroll (space above) text info will be the height of the image, but if the image fail to display, the scroll will be 0
-        let scroll = if main_config.images.display() {
+        let scroll = if main_config.images.display()
+            && !framework.data.state.get::<Status>().unwrap().popup_opened
+        {
             let thumbnail_path = home::home_dir()
                 .unwrap()
                 .join(".cache/youtube-tui/thumbnails/")
@@ -99,16 +101,19 @@ impl FrameworkItem for ItemInfo {
                         Style::default().fg(appearance.colors.item_info.viewcount),
                     ));
                 }
-                out.0.extend(vec![
-                    (
-                        format!("Length: {}", minivideo.length),
-                        Style::default().fg(appearance.colors.item_info.length),
-                    ),
-                    (
-                        format!("Published {}", minivideo.published),
-                        Style::default().fg(appearance.colors.item_info.published),
-                    )
-                ].into_iter());
+                out.0.extend(
+                    vec![
+                        (
+                            format!("Length: {}", minivideo.length),
+                            Style::default().fg(appearance.colors.item_info.length),
+                        ),
+                        (
+                            format!("Published {}", minivideo.published),
+                            Style::default().fg(appearance.colors.item_info.published),
+                        ),
+                    ]
+                    .into_iter(),
+                );
                 out
             }
         };
@@ -139,7 +144,9 @@ impl FrameworkItem for ItemInfo {
         if text.len() == 0 {
             return;
         }
-        let paragraph = Paragraph::new(format!("Description:\n{}", text)).style(style).wrap(Wrap { trim: true });
+        let paragraph = Paragraph::new(format!("Description:\n{}", text))
+            .style(style)
+            .wrap(Wrap { trim: true });
         frame.render_widget(
             paragraph,
             Rect {

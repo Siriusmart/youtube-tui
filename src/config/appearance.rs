@@ -31,6 +31,8 @@ pub struct ColorsConfig {
     pub message_outline: Color,
     #[serde(default = "message_error_outline_default")]
     pub message_error_outline: Color,
+    #[serde(default = "message_success_outline_default")]
+    pub message_success_outline: Color,
     #[serde(default = "error_text_default")]
     pub error_text: Color,
     #[serde(default)]
@@ -64,6 +66,7 @@ impl Default for ColorsConfig {
             outline_secondary: outline_secondary_default(),
             message_outline: message_outline_default(),
             message_error_outline: message_error_outline_default(),
+            message_success_outline: message_success_outline_default(),
             error_text: error_text_default(),
             item_info: ItemInfoColors::default(),
         }
@@ -125,6 +128,10 @@ fn message_outline_default() -> Color {
 
 fn message_error_outline_default() -> Color {
     Color::LightRed
+}
+
+fn message_success_outline_default() -> Color {
+    Color::LightGreen
 }
 
 fn error_text_default() -> Color {

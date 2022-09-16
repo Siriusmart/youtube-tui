@@ -8,3 +8,5 @@ mod itemlist;
 pub use itemlist::*;
 mod pagebutton;
 pub use pagebutton::*;
+mod searchfilters;
+pub use searchfilters::*;

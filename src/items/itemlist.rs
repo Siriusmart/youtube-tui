@@ -34,24 +34,7 @@ impl ItemList {
         Self {
             info: ItemInfo::default(),
             items: Vec::new(),
-            textlist: TextList::default()
-                .border_type(
-                    framework
-                        .data
-                        .global
-                        .get::<AppearanceConfig>()
-                        .unwrap()
-                        .borders,
-                )
-                .ascii_only(
-                    !framework
-                        .data
-                        .global
-                        .get::<MainConfig>()
-                        .unwrap()
-                        .allow_unicode,
-                )
-                .non_ascii_replace(' '),
+            textlist: TextList::default().non_ascii_replace(' '),
             grid: Grid::new(
                 vec![Constraint::Percentage(60), Constraint::Percentage(40)],
                 vec![Constraint::Percentage(100)],
@@ -77,7 +60,6 @@ impl FrameworkItem for ItemList {
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
 
         // creates the grid
-        self.grid.set_border_type(appearance.borders);
         self.grid
             .set_border_style(Style::default().fg(if info.hover {
                 appearance.colors.outline_hover
@@ -118,6 +100,19 @@ impl FrameworkItem for ItemList {
         framework: &mut tui_additions::framework::FrameworkClean,
         _info: tui_additions::framework::ItemInfo,
     ) -> Result<(), Box<dyn Error>> {
+        let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
+
+        self.grid.set_border_type(appearance.borders);
+        self.textlist.set_border_type(appearance.borders);
+        self.textlist.set_ascii_only(
+            !framework
+                .data
+                .global
+                .get::<MainConfig>()
+                .unwrap()
+                .allow_unicode,
+        );
+
         let page = framework.data.state.get::<Page>().unwrap();
         let image_index = framework
             .data
@@ -155,8 +150,17 @@ impl FrameworkItem for ItemList {
             }
         }
 
-        // download thumbnails of all videos in the list
-        download_all_images(self.items.iter().map(|item| item.into()).collect());
+        if framework
+            .data
+            .global
+            .get::<MainConfig>()
+            .unwrap()
+            .images
+            .display()
+        {
+            // download thumbnails of all videos in the list
+            download_all_images(self.items.iter().map(|item| item.into()).collect());
+        }
 
         // update the items in text list
         self.textlist.set_items(&self.items).unwrap();

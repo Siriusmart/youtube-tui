@@ -5,6 +5,7 @@ use typemap::Key;
 pub enum Message {
     Message(String),
     Error(String),
+    Success(String),
     None,
 }
 
@@ -16,9 +17,8 @@ impl Message {
     // to_string is used by the message bar to convert Message to string
     pub fn to_string(&self, default: &str) -> String {
         match self {
-            Message::Message(msg) => msg.to_string(),
-            Message::Error(msg) => msg.to_string(),
-            Message::None => default.to_string(),
+            Self::Message(msg) | Self::Error(msg) | Self::Success(msg) => msg.to_string(),
+            Self::None => default.to_string(),
         }
     }
 }

@@ -1,5 +1,9 @@
-use crate::{config::ConfigTrait, global::traits::asurlstring::AsUrlString};
+use crate::{
+    config::ConfigTrait,
+    global::{message::Message, traits::asurlstring::AsUrlString},
+};
 use serde::{Deserialize, Serialize};
+use tui_additions::framework::FrameworkClean;
 use typemap::Key;
 
 // can be turned into URL Params for the search term with filters
@@ -38,6 +42,53 @@ pub struct SearchFilters {
     pub date: SearchFilterDate,
     pub duration: SearchFilterDuration,
     pub r#type: SearchFilterType,
+}
+
+impl SearchFilters {
+    pub fn get_all() -> [(&'static str, Vec<&'static str>); 5] {
+        [
+            (SearchFilterSort::NAME, SearchFilterSort::ordering()),
+            (SearchFilterDate::NAME, SearchFilterDate::ordering()),
+            (SearchFilterDuration::NAME, SearchFilterDuration::ordering()),
+            (SearchFilterType::NAME, SearchFilterType::ordering()),
+            ("Reset filters", vec!["Are you sure?"]),
+        ]
+    }
+
+    pub fn get_selected(&self, index: usize) -> usize {
+        match index {
+            0 => self.sort.selected_index(),
+            1 => self.date.selected_index(),
+            2 => self.duration.selected_index(),
+            3 => self.r#type.selected_index(),
+            4 => 0,
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn set_index(&mut self, index_at: usize, set_index: usize, message: &mut Message) {
+        // panic!("function ran");
+        match index_at {
+            0 => self.sort = SearchFilterSort::at_index(set_index),
+            1 => self.date = SearchFilterDate::at_index(set_index),
+            2 => self.duration = SearchFilterDuration::at_index(set_index),
+            3 => self.r#type = SearchFilterType::at_index(set_index),
+            4 => {
+                if set_index == 0 {
+                    self.reset(message)
+                } else {
+                    unreachable!()
+                }
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn reset(&mut self, message: &mut Message) {
+        *self = Self::default();
+
+        *message = Message::Success(String::from("Search filters has been reset"));
+    }
 }
 
 #[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -158,4 +209,179 @@ impl AsUrlString for SearchFilterDuration {
 
 impl AsUrlString for SearchFilterType {
     const TAG: &'static str = "type";
+}
+
+pub trait SearchFilterItem
+where
+    Self: Sized,
+{
+    const NAME: &'static str;
+
+    fn option_name(&self) -> &'static str;
+    fn ordering() -> Vec<&'static str>;
+    fn selected_index(&self) -> usize;
+    fn at_index(index: usize) -> Self;
+}
+
+const SORT_ORDERING: [SearchFilterSort; 4] = [
+    SearchFilterSort::Relevance,
+    SearchFilterSort::Rating,
+    SearchFilterSort::Date,
+    SearchFilterSort::Views,
+];
+const DATE_ORDERING: [SearchFilterDate; 6] = [
+    SearchFilterDate::None,
+    SearchFilterDate::Hour,
+    SearchFilterDate::Day,
+    SearchFilterDate::Week,
+    SearchFilterDate::Month,
+    SearchFilterDate::Year,
+];
+const DURATION_ORDERING: [SearchFilterDuration; 4] = [
+    SearchFilterDuration::None,
+    SearchFilterDuration::Short,
+    SearchFilterDuration::Medium,
+    SearchFilterDuration::Long,
+];
+const TYPE_ORDERING: [SearchFilterType; 4] = [
+    SearchFilterType::All,
+    SearchFilterType::Video,
+    SearchFilterType::Channel,
+    SearchFilterType::Playlist,
+];
+
+impl SearchFilterItem for SearchFilterSort {
+    const NAME: &'static str = "Sort by";
+
+    fn option_name(&self) -> &'static str {
+        match self {
+            Self::Relevance => "Relevance",
+            Self::Rating => "Rating",
+            Self::Date => "Upload date",
+            Self::Views => "View count",
+        }
+    }
+
+    fn ordering() -> Vec<&'static str> {
+        SORT_ORDERING
+            .iter()
+            .map(|item| item.option_name())
+            .collect::<Vec<_>>()
+    }
+
+    fn selected_index(&self) -> usize {
+        match self {
+            Self::Relevance => 0,
+            Self::Rating => 1,
+            Self::Date => 2,
+            Self::Views => 3,
+        }
+    }
+
+    fn at_index(index: usize) -> Self {
+        SORT_ORDERING[index]
+    }
+}
+
+impl SearchFilterItem for SearchFilterDate {
+    const NAME: &'static str = "Upload date";
+
+    fn option_name(&self) -> &'static str {
+        match self {
+            Self::None => "Any date",
+            Self::Hour => "Last hour",
+            Self::Day => "Today",
+            Self::Week => "This week",
+            Self::Month => "This month",
+            Self::Year => "This year",
+        }
+    }
+
+    fn ordering() -> Vec<&'static str> {
+        DATE_ORDERING
+            .iter()
+            .map(|item| item.option_name())
+            .collect::<Vec<_>>()
+    }
+
+    fn selected_index(&self) -> usize {
+        match self {
+            Self::None => 0,
+            Self::Hour => 1,
+            Self::Day => 2,
+            Self::Week => 3,
+            Self::Month => 4,
+            Self::Year => 5,
+        }
+    }
+
+    fn at_index(index: usize) -> Self {
+        DATE_ORDERING[index]
+    }
+}
+
+impl SearchFilterItem for SearchFilterDuration {
+    const NAME: &'static str = "Duration";
+
+    fn option_name(&self) -> &'static str {
+        match self {
+            Self::None => "Any duration",
+            Self::Short => "Short (< 4 minutes)",
+            Self::Medium => "Medium (4 - 20 minutes)",
+            Self::Long => "Long (> 20 minutes)",
+        }
+    }
+
+    fn ordering() -> Vec<&'static str> {
+        DURATION_ORDERING
+            .iter()
+            .map(|item| item.option_name())
+            .collect::<Vec<_>>()
+    }
+
+    fn selected_index(&self) -> usize {
+        match self {
+            Self::None => 0,
+            Self::Short => 1,
+            Self::Medium => 2,
+            Self::Long => 3,
+        }
+    }
+
+    fn at_index(index: usize) -> Self {
+        DURATION_ORDERING[index]
+    }
+}
+
+impl SearchFilterItem for SearchFilterType {
+    const NAME: &'static str = "Type";
+
+    fn option_name(&self) -> &'static str {
+        match self {
+            Self::All => "Any type",
+            Self::Video => "Video",
+            Self::Channel => "Channel",
+            Self::Playlist => "Playlist",
+        }
+    }
+
+    fn ordering() -> Vec<&'static str> {
+        TYPE_ORDERING
+            .iter()
+            .map(|item| item.option_name())
+            .collect::<Vec<_>>()
+    }
+
+    fn selected_index(&self) -> usize {
+        match self {
+            Self::All => 0,
+            Self::Video => 1,
+            Self::Channel => 2,
+            Self::Playlist => 3,
+        }
+    }
+
+    fn at_index(index: usize) -> Self {
+        TYPE_ORDERING[index]
+    }
 }

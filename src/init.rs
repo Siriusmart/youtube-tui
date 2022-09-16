@@ -3,7 +3,10 @@ use crate::{
         AppearanceConfig, AppearanceConfigSerde, ConfigTrait, KeyBindingsConfig, MainConfig,
         MinDimentions, PagesConfig, Search,
     },
-    global::{invidiousclient::InvidiousClient, message::Message, page::Page, tasks::Tasks},
+    global::{
+        invidiousclient::InvidiousClient, message::Message, page::Page, status::Status,
+        tasks::Tasks,
+    },
 };
 use home::home_dir;
 use std::{error::Error, fs};
@@ -57,6 +60,7 @@ pub fn init(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
         .data
         .state
         .insert::<MinDimentions>(MinDimentions::default());
+    framework.data.state.insert::<Status>(Status::default());
 
     Ok(())
 }

@@ -6,3 +6,5 @@ mod date_text;
 pub use date_text::date_text;
 mod download_all_images;
 pub use download_all_images::download_all_images;
+mod popup_area;
+pub use popup_area::popup_area;

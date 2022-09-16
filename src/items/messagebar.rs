@@ -32,6 +32,7 @@ impl FrameworkItem for MessageBar {
             .border_type(appearance.borders)
             .border_style(Style::default().fg(match message {
                 Message::None => appearance.colors.outline,
+                Message::Success(_) => appearance.colors.message_success_outline,
                 Message::Error(_) => appearance.colors.message_error_outline,
                 Message::Message(_) => appearance.colors.message_outline,
             }));

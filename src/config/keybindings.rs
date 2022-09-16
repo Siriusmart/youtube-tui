@@ -52,6 +52,30 @@ impl Default for KeyBindingsConfig {
         q.insert(0, KeyAction::Exit);
         map.insert(KeyCode::Char('q'), q);
 
+        let mut backspace = HashMap::new();
+        backspace.insert(0, KeyAction::Back);
+        map.insert(KeyCode::Backspace, backspace);
+
+        let mut r = HashMap::new();
+        r.insert(2, KeyAction::Reload);
+        map.insert(KeyCode::Char('r'), r);
+
+        let mut h = HashMap::new();
+        h.insert(0, KeyAction::MoveLeft);
+        map.insert(KeyCode::Char('h'), h);
+
+        let mut j = HashMap::new();
+        j.insert(0, KeyAction::MoveDown);
+        map.insert(KeyCode::Char('j'), j);
+
+        let mut k = HashMap::new();
+        k.insert(0, KeyAction::MoveUp);
+        map.insert(KeyCode::Char('k'), k);
+
+        let mut l = HashMap::new();
+        l.insert(0, KeyAction::MoveRight);
+        map.insert(KeyCode::Char('l'), l);
+
         Self(map)
     }
 }

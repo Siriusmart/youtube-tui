@@ -1,5 +1,5 @@
 use super::ConfigTrait;
-use crate::items::{ItemList, MessageBar, PageButton, SearchBar};
+use crate::items::{ItemList, MessageBar, PageButton, SearchBar, SearchFilter};
 use serde::{Deserialize, Serialize};
 use std::slice;
 use tui::layout::Constraint;
@@ -38,6 +38,8 @@ impl Key for MinDimentions {
 pub struct PagesConfig {
     #[serde(default = "main_menu_default")]
     pub main_menu: PageConfig,
+    #[serde(default = "search_default")]
+    pub search: PageConfig,
 }
 
 impl Key for PagesConfig {
@@ -52,6 +54,7 @@ impl Default for PagesConfig {
     fn default() -> Self {
         Self {
             main_menu: main_menu_default(),
+            search: search_default(),
         }
     }
 }
@@ -152,16 +155,18 @@ pub enum PageItems {
     MessageBar,
     Trending,
     Popular,
+    SearchFilters,
 }
 
 impl PageItems {
     pub fn to_framework_item(&self, framework: &mut Framework) -> Box<dyn FrameworkItem> {
         match *self {
-            PageItems::SearchBar => Box::new(SearchBar::default()),
-            PageItems::Popular => Box::new(PageButton::Popular),
-            PageItems::Trending => Box::new(PageButton::Trending),
-            PageItems::MessageBar => Box::new(MessageBar::default()),
-            PageItems::ItemList => Box::new(ItemList::new(framework)),
+            Self::SearchBar => Box::new(SearchBar::default()),
+            Self::Popular => Box::new(PageButton::Popular),
+            Self::Trending => Box::new(PageButton::Trending),
+            Self::MessageBar => Box::new(MessageBar::default()),
+            Self::ItemList => Box::new(ItemList::new(framework)),
+            Self::SearchFilters => Box::new(SearchFilter::default()),
         }
     }
 
@@ -170,15 +175,18 @@ impl PageItems {
             Self::Popular | Self::Trending => Constraint::Length(15),
             Self::SearchBar => Constraint::Min(16),
             Self::MessageBar => Constraint::Min(3),
-            Self::ItemList => Constraint::Min(6),
+            Self::ItemList => Constraint::Min(9),
+            Self::SearchFilters => Constraint::Length(5),
         }
     }
 
     pub fn height(&self) -> Constraint {
         match self {
-            Self::Popular | Self::Trending | Self::MessageBar | Self::SearchBar => {
-                Constraint::Length(3)
-            }
+            Self::Popular
+            | Self::Trending
+            | Self::MessageBar
+            | Self::SearchBar
+            | Self::SearchFilters => Constraint::Length(3),
             Self::ItemList => Constraint::Min(6),
         }
     }
@@ -211,11 +219,22 @@ fn max_constraint(constraints: &[Constraint]) -> Constraint {
 fn main_menu_default() -> PageConfig {
     PageConfig {
         layout: vec![
-            PageRow::from_vec(vec![PageItems::SearchBar], false),
+            PageRow::from_vec(vec![PageItems::SearchBar, PageItems::SearchFilters], false),
             PageRow::from_vec(vec![PageItems::Trending, PageItems::Popular], true),
             PageRow::from_vec(vec![PageItems::ItemList], false),
             PageRow::from_vec(vec![PageItems::MessageBar], false),
         ],
         message: String::from("Loading main menu..."),
+    }
+}
+
+fn search_default() -> PageConfig {
+    PageConfig {
+        layout: vec![
+            PageRow::from_vec(vec![PageItems::SearchBar, PageItems::SearchFilters], false),
+            PageRow::from_vec(vec![PageItems::ItemList], false),
+            PageRow::from_vec(vec![PageItems::MessageBar], false),
+        ],
+        message: String::from("Loading search results..."),
     }
 }

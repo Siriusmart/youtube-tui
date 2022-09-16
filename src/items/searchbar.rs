@@ -86,8 +86,9 @@ impl FrameworkItem for SearchBar {
             KeyCode::Right => self.text_field.right().is_ok(),
             KeyCode::Left => self.text_field.left().is_ok(),
             KeyCode::Enter => {
-                let mut search = framework.data.state.get::<Search>().unwrap().clone();
+                let mut search = framework.data.state.get_mut::<Search>().unwrap();
                 search.query = self.text_field.content.clone();
+                let search = search.clone();
                 let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
                 tasks.priority.push(Task::LoadPage(Page::Search(search)));
                 false
