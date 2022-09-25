@@ -1,8 +1,9 @@
-use super::ConfigTrait;
+use crate::global::traits::ConfigTrait;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use typemap::Key;
 
+/// `main.yml`, the main config file
 #[derive(Serialize, Deserialize, Clone)]
 pub struct MainConfig {
     #[serde(default = "invidious_instance_default")]

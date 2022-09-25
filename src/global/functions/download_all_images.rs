@@ -1,4 +1,4 @@
-use crate::global::item::Item;
+use crate::global::structs::Item;
 use futures::future::join_all;
 use std::{error::Error, fs, io::Cursor, thread};
 use tokio::runtime::Runtime;
@@ -8,23 +8,41 @@ pub struct DownloadRequest {
     pub id: String,
 }
 
-impl From<&Item> for DownloadRequest {
+impl From<&Item> for Option<DownloadRequest> {
     fn from(item: &Item) -> Self {
-        match item {
-            Item::MiniVideo(minivideo) => Self {
+        Some(match item {
+            Item::MiniVideo(minivideo) => DownloadRequest {
                 url: minivideo.thumbnail_url.clone(),
                 id: minivideo.id.clone(),
             },
-        }
+            Item::MiniPlaylist(miniplaylist) => match &miniplaylist.thumbnail {
+                Some((id, url)) => DownloadRequest {
+                    url: url.clone(),
+                    id: id.clone(),
+                },
+                None => return None,
+            },
+            Item::MiniChannel(minichannel) => DownloadRequest {
+                url: minichannel.thumbnail_url.clone(),
+                id: minichannel.id.clone(),
+            },
+            Item::Unknown(_) => return None,
+        })
     }
 }
 
-// Function to download all thumbnails (or just any files) to `~/.cache/thumbnails` with  no file exitension (cuz its not needed)
-pub fn download_all_images(downloads: Vec<DownloadRequest>) {
+/// Function to download all thumbnails (or just any files) to `~/.cache/thumbnails` with  no file exitension (cuz its not needed)
+pub fn download_all_images(downloads: Vec<Option<DownloadRequest>>) {
     thread::spawn(move || {
         let rt: Runtime = tokio::runtime::Runtime::new().unwrap();
 
-        let _ = rt.block_on(download_all_images_async(downloads));
+        let _ = rt.block_on(download_all_images_async(
+            downloads
+                .into_iter()
+                .filter(|request| request.is_some())
+                .map(|request| request.unwrap())
+                .collect(),
+        ));
     });
 }
 

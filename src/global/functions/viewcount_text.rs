@@ -5,10 +5,12 @@ const UNITS: &[(&'static str, f64)] = &[
     ("", 1_f64),
 ];
 
-// Turns number into short hand like 1.56M instead of its full form
+/// Turns number into short hand like `1.56M` instead of `1560000`
 pub fn viewcount_text(views: u64) -> String {
     for unit in UNITS.iter() {
-        if views >= unit.1 as u64 {
+        if unit.1 == 1_f64 {
+            return format!("{}", views);
+        } else if views >= unit.1 as u64 {
             return format!("{:.2}{}", views as f64 / unit.1, unit.0);
         }
     }

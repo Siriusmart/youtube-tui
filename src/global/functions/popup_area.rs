@@ -1,5 +1,6 @@
 use tui::layout::Rect;
 
+/// Tries to create a centered area for popup, returns `Err` if not enough space is given
 pub fn popup_area(
     (max_width_percentage, max_height_percentage): (u16, u16),
     (min_width_length, min_height_length): (u16, u16),

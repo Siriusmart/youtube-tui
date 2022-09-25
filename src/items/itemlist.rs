@@ -2,7 +2,7 @@ use std::error::Error;
 
 use tui::{layout::Constraint, style::Style};
 use tui_additions::{
-    framework::{Framework, FrameworkItem},
+    framework::FrameworkItem,
     widgets::{Grid, TextList},
 };
 
@@ -11,15 +11,11 @@ use crate::{
     config::{AppearanceConfig, KeyBindingsConfig, MainConfig},
     global::{
         functions::download_all_images,
-        invidiousclient::InvidiousClient,
-        item::Item,
-        keyaction::KeyAction,
-        page::{MainMenuPage, Page},
-        tasks::{Task, Tasks},
+        structs::{InvidiousClient, Item, KeyAction, MainMenuPage, Page, Task, Tasks},
     },
 };
 
-// An item list displays a list of items
+/// An item list displays a list of items
 // It consists of a 1 x 2 grid, with the left cell displaying a text list, the right displaying item info of the currently hovered item
 #[derive(Clone)]
 pub struct ItemList {
@@ -29,8 +25,8 @@ pub struct ItemList {
     pub grid: Grid,
 }
 
-impl ItemList {
-    pub fn new(framework: &mut Framework) -> Self {
+impl Default for ItemList {
+    fn default() -> Self {
         Self {
             info: ItemInfo::default(),
             items: Vec::new(),

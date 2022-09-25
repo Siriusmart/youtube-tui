@@ -1,6 +1,6 @@
 use std::{error::Error, fmt::Display};
 
-// Errors for displaying custom string in the message bar if there is an error
+/// Errors for displaying custom string in the message bar if there is an error
 #[derive(Debug)]
 pub enum Errors {
     BlankError,

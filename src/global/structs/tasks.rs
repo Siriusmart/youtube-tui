@@ -8,6 +8,7 @@ use tui::{
 use tui_additions::framework::{CursorState, Framework};
 use typemap::Key;
 
+/// tasks to be put on taskqueues
 #[derive(Clone)]
 pub enum Task {
     RenderAll,
@@ -17,6 +18,7 @@ pub enum Task {
     ClearPage,
 }
 
+/// multiple tasks joined together, with duplicates removed
 #[derive(Clone, PartialEq, Eq)]
 pub struct TaskQueue {
     pub render: RenderTask,
@@ -194,9 +196,9 @@ pub enum RenderTask {
     Only(Vec<(usize, usize)>),
 }
 
+/// priority will get executed first, last will get executed after priority queue finished
 #[derive(Clone, Default)]
 pub struct Tasks {
-    // priority will get executed first, last will get executed after priority queue finished
     pub priority: TaskQueue,
     pub last: TaskQueue,
 }

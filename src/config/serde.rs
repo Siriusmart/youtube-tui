@@ -1,8 +1,9 @@
-// Structs that impl Into<WhatEverStruct> because WhatEverStruct does not impl Serde
+//! Structs that impl `Into<T>` because `T` does not impl Serde but is used in config files
 
 use serde::{Deserialize, Serialize};
 use tui::widgets::BorderType;
 
+/// `BorderType` but impl `serde`
 #[derive(Serialize, Deserialize, Clone, Copy)]
 pub enum BorderTypeSerde {
     Plain,

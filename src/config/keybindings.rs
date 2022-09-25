@@ -1,5 +1,4 @@
-use super::ConfigTrait;
-use crate::global::keyaction::KeyAction;
+use crate::global::{structs::KeyAction, traits::ConfigTrait};
 use crossterm::event::KeyCode;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -9,6 +8,7 @@ use typemap::Key;
 // The inner HashMap<u8, KeyAction> gets the action using a u8 representing a key modifier
 // The u8 for each modifier key can be found in https://docs.rs/crossterm/latest/src/crossterm/event.rs.html#587-603
 // The sum of u8 for each key modifier would mean having all of those modifiers at the same time
+/// `keybindings.yml`, contains a hashmap of key + key modifier to action pair
 #[derive(Serialize, Deserialize, Clone)]
 pub struct KeyBindingsConfig(pub HashMap<KeyCode, HashMap<u8, KeyAction>>);
 
@@ -60,6 +60,7 @@ impl Default for KeyBindingsConfig {
         r.insert(2, KeyAction::Reload);
         map.insert(KeyCode::Char('r'), r);
 
+        // vim keybindings
         let mut h = HashMap::new();
         h.insert(0, KeyAction::MoveLeft);
         map.insert(KeyCode::Char('h'), h);

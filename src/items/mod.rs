@@ -1,3 +1,4 @@
+//! items to be rendered, impls FrameworkItem
 mod searchbar;
 pub use searchbar::*;
 mod messagebar;

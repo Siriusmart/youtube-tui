@@ -1,6 +1,7 @@
 use typemap::Key;
 
-// Messages in the message bar, the struct is global
+/// Messages in the message bar
+// is stored in `data.global`
 #[derive(Clone)]
 pub enum Message {
     Message(String),

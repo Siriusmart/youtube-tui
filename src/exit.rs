@@ -1,6 +1,7 @@
 use home::home_dir;
 use std::{error::Error, fs};
 
+/// function to run when the app ends
 // exit tasks:
 //  - remove `~/.cache`
 pub fn exit() -> Result<(), Box<dyn Error>> {

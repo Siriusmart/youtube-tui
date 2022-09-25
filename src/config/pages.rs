@@ -1,14 +1,15 @@
-use super::ConfigTrait;
-use crate::items::{ItemList, MessageBar, PageButton, SearchBar, SearchFilter};
+use crate::{
+    global::traits::ConfigTrait,
+    items::{ItemList, MessageBar, PageButton, SearchBar, SearchFilter},
+};
 use serde::{Deserialize, Serialize};
 use std::slice;
 use tui::layout::Constraint;
 use tui_additions::framework::{Framework, FrameworkItem, Row, RowItem, State};
 use typemap::Key;
 
-// Minimum screen dimention for the tui to display without panicking,
+/// Minimum screen dimention for the tui to display without panicking, stored in `data.state`
 // is automatically generated from PageConfig
-// will be inserted into `framework.data.state`
 #[derive(Clone, Copy)]
 pub struct MinDimentions {
     pub width: u16,
@@ -34,6 +35,7 @@ impl Key for MinDimentions {
     type Value = Self;
 }
 
+/// Layout for all pages
 #[derive(Clone, Serialize, Deserialize)]
 pub struct PagesConfig {
     #[serde(default = "main_menu_default")]
@@ -62,6 +64,7 @@ impl Default for PagesConfig {
 // This struct impls Into<State>,  the corresponding page is converted into State on page load
 // Each page has its own minimum width and height, which is automatically determined by the items in the page
 // If it doesn't meet the minimum dimentions, a "protective screen" will be shown to prevent panicking
+/// Layout for one single page
 #[derive(Clone, Serialize, Deserialize)]
 pub struct PageConfig {
     pub layout: Vec<PageRow>,
@@ -69,6 +72,7 @@ pub struct PageConfig {
 }
 
 impl PageConfig {
+    /// Calculates minimum width for all items to display
     pub fn min_width(&self) -> u16 {
         self.layout
             .iter()
@@ -81,6 +85,7 @@ impl PageConfig {
             .unwrap()
     }
 
+    /// Calculates minimum height for all items to display
     pub fn min_height(&self) -> u16 {
         self.layout
             .iter()
@@ -93,6 +98,7 @@ impl PageConfig {
             .sum::<u16>()
     }
 
+    /// Converts itself into `State` to be used in `Framework`
     pub fn to_state(&self, framework: &mut Framework) -> State {
         State(
             self.layout
@@ -115,7 +121,7 @@ impl PageConfig {
     }
 }
 
-// CenteredRow will have its items centered, while NonCenteredRow will align to the left
+/// CenteredRow will have its items centered, while NonCenteredRow will align to the left
 #[derive(Clone, Serialize, Deserialize)]
 pub enum PageRow {
     CenteredRow(Vec<PageItems>),
@@ -148,6 +154,7 @@ impl PageRow {
 // PageItems will be converted into Box<dyn FrameworkItem> on page load to be used an item in the framework
 // Seen https://docs.rs/tui-additions/latest/tui_additions/framework/trait.FrameworkItem.html
 // Each item has a minimum width and height for it to render without panicking
+/// All avaliable items for `PageConfig`
 #[derive(Clone, Copy, Serialize, Deserialize)]
 pub enum PageItems {
     SearchBar,
@@ -159,13 +166,14 @@ pub enum PageItems {
 }
 
 impl PageItems {
-    pub fn to_framework_item(&self, framework: &mut Framework) -> Box<dyn FrameworkItem> {
+    /// Converts `Self` into a `FrameworkItem` to be used in `State`
+    pub fn to_framework_item(&self, _framework: &mut Framework) -> Box<dyn FrameworkItem> {
         match *self {
             Self::SearchBar => Box::new(SearchBar::default()),
             Self::Popular => Box::new(PageButton::Popular),
             Self::Trending => Box::new(PageButton::Trending),
             Self::MessageBar => Box::new(MessageBar::default()),
-            Self::ItemList => Box::new(ItemList::new(framework)),
+            Self::ItemList => Box::new(ItemList::default()),
             Self::SearchFilters => Box::new(SearchFilter::default()),
         }
     }

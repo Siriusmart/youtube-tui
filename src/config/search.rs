@@ -1,12 +1,12 @@
-use crate::{
-    config::ConfigTrait,
-    global::{message::Message, traits::asurlstring::AsUrlString},
+use crate::global::{
+    structs::Message,
+    traits::{AsUrlString, ConfigTrait, SearchFilterItem},
 };
 use serde::{Deserialize, Serialize};
-use tui_additions::framework::FrameworkClean;
 use typemap::Key;
 
 // can be turned into URL Params for the search term with filters
+/// Search query & filters
 #[derive(Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Search {
     pub query: String,
@@ -34,8 +34,7 @@ impl ToString for Search {
     }
 }
 
-// Search filters
-
+/// Search filters, read comments for function docs
 #[derive(Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchFilters {
     pub sort: SearchFilterSort,
@@ -44,7 +43,12 @@ pub struct SearchFilters {
     pub r#type: SearchFilterType,
 }
 
+// These functions are used in the search filter item
+// Think of the ordering of stuff in the popup menu
 impl SearchFilters {
+    // This function returns [(Option name, [Options])]
+    // Option name is a string like "sory by" and "type"
+    // Options are the options that you can select like "relevance" and "upload date" for sorting
     pub fn get_all() -> [(&'static str, Vec<&'static str>); 5] {
         [
             (SearchFilterSort::NAME, SearchFilterSort::ordering()),
@@ -55,6 +59,8 @@ impl SearchFilters {
         ]
     }
 
+    // uses the index of the selected option name to get the index of the selected option
+    // aka using the hover location of the left textlist to get the hover location of the right text list
     pub fn get_selected(&self, index: usize) -> usize {
         match index {
             0 => self.sort.selected_index(),
@@ -66,8 +72,9 @@ impl SearchFilters {
         }
     }
 
+    // saves the settings for a filter given the index of the option (among other options) and the index of the selected options
+    //                           v left textlist   v right textlist
     pub fn set_index(&mut self, index_at: usize, set_index: usize, message: &mut Message) {
-        // panic!("function ran");
         match index_at {
             0 => self.sort = SearchFilterSort::at_index(set_index),
             1 => self.date = SearchFilterDate::at_index(set_index),
@@ -86,7 +93,6 @@ impl SearchFilters {
 
     pub fn reset(&mut self, message: &mut Message) {
         *self = Self::default();
-
         *message = Message::Success(String::from("Search filters has been reset"));
     }
 }
@@ -209,18 +215,6 @@ impl AsUrlString for SearchFilterDuration {
 
 impl AsUrlString for SearchFilterType {
     const TAG: &'static str = "type";
-}
-
-pub trait SearchFilterItem
-where
-    Self: Sized,
-{
-    const NAME: &'static str;
-
-    fn option_name(&self) -> &'static str;
-    fn ordering() -> Vec<&'static str>;
-    fn selected_index(&self) -> usize;
-    fn at_index(index: usize) -> Self;
 }
 
 const SORT_ORDERING: [SearchFilterSort; 4] = [

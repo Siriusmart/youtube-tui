@@ -1,4 +1,4 @@
-// A single URL param
+/// A single URL param
 pub trait AsUrlString {
     const TAG: &'static str;
     fn as_url_string(&self) -> String

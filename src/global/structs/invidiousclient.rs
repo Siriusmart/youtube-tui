@@ -1,7 +1,8 @@
 use invidious::reqwest::blocking::Client;
 use typemap::Key;
 
-// Holds the invidious client
+// used in `data.global`
+/// Holds the invidious client
 #[derive(Clone)]
 pub struct InvidiousClient(pub Client);
 

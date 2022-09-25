@@ -5,15 +5,10 @@ use tui_additions::framework::{Framework, FrameworkDirection};
 
 use crate::{
     config::KeyBindingsConfig,
-    global::{
-        keyaction::KeyAction,
-        message::Message,
-        page::{MainMenuPage, Page},
-        tasks::{Task, Tasks},
-    },
+    global::structs::{KeyAction, MainMenuPage, Message, Page, Task, Tasks},
 };
 
-// the main event loop of the program
+/// the main event loop of the program
 pub fn run(
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     mut framework: Framework,

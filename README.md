@@ -41,10 +41,11 @@ An aesthetically pleasing YouTube TUI written in Rust.
 > 
 > - Config files (mostly, more options will be added when I get to that part)
 > - Home and search page
+> - Search fully functional
 > 
 > #### To do before release
 > 
-> - All pages (video/playlist/channel info)
+> - Item info, channels page
 > - Watch history
 > - Basically back to where it is before the rewrite
 

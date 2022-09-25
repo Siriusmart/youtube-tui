@@ -1,11 +1,4 @@
-pub mod errors;
-pub mod invidiousclient;
-pub mod item;
-pub mod keyaction;
-pub mod message;
-pub mod page;
-pub mod status;
-pub mod tasks;
-
+//! Structs , traits and functions for the entire app
 pub mod functions;
+pub mod structs;
 pub mod traits;

@@ -1,7 +1,7 @@
 const SECS_IN_MINUTE: u32 = 60;
 const SECS_IN_HOUR: u32 = 3600;
 
-// Turns seconds into pretty format like 02:43
+/// Turns seconds into pretty format like `02:43`
 pub fn secs_display_string(mut secs: u32) -> String {
     let mut out = Vec::new();
 

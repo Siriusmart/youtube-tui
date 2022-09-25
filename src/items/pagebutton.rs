@@ -1,9 +1,6 @@
 use crate::{
     config::AppearanceConfig,
-    global::{
-        page::{MainMenuPage, Page},
-        tasks::{Task, Tasks},
-    },
+    global::structs::{MainMenuPage, Page, Task, Tasks},
 };
 use tui::{
     layout::Alignment,
@@ -12,7 +9,7 @@ use tui::{
 };
 use tui_additions::framework::FrameworkItem;
 
-// button that on press will go to another page instead of selecting it
+/// button that on press will go to another page instead of selecting it
 #[derive(Clone, Copy)]
 pub enum PageButton {
     Trending,

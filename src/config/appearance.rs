@@ -1,8 +1,10 @@
-use super::{serde::BorderTypeSerde, ConfigTrait};
+use super::serde::BorderTypeSerde;
+use crate::global::traits::ConfigTrait;
 use serde::{Deserialize, Serialize};
 use tui::{style::Color, widgets::BorderType};
 use typemap::Key;
 
+/// `appearance.yml`, impl serde version of AppearanceConfig
 #[derive(Default, Serialize, Deserialize, Clone)]
 pub struct AppearanceConfigSerde {
     #[serde(default)]
@@ -11,12 +13,14 @@ pub struct AppearanceConfigSerde {
     pub colors: ColorsConfig,
 }
 
+/// `appearance.yml`, this struct is stored in `data.global`
 #[derive(Clone)]
 pub struct AppearanceConfig {
     pub borders: BorderType,
     pub colors: ColorsConfig,
 }
 
+/// Includes all configurable colors
 #[derive(Clone, Copy, Serialize, Deserialize)]
 pub struct ColorsConfig {
     #[serde(default = "outline_default")]
@@ -39,6 +43,7 @@ pub struct ColorsConfig {
     pub item_info: ItemInfoColors,
 }
 
+/// Colors used by ItemInfo
 #[derive(Clone, Copy, Serialize, Deserialize)]
 pub struct ItemInfoColors {
     #[serde(default = "tag_default")]
@@ -55,6 +60,10 @@ pub struct ItemInfoColors {
     pub length: Color,
     #[serde(default = "published_default")]
     pub published: Color,
+    #[serde(default = "video_count_default")]
+    pub video_count: Color,
+    #[serde(default = "sub_count_default")]
+    pub sub_count: Color,
 }
 
 impl Default for ColorsConfig {
@@ -83,6 +92,8 @@ impl Default for ItemInfoColors {
             viewcount: viewcount_default(),
             length: length_default(),
             published: published_default(),
+            video_count: video_count_default(),
+            sub_count: sub_count_default(),
         }
     }
 }
@@ -164,4 +175,12 @@ fn length_default() -> Color {
 
 fn published_default() -> Color {
     Color::LightMagenta
+}
+
+fn video_count_default() -> Color {
+    Color::Rgb(131, 141, 255)
+}
+
+fn sub_count_default() -> Color {
+    Color::LightYellow
 }

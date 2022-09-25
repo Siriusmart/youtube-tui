@@ -1,22 +1,22 @@
 use crate::{
     config::{
-        AppearanceConfig, AppearanceConfigSerde, ConfigTrait, KeyBindingsConfig, MainConfig,
-        MinDimentions, PagesConfig, Search,
+        AppearanceConfig, AppearanceConfigSerde, KeyBindingsConfig, MainConfig, MinDimentions,
+        PagesConfig, Search,
     },
     global::{
-        invidiousclient::InvidiousClient, message::Message, page::Page, status::Status,
-        tasks::Tasks,
+        structs::{InvidiousClient, Message, Page, Status, Tasks},
+        traits::ConfigTrait,
     },
 };
 use home::home_dir;
 use std::{error::Error, fs};
 use tui_additions::framework::Framework;
 
+/// app to run before the app starts
 // init tasks:
 //  - create folders like `~/.config/youtube-tui/` and `~/.cache/youtube-tui/thumbnails/`
 //  - load all config files
 //  - insert data
-
 pub fn init(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
     // creating files
     let home_dir = home_dir().unwrap();

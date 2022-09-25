@@ -2,10 +2,7 @@ use std::error::Error;
 
 use crate::{
     config::{AppearanceConfig, Search},
-    global::{
-        page::Page,
-        tasks::{Task, Tasks},
-    },
+    global::structs::{Page, Task, Tasks},
 };
 use crossterm::event::KeyCode;
 use tui::{

@@ -3,7 +3,7 @@ use tui_additions::framework::Framework;
 use typemap::Key;
 
 // Page can be converted into PageConfig, which can then be converted into State
-// Covers all possible pages and its variants
+/// Covers all possible pages and variants
 #[derive(Clone, PartialEq, Eq)]
 pub enum Page {
     MainMenu(MainMenuPage),
@@ -20,6 +20,7 @@ impl Key for Page {
     type Value = Self;
 }
 
+/// page variants for the main menu
 #[derive(Clone, PartialEq, Eq)]
 pub enum MainMenuPage {
     Trending,

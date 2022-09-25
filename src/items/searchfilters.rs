@@ -1,13 +1,8 @@
-use std::array::IntoIter;
-
 use crate::{
     config::{AppearanceConfig, KeyBindingsConfig, Search, SearchFilters},
     global::{
         functions::popup_area,
-        keyaction::KeyAction,
-        message::Message,
-        status::Status,
-        tasks::{Task, Tasks},
+        structs::{KeyAction, Message, Status, Task, Tasks},
     },
 };
 use tui::{
@@ -25,6 +20,7 @@ const POPUP_MIN_HEIGHT: u16 = 9;
 const POPUP_WIDTH_PERCENTAGE: u16 = 70;
 const POPOUP_HEIGHT_PERCENTAGE: u16 = 70;
 
+/// a tiny button when not selected, renders a popup when selected
 #[derive(Clone)]
 pub struct SearchFilter {
     pub left_textlist: TextList,

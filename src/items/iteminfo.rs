@@ -8,10 +8,10 @@ use viuer::{print_from_file, Config};
 
 use crate::{
     config::{AppearanceConfig, MainConfig},
-    global::{item::Item, status::Status},
+    global::structs::{Item, Status},
 };
 
-// an item info displays info of any `Item`s
+/// an item info displays info of any `Item`s
 #[derive(Clone)]
 pub struct ItemInfo {
     pub item: Option<Item>,
@@ -49,7 +49,11 @@ impl FrameworkItem for ItemInfo {
                 .join(item.thumbnail_id());
             if thumbnail_path.exists() {
                 let config = Config {
-                    width: Some(area.width as u32),
+                    width: Some(if let Item::MiniChannel(_) = item {
+                        area.width / 2
+                    } else {
+                        area.width
+                    } as u32),
                     x: area.x,
                     y: area.y as i16,
                     use_sixel: main_config.images.use_sixels(),
@@ -116,6 +120,81 @@ impl FrameworkItem for ItemInfo {
                 );
                 out
             }
+            Item::MiniPlaylist(miniplaylist) => (
+                vec![
+                    (
+                        String::from("[Playlist]"),
+                        Style::default().fg(appearance.colors.item_info.tag),
+                    ),
+                    (
+                        miniplaylist.title.clone(),
+                        Style::default().fg(appearance.colors.item_info.title),
+                    ),
+                    (
+                        format!("Created by by {}", miniplaylist.channel),
+                        Style::default().fg(appearance.colors.item_info.author),
+                    ),
+                    (
+                        format!(
+                            "{} video{}",
+                            miniplaylist.video_count,
+                            if miniplaylist.video_count <= 1 {
+                                ""
+                            } else {
+                                "s"
+                            }
+                        ),
+                        Style::default().fg(appearance.colors.item_info.video_count),
+                    ),
+                ],
+                None,
+            ),
+            Item::MiniChannel(minichannel) => (
+                vec![
+                    (
+                        String::from("[Channel]"),
+                        Style::default().fg(appearance.colors.item_info.tag),
+                    ),
+                    (
+                        minichannel.name.clone(),
+                        Style::default().fg(appearance.colors.item_info.title),
+                    ),
+                    (
+                        format!("{} subscriber{}", minichannel.sub_count_text, if minichannel.sub_count <= 1 {
+                            ""
+                        } else {
+                            "s"
+                        }),
+                        Style::default().fg(appearance.colors.item_info.sub_count),
+                    ),
+                    (
+                        format!(
+                            "{} video{}",
+                            minichannel.video_count,
+                            if minichannel.video_count <= 1 {
+                                ""
+                            } else {
+                                "s"
+                            }
+                        ),
+                        Style::default().fg(appearance.colors.item_info.video_count),
+                    ),
+                ],
+                Some((
+                    minichannel.description.clone(),
+                    Style::default().fg(appearance.colors.item_info.description),
+                )),
+            ),
+            Item::Unknown(searchitem_transitional) => (
+                vec![(
+                    format!("Unknown type `{}`", searchitem_transitional.r#type),
+                    Style::default().fg(appearance.colors.error_text),
+                )],
+                Some((
+                    serde_json::to_string(&searchitem_transitional).unwrap(),
+                    Style::default().fg(appearance.colors.item_info.description),
+                )),
+            ),
         };
 
         // puts each "span" in its own line

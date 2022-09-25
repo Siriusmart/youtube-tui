@@ -1,6 +1,6 @@
 use crate::{
     config::{AppearanceConfig, MainConfig},
-    global::message::Message,
+    global::structs::Message,
 };
 use tui::{
     style::Style,
@@ -8,6 +8,7 @@ use tui::{
 };
 use tui_additions::framework::FrameworkItem;
 
+/// a message bar item, contains no fields because the message is taken from `data.global.Message`
 #[derive(Clone, Copy, Default)]
 pub struct MessageBar;
 

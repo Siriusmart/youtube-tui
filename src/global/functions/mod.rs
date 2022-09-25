@@ -1,3 +1,4 @@
+//! public functions
 mod secs_display_string;
 pub use secs_display_string::secs_display_string;
 mod viewcount_text;

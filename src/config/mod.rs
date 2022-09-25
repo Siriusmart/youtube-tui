@@ -1,5 +1,4 @@
-mod configtrait;
-pub use configtrait::*;
+//! Structs for config files, all impl ConfigTrait, config files are stored in `~./config`
 mod main;
 pub use main::*;
 mod appearance;

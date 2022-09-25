@@ -1,5 +1,6 @@
 use typemap::Key;
 
+/// a struct for storing different info, currently only stores one info
 #[derive(Clone)]
 pub struct Status {
     pub popup_opened: bool,
