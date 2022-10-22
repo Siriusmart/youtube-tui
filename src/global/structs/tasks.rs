@@ -52,7 +52,7 @@ impl TaskQueue {
                     }
                 }
                 RenderTask::None => self.render = RenderTask::Only(vec![(x, y)]),
-                _ => return,
+                _ => {}
             },
             Task::LoadPage(page) => self.load_page = Some(page),
             Task::ClearPage => self.clear_all = true,
@@ -80,7 +80,7 @@ impl TaskQueue {
             }
             RenderTask::Only(_locations) => {
                 // need to file an issue to tui-rs suggesting this as a feature
-                unimplemented!();
+                unimplemented!("tui-rs does not support partial re-rendering");
             }
             RenderTask::None => {}
         }
@@ -104,8 +104,9 @@ impl TaskQueue {
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Message(page.load_msg(framework));
             framework.push_history();
+            framework.cursor = CursorState::default();
 
-            let page_config = page.to_page_config(&framework);
+            let page_config = page.to_page_config(framework);
             *framework.data.state.get_mut::<MinDimentions>().unwrap() =
                 MinDimentions::new(page_config.min_width(), page_config.min_height());
 
@@ -116,7 +117,6 @@ impl TaskQueue {
             Self::render_force_clear(framework, terminal)?;
             *framework.data.global.get_mut::<Message>().unwrap() = Message::None;
 
-            framework.cursor = CursorState::default();
             *framework.data.global.get_mut::<Message>().unwrap() = if let Err(e) = framework.load()
             {
                 Message::Error(format!("{}", e))
@@ -179,7 +179,7 @@ impl TaskQueue {
                     .get::<AppearanceConfig>()
                     .unwrap()
                     .colors
-                    .error_text),
+                    .text_error),
             );
             frame.render_widget(paragraph, area);
             return;
@@ -207,11 +207,11 @@ impl Tasks {
     // clears and returns the `priority` task queue, if it is already cleared then returns the `last` task queue
     pub fn pop(&mut self) -> Option<TaskQueue> {
         if !self.priority.is_empty() {
-            return Some(mem::replace(&mut self.priority, TaskQueue::default()));
+            return Some(mem::take(&mut self.priority));
         }
 
         if !self.last.is_empty() {
-            return Some(mem::replace(&mut self.last, TaskQueue::default()));
+            return Some(mem::take(&mut self.last));
         }
 
         None

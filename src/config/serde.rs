@@ -18,13 +18,13 @@ impl Default for BorderTypeSerde {
     }
 }
 
-impl Into<BorderType> for BorderTypeSerde {
-    fn into(self) -> BorderType {
-        match self {
-            Self::Plain => BorderType::Plain,
-            Self::Rounded => BorderType::Rounded,
-            Self::Thick => BorderType::Thick,
-            Self::Double => BorderType::Double,
+impl From<BorderTypeSerde> for BorderType {
+    fn from(origianl: BorderTypeSerde) -> BorderType {
+        match origianl {
+            BorderTypeSerde::Plain => BorderType::Plain,
+            BorderTypeSerde::Rounded => BorderType::Rounded,
+            BorderTypeSerde::Thick => BorderType::Thick,
+            BorderTypeSerde::Double => BorderType::Double,
         }
     }
 }

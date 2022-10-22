@@ -14,13 +14,15 @@ pub fn run(
     mut framework: Framework,
 ) -> Result<(), Box<dyn Error>> {
     // push the initial page load
-    framework
+    let tasks = framework
         .data
         .state
         .get_mut::<Tasks>()
-        .unwrap()
-        .priority
+        .unwrap();
+    tasks.priority
         .push(Task::LoadPage(Page::MainMenu(MainMenuPage::Trending)));
+    tasks.pop().unwrap().run(&mut framework, terminal)?;
+    framework.clear_history();
 
     loop {
         // repeat forever until all tasks are ran (and Tasks is cleared)
@@ -44,11 +46,7 @@ pub fn run(
                     .0
                     .get(&key.code)
                 {
-                    if let Some(action) = keyactions.get(&key.modifiers.bits()) {
-                        Some(*action)
-                    } else {
-                        None
-                    }
+                    keyactions.get(&key.modifiers.bits()).copied()
                 } else {
                     None
                 };
@@ -77,6 +75,13 @@ pub fn run(
                         KeyAction::MoveDown => framework.r#move(FrameworkDirection::Down)?,
                         KeyAction::MoveLeft => framework.r#move(FrameworkDirection::Left)?,
                         KeyAction::MoveRight => framework.r#move(FrameworkDirection::Right)?,
+                        KeyAction::Reload => framework
+                            .data
+                            .state
+                            .get_mut::<Tasks>()
+                            .unwrap()
+                            .priority
+                            .push(Task::Reload),
                         KeyAction::Back => {
                             if framework.revert_last_history().is_err() {
                                 *framework.data.global.get_mut::<Message>().unwrap() =

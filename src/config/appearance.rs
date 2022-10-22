@@ -23,6 +23,14 @@ pub struct AppearanceConfig {
 /// Includes all configurable colors
 #[derive(Clone, Copy, Serialize, Deserialize)]
 pub struct ColorsConfig {
+    #[serde(default = "text_default")]
+    pub text: Color,
+    #[serde(default = "text_special_default")]
+    pub text_special: Color,
+    #[serde(default = "text_secondary_default")]
+    pub text_secondary: Color,
+    #[serde(default = "text_error_default")]
+    pub text_error: Color,
     #[serde(default = "outline_default")]
     pub outline: Color,
     #[serde(default = "outline_selected_default")]
@@ -37,8 +45,6 @@ pub struct ColorsConfig {
     pub message_error_outline: Color,
     #[serde(default = "message_success_outline_default")]
     pub message_success_outline: Color,
-    #[serde(default = "error_text_default")]
-    pub error_text: Color,
     #[serde(default)]
     pub item_info: ItemInfoColors,
 }
@@ -64,11 +70,18 @@ pub struct ItemInfoColors {
     pub video_count: Color,
     #[serde(default = "sub_count_default")]
     pub sub_count: Color,
+    #[serde(default = "likes_default")]
+    pub likes: Color,
+    #[serde(default = "genre_default")]
+    pub genre: Color,
 }
 
 impl Default for ColorsConfig {
     fn default() -> Self {
         Self {
+            text: text_default(),
+            text_special: text_special_default(),
+            text_secondary: text_secondary_default(),
             outline: outline_default(),
             outline_selected: outline_selected_default(),
             outline_hover: outline_hover_default(),
@@ -76,7 +89,7 @@ impl Default for ColorsConfig {
             message_outline: message_outline_default(),
             message_error_outline: message_error_outline_default(),
             message_success_outline: message_success_outline_default(),
-            error_text: error_text_default(),
+            text_error: text_error_default(),
             item_info: ItemInfoColors::default(),
         }
     }
@@ -94,6 +107,8 @@ impl Default for ItemInfoColors {
             published: published_default(),
             video_count: video_count_default(),
             sub_count: sub_count_default(),
+            likes: likes_default(),
+            genre: genre_default(),
         }
     }
 }
@@ -116,6 +131,18 @@ impl Key for AppearanceConfig {
 }
 
 // defaults
+
+fn text_default() -> Color {
+    Color::Reset
+}
+
+fn text_special_default() -> Color {
+    Color::Reset
+}
+
+fn text_secondary_default() -> Color {
+    Color::Reset
+}
 
 fn outline_default() -> Color {
     Color::Reset
@@ -145,7 +172,7 @@ fn message_success_outline_default() -> Color {
     Color::LightGreen
 }
 
-fn error_text_default() -> Color {
+fn text_error_default() -> Color {
     Color::LightRed
 }
 
@@ -183,4 +210,12 @@ fn video_count_default() -> Color {
 
 fn sub_count_default() -> Color {
     Color::LightYellow
+}
+
+fn likes_default() -> Color {
+    Color::Rgb(200, 255, 129)
+}
+
+fn genre_default() -> Color {
+    Color::Rgb(255, 121, 215)
 }

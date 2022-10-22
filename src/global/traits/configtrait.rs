@@ -5,7 +5,7 @@ use std::{
     io::Write,
 };
 
-const EXTENSION: &'static str = "yml";
+const EXTENSION: &str = "yml";
 
 /// Trait for loading, saving config files
 pub trait ConfigTrait {
@@ -57,7 +57,7 @@ pub trait ConfigTrait {
             .truncate(true)
             .open(&config_path)?;
 
-        file.write(serde_yaml::to_string(&config)?.as_bytes())?;
+        file.write_all(serde_yaml::to_string(&config)?.as_bytes())?;
 
         Ok(Box::new(config))
     }

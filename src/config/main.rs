@@ -14,6 +14,8 @@ pub struct MainConfig {
     pub message_bar_default: String,
     #[serde(default = "images_default")]
     pub images: Images,
+    #[serde(default = "refresh_after_modifying_search_filters_default")]
+    pub refresh_after_modifying_search_filters: bool,
     #[serde(default = "image_index_default")]
     // The image to download from the array of images provided by the invidious api
     // 0 is usually `maxres` and 3 (default) is good enough for normal uses without having huge files sizes
@@ -35,6 +37,8 @@ impl Default for MainConfig {
             message_bar_default: message_bar_default_default(),
             images: images_default(),
             image_index: image_index_default(),
+            refresh_after_modifying_search_filters: refresh_after_modifying_search_filters_default(
+            ),
 
             env: HashMap::default(),
         }
@@ -82,4 +86,8 @@ const fn image_index_default() -> usize {
 
 const fn allow_unicode_default() -> bool {
     false
+}
+
+const fn refresh_after_modifying_search_filters_default() -> bool {
+    true
 }

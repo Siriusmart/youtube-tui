@@ -15,16 +15,21 @@ impl From<&Item> for Option<DownloadRequest> {
                 url: minivideo.thumbnail_url.clone(),
                 id: minivideo.id.clone(),
             },
-            Item::MiniPlaylist(miniplaylist) => match &miniplaylist.thumbnail {
-                Some((id, url)) => DownloadRequest {
-                    url: url.clone(),
-                    id: id.clone(),
-                },
-                None => return None,
+            Item::MiniPlaylist(miniplaylist) => DownloadRequest {
+                url: miniplaylist.thumbnail_url.clone(),
+                id: miniplaylist.id.clone(),
             },
             Item::MiniChannel(minichannel) => DownloadRequest {
                 url: minichannel.thumbnail_url.clone(),
                 id: minichannel.id.clone(),
+            },
+            Item::FullVideo(fullvideo) => DownloadRequest {
+                url: fullvideo.thumbnail_url.clone(),
+                id: fullvideo.id.clone(),
+            },
+            Item::FullPlaylist(fullplaylist) => DownloadRequest {
+                url: fullplaylist.thumbnail_url.clone(),
+                id: fullplaylist.id.clone(),
             },
             Item::Unknown(_) => return None,
         })
@@ -37,11 +42,7 @@ pub fn download_all_images(downloads: Vec<Option<DownloadRequest>>) {
         let rt: Runtime = tokio::runtime::Runtime::new().unwrap();
 
         let _ = rt.block_on(download_all_images_async(
-            downloads
-                .into_iter()
-                .filter(|request| request.is_some())
-                .map(|request| request.unwrap())
-                .collect(),
+            downloads.into_iter().flatten().collect(),
         ));
     });
 }
@@ -61,7 +62,7 @@ async fn download_all_images_async(downloads: Vec<DownloadRequest>) {
         if !path.exists() {
             actions.push(download_single(
                 download.url,
-                path.clone().into_os_string().into_string().unwrap(),
+                path.to_owned().into_os_string().into_string().unwrap(),
             ));
         }
 

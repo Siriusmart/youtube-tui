@@ -1,8 +1,8 @@
 use crate::{
-    config::{AppearanceConfig, KeyBindingsConfig, Search, SearchFilters},
+    config::{AppearanceConfig, KeyBindingsConfig, MainConfig, Search, SearchFilters},
     global::{
         functions::popup_area,
-        structs::{KeyAction, Message, Status, Task, Tasks},
+        structs::{KeyAction, Message, Page, Status, Task, Tasks},
     },
 };
 use tui::{
@@ -29,6 +29,7 @@ pub struct SearchFilter {
     pub left_options: Vec<&'static str>,
     pub current_hover: bool,
     pub grid: Grid,
+    pub previous_state: Option<SearchFilters>,
 }
 
 impl Default for SearchFilter {
@@ -45,6 +46,7 @@ impl Default for SearchFilter {
                 vec![Constraint::Percentage(100)],
             )
             .unwrap(),
+            previous_state: None,
         }
     }
 }
@@ -116,7 +118,7 @@ impl FrameworkItem for SearchFilter {
                     POPUP_MIN_HEIGHT,
                 ))
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(appearance.colors.error_text))
+                .style(Style::default().fg(appearance.colors.text_error))
                 .block(block);
 
                 frame.render_widget(paragraph, area);
@@ -172,7 +174,7 @@ impl FrameworkItem for SearchFilter {
         self.right_textlist.set_border_type(appearance.borders);
         self.grid.set_border_type(appearance.borders);
 
-        self.update(&framework);
+        self.update(framework);
 
         self.left_textlist.set_items(&self.left_options)?;
         self.right_textlist
@@ -198,6 +200,22 @@ impl FrameworkItem for SearchFilter {
             .priority
             .push(Task::ClearPage);
         self.update(framework);
+
+        // create a clone of search options only if `refresh_after_modifying_search_filters` is true
+        // and is a search page
+        if !framework
+            .data
+            .global
+            .get::<MainConfig>()
+            .unwrap()
+            .refresh_after_modifying_search_filters
+        {
+            return true;
+        }
+
+        if let Page::Search(search_options) = framework.data.state.get::<Page>().unwrap() {
+            self.previous_state = Some(search_options.filters);
+        }
         true
     }
 
@@ -208,6 +226,32 @@ impl FrameworkItem for SearchFilter {
             .get_mut::<Status>()
             .unwrap()
             .popup_opened = false;
+
+        // refresh page only if changed and enabled in options
+        let search_options = framework.data.state.get::<Search>().unwrap().clone();
+        if self.previous_state.is_none()
+            || !framework
+                .data
+                .global
+                .get::<MainConfig>()
+                .unwrap()
+                .refresh_after_modifying_search_filters
+            || self.previous_state.unwrap() == search_options.filters
+        {
+            return true;
+        }
+
+        let page = framework.data.state.get_mut::<Page>().unwrap();
+        if let Page::Search(search) = page {
+            *search = search_options;
+            framework
+                .data
+                .state
+                .get_mut::<Tasks>()
+                .unwrap()
+                .priority
+                .push(Task::Reload);
+        }
         true
     }
 

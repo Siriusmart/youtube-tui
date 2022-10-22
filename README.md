@@ -39,13 +39,13 @@ An aesthetically pleasing YouTube TUI written in Rust.
 > 
 > #### Done
 > 
-> - Config files (mostly, more options will be added when I get to that part)
+> - Config files
 > - Home and search page
 > - Search fully functional
 > 
 > #### To do before release
 > 
-> - Item info, channels page
+> - Item info (WIP), channels page
 > - Watch history
 > - Basically back to where it is before the rewrite
 

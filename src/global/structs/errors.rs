@@ -12,7 +12,7 @@ impl Display for Errors {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::BlankError => f.write_str("Is a blank error ¯\\_(ツ)_/¯"),
-            Self::StringError(e) => f.write_str(&e),
+            Self::StringError(e) => f.write_str(e),
             Self::StrError(e) => f.write_str(e),
         }
     }

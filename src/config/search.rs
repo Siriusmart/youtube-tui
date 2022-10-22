@@ -7,7 +7,7 @@ use typemap::Key;
 
 // can be turned into URL Params for the search term with filters
 /// Search query & filters
-#[derive(Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Default, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Search {
     pub query: String,
     pub filters: SearchFilters,
@@ -35,7 +35,7 @@ impl ToString for Search {
 }
 
 /// Search filters, read comments for function docs
-#[derive(Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchFilters {
     pub sort: SearchFilterSort,
     pub date: SearchFilterDate,
@@ -68,7 +68,7 @@ impl SearchFilters {
             2 => self.duration.selected_index(),
             3 => self.r#type.selected_index(),
             4 => 0,
-            _ => unreachable!(),
+            _ => unreachable!("`{index}` is not a valid index"),
         }
     }
 
@@ -84,10 +84,10 @@ impl SearchFilters {
                 if set_index == 0 {
                     self.reset(message)
                 } else {
-                    unreachable!()
+                    unreachable!("index can only be `0` for option `4` (reset all)")
                 }
             }
-            _ => unreachable!(),
+            _ => unreachable!("`{index_at}` is not a valid index"),
         }
     }
 
@@ -97,7 +97,7 @@ impl SearchFilters {
     }
 }
 
-#[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SearchFilterSort {
     Relevance,
     Rating,
@@ -105,7 +105,7 @@ pub enum SearchFilterSort {
     Views,
 }
 
-#[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SearchFilterDate {
     None,
     Hour,
@@ -115,7 +115,7 @@ pub enum SearchFilterDate {
     Year,
 }
 
-#[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SearchFilterDuration {
     None,
     Short,
@@ -123,7 +123,7 @@ pub enum SearchFilterDuration {
     Long,
 }
 
-#[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SearchFilterType {
     All,
     Video,

@@ -9,5 +9,7 @@ mod pages;
 pub use pages::*;
 mod keybindings;
 pub use keybindings::*;
+mod commands;
+pub use commands::*;
 
 pub mod serde;

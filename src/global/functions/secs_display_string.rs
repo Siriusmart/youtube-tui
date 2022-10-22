@@ -15,11 +15,11 @@ pub fn secs_display_string(mut secs: u32) -> String {
         let minutes = secs / SECS_IN_MINUTE;
         secs -= minutes * SECS_IN_MINUTE;
         out.push(two_digit_num(minutes));
-    } else if out.len() != 0 {
+    } else if !out.is_empty() {
         out.push(String::from("00"));
     }
 
-    if out.len() == 0 {
+    if out.is_empty() {
         out.push(String::from("00"));
     }
     out.push(two_digit_num(secs));

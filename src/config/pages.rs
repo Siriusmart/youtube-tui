@@ -1,6 +1,6 @@
 use crate::{
     global::traits::ConfigTrait,
-    items::{ItemList, MessageBar, PageButton, SearchBar, SearchFilter},
+    items::{ItemList, MessageBar, PageButton, SearchBar, SearchFilter, SingleItem},
 };
 use serde::{Deserialize, Serialize};
 use std::slice;
@@ -10,7 +10,7 @@ use typemap::Key;
 
 /// Minimum screen dimention for the tui to display without panicking, stored in `data.state`
 // is automatically generated from PageConfig
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct MinDimentions {
     pub width: u16,
     pub height: u16,
@@ -19,15 +19,6 @@ pub struct MinDimentions {
 impl MinDimentions {
     pub const fn new(width: u16, height: u16) -> Self {
         Self { width, height }
-    }
-}
-
-impl Default for MinDimentions {
-    fn default() -> Self {
-        Self {
-            width: 0,
-            height: 0,
-        }
     }
 }
 
@@ -42,6 +33,8 @@ pub struct PagesConfig {
     pub main_menu: PageConfig,
     #[serde(default = "search_default")]
     pub search: PageConfig,
+    #[serde(default = "singleitem_default")]
+    pub singleitem: PageConfig,
 }
 
 impl Key for PagesConfig {
@@ -57,6 +50,7 @@ impl Default for PagesConfig {
         Self {
             main_menu: main_menu_default(),
             search: search_default(),
+            singleitem: singleitem_default(),
         }
     }
 }
@@ -163,6 +157,7 @@ pub enum PageItems {
     Trending,
     Popular,
     SearchFilters,
+    SingleItemInfo,
 }
 
 impl PageItems {
@@ -175,6 +170,7 @@ impl PageItems {
             Self::MessageBar => Box::new(MessageBar::default()),
             Self::ItemList => Box::new(ItemList::default()),
             Self::SearchFilters => Box::new(SearchFilter::default()),
+            Self::SingleItemInfo => Box::new(SingleItem::default()),
         }
     }
 
@@ -183,7 +179,7 @@ impl PageItems {
             Self::Popular | Self::Trending => Constraint::Length(15),
             Self::SearchBar => Constraint::Min(16),
             Self::MessageBar => Constraint::Min(3),
-            Self::ItemList => Constraint::Min(9),
+            Self::ItemList | Self::SingleItemInfo => Constraint::Min(9),
             Self::SearchFilters => Constraint::Length(5),
         }
     }
@@ -195,7 +191,7 @@ impl PageItems {
             | Self::MessageBar
             | Self::SearchBar
             | Self::SearchFilters => Constraint::Length(3),
-            Self::ItemList => Constraint::Min(6),
+            Self::ItemList | Self::SingleItemInfo => Constraint::Min(6),
         }
     }
 }
@@ -203,7 +199,7 @@ impl PageItems {
 fn constraint_to_u16(constraint: &Constraint) -> u16 {
     match constraint {
         Constraint::Max(length) | Constraint::Min(length) | Constraint::Length(length) => *length,
-        _ => unreachable!(),
+        _ => unreachable!("only `Max`, `Min`, `Length` can be used as item length"),
     }
 }
 
@@ -244,5 +240,16 @@ fn search_default() -> PageConfig {
             PageRow::from_vec(vec![PageItems::MessageBar], false),
         ],
         message: String::from("Loading search results..."),
+    }
+}
+
+fn singleitem_default() -> PageConfig {
+    PageConfig {
+        layout: vec![
+            PageRow::from_vec(vec![PageItems::SearchBar, PageItems::SearchFilters], false),
+            PageRow::from_vec(vec![PageItems::SingleItemInfo], false),
+            PageRow::from_vec(vec![PageItems::MessageBar], false),
+        ],
+        message: String::from("Loading item details..."),
     }
 }

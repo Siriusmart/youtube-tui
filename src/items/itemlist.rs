@@ -11,7 +11,9 @@ use crate::{
     config::{AppearanceConfig, KeyBindingsConfig, MainConfig},
     global::{
         functions::download_all_images,
-        structs::{InvidiousClient, Item, KeyAction, MainMenuPage, Page, Task, Tasks},
+        structs::{
+            InvidiousClient, Item, KeyAction, MainMenuPage, Page, SingleItemPage, Task, Tasks,
+        },
     },
 };
 
@@ -23,6 +25,42 @@ pub struct ItemList {
     pub items: Vec<Item>,
     pub textlist: TextList,
     pub grid: Grid,
+}
+
+impl ItemList {
+    fn update_appearance(
+        &mut self,
+        appearance: &AppearanceConfig,
+        mainconfig: &MainConfig,
+        iteminfo: &tui_additions::framework::ItemInfo,
+    ) {
+        self.textlist.set_ascii_only(!mainconfig.allow_unicode);
+        self.grid.set_border_type(appearance.borders);
+        self.textlist.set_border_type(appearance.borders);
+        self.textlist
+            .set_style(Style::default().fg(appearance.colors.text));
+
+        if iteminfo.selected {
+            self.grid
+                .set_border_style(Style::default().fg(appearance.colors.outline_selected));
+            self.textlist
+                .set_cursor_style(Style::default().fg(appearance.colors.outline_hover));
+            self.textlist
+                .set_selected_style(Style::default().fg(appearance.colors.text_special));
+        } else {
+            self.textlist
+                .set_cursor_style(Style::default().fg(appearance.colors.outline_secondary));
+            self.textlist
+                .set_selected_style(Style::default().fg(appearance.colors.text_secondary));
+            if iteminfo.hover {
+                self.grid
+                    .set_border_style(Style::default().fg(appearance.colors.outline_hover));
+            } else {
+                self.grid
+                    .set_border_style(Style::default().fg(appearance.colors.outline));
+            }
+        }
+    }
 }
 
 impl Default for ItemList {
@@ -54,19 +92,12 @@ impl FrameworkItem for ItemList {
         }
 
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
+        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
+        self.update_appearance(appearance, mainconfig, &info);
 
         // creates the grid
-        self.grid
-            .set_border_style(Style::default().fg(if info.hover {
-                appearance.colors.outline_hover
-            } else if info.selected {
-                appearance.colors.outline_selected
-            } else {
-                appearance.colors.outline
-            }));
-
         let grid = self.grid.clone();
-        let chunks = &grid.chunks(area).unwrap()[0];
+        let chunks = grid.chunks(area).unwrap()[0].to_owned();
 
         // creates the text list in cell (0, 1)
         self.textlist.set_height(chunks[0].height);
@@ -96,19 +127,6 @@ impl FrameworkItem for ItemList {
         framework: &mut tui_additions::framework::FrameworkClean,
         _info: tui_additions::framework::ItemInfo,
     ) -> Result<(), Box<dyn Error>> {
-        let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
-
-        self.grid.set_border_type(appearance.borders);
-        self.textlist.set_border_type(appearance.borders);
-        self.textlist.set_ascii_only(
-            !framework
-                .data
-                .global
-                .get::<MainConfig>()
-                .unwrap()
-                .allow_unicode,
-        );
-
         let page = framework.data.state.get::<Page>().unwrap();
         let image_index = framework
             .data
@@ -144,6 +162,7 @@ impl FrameworkItem for ItemList {
                     .map(|item| Item::from_search_item(item, image_index))
                     .collect();
             }
+            _ => unreachable!("item `ItemList` cannot be used in `{page:?}`"),
         }
 
         if framework
@@ -194,6 +213,25 @@ impl FrameworkItem for ItemList {
             KeyAction::MoveDown => self.textlist.down().is_ok(),
             KeyAction::MoveLeft => self.textlist.first().is_ok(),
             KeyAction::MoveRight => self.textlist.last().is_ok(),
+            KeyAction::Select => {
+                let page_to_load = match &self.items[self.textlist.selected] {
+                    Item::MiniVideo(video) => {
+                        Page::SingleItem(SingleItemPage::Video(video.id.clone()))
+                    }
+                    Item::MiniPlaylist(playlist) => {
+                        Page::SingleItem(SingleItemPage::Playlist(playlist.id.clone()))
+                    }
+                    _ => unimplemented!(),
+                };
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::LoadPage(page_to_load));
+                false
+            }
             _ => false,
         };
 
@@ -216,7 +254,7 @@ impl FrameworkItem for ItemList {
 impl ItemList {
     // change `self.item` to the currently selected item
     pub fn update(&mut self) {
-        if self.items.len() == 0 {
+        if self.items.is_empty() {
             self.info.item = None;
             return;
         }

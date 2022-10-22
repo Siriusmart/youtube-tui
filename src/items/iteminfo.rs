@@ -82,22 +82,16 @@ impl FrameworkItem for ItemInfo {
                             Style::default().fg(appearance.colors.item_info.tag),
                         ),
                         (
-                            minivideo.title.clone(),
+                            minivideo.title.to_owned(),
                             Style::default().fg(appearance.colors.item_info.title),
                         ),
+                                     ],
+                    minivideo.description.as_ref().map(|description| {
                         (
-                            format!("Uploaded by {}", minivideo.channel),
-                            Style::default().fg(appearance.colors.item_info.author),
-                        ),
-                    ],
-                    if let Some(description) = &minivideo.description {
-                        Some((
-                            description.clone(),
+                            description.to_owned(),
                             Style::default().fg(appearance.colors.item_info.description),
-                        ))
-                    } else {
-                        None
-                    },
+                        )
+                    }),
                 );
                 if let Some(views) = &minivideo.views {
                     out.0.push((
@@ -105,19 +99,21 @@ impl FrameworkItem for ItemInfo {
                         Style::default().fg(appearance.colors.item_info.viewcount),
                     ));
                 }
-                out.0.extend(
-                    vec![
-                        (
-                            format!("Length: {}", minivideo.length),
-                            Style::default().fg(appearance.colors.item_info.length),
-                        ),
-                        (
-                            format!("Published {}", minivideo.published),
-                            Style::default().fg(appearance.colors.item_info.published),
-                        ),
-                    ]
-                    .into_iter(),
-                );
+                out.0.push((
+                    format!("Length: {}", minivideo.length),
+                    Style::default().fg(appearance.colors.item_info.length),
+                ));
+                out.0.push((
+                            format!("Uploaded by {}", minivideo.channel),
+                            Style::default().fg(appearance.colors.item_info.author),
+                        ));
+                if let Some(published) = &minivideo.published {
+                    out.0.push((
+                        format!("Published {}", published),
+                        Style::default().fg(appearance.colors.item_info.published),
+                    ));
+                }
+
                 out
             }
             Item::MiniPlaylist(miniplaylist) => (
@@ -127,7 +123,7 @@ impl FrameworkItem for ItemInfo {
                         Style::default().fg(appearance.colors.item_info.tag),
                     ),
                     (
-                        miniplaylist.title.clone(),
+                        miniplaylist.title.to_owned(),
                         Style::default().fg(appearance.colors.item_info.title),
                     ),
                     (
@@ -156,15 +152,15 @@ impl FrameworkItem for ItemInfo {
                         Style::default().fg(appearance.colors.item_info.tag),
                     ),
                     (
-                        minichannel.name.clone(),
+                        minichannel.name.to_owned(),
                         Style::default().fg(appearance.colors.item_info.title),
                     ),
                     (
-                        format!("{} subscriber{}", minichannel.sub_count_text, if minichannel.sub_count <= 1 {
-                            ""
-                        } else {
-                            "s"
-                        }),
+                        format!(
+                            "{} subscriber{}",
+                            minichannel.sub_count_text,
+                            if minichannel.sub_count <= 1 { "" } else { "s" }
+                        ),
                         Style::default().fg(appearance.colors.item_info.sub_count),
                     ),
                     (
@@ -181,14 +177,85 @@ impl FrameworkItem for ItemInfo {
                     ),
                 ],
                 Some((
-                    minichannel.description.clone(),
+                    minichannel.description.to_owned(),
+                    Style::default().fg(appearance.colors.item_info.description),
+                )),
+            ),
+            Item::FullVideo(fullvideo) => (
+                vec![
+                    (
+                        String::from("[Video]"),
+                        Style::default().fg(appearance.colors.item_info.tag),
+                    ),
+                    (
+                        fullvideo.title.to_owned(),
+                        Style::default().fg(appearance.colors.item_info.title),
+                    ),
+                    (
+                        format!("{} views", fullvideo.views),
+                        Style::default().fg(appearance.colors.item_info.viewcount),
+                    ),
+                    (
+                        format!("{} likes", fullvideo.likes),
+                        Style::default().fg(appearance.colors.item_info.likes),
+                    ),
+                    (
+                        format!("Length: {}", fullvideo.length),
+                        Style::default().fg(appearance.colors.item_info.length),
+                    ),
+                    (
+                        format!(
+                            "Uploaded by {} ({} subscribers)",
+                            fullvideo.channel, fullvideo.sub_count
+                        ),
+                        Style::default().fg(appearance.colors.item_info.author),
+                    ),
+                    (
+                        format!("Published {}", fullvideo.published),
+                        Style::default().fg(appearance.colors.item_info.published),
+                    ),
+                ],
+                Some((
+                    fullvideo.description.to_owned(),
+                    Style::default().fg(appearance.colors.item_info.description),
+                )),
+            ),
+            Item::FullPlaylist(fullplaylist) => (
+                vec![
+                    (
+                        String::from("[Playlist]"),
+                        Style::default().fg(appearance.colors.item_info.tag),
+                    ),
+                    (
+                        fullplaylist.title.to_owned(),
+                        Style::default().fg(appearance.colors.item_info.title),
+                    ),
+                    (
+                        format!("Created by by {}", fullplaylist.channel),
+                        Style::default().fg(appearance.colors.item_info.author),
+                    ),
+                    (
+                        format!(
+                            "{} video{}",
+                            fullplaylist.video_count,
+                            if fullplaylist.video_count <= 1 {
+                                ""
+                            } else {
+                                "s"
+                            }
+                        ),
+                        Style::default().fg(appearance.colors.item_info.video_count),
+                    ),
+                ],
+                Some((
+                    fullplaylist.description.to_owned(),
                     Style::default().fg(appearance.colors.item_info.description),
                 )),
             ),
             Item::Unknown(searchitem_transitional) => (
                 vec![(
                     format!("Unknown type `{}`", searchitem_transitional.r#type),
-                    Style::default().fg(appearance.colors.error_text),
+                    Style::default().fg(appearance.colors.text_error),
                 )],
                 Some((
                     serde_json::to_string(&searchitem_transitional).unwrap(),
@@ -220,7 +287,7 @@ impl FrameworkItem for ItemInfo {
 
         // renders the "text"
         let (text, style) = text.unwrap();
-        if text.len() == 0 {
+        if text.is_empty() {
             return;
         }
         let paragraph = Paragraph::new(format!("Description:\n{}", text))

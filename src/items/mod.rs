@@ -11,3 +11,5 @@ mod pagebutton;
 pub use pagebutton::*;
 mod searchfilters;
 pub use searchfilters::*;
+mod singleitem;
+pub use singleitem::*;

@@ -1,7 +1,7 @@
 use crate::{
     config::{
-        AppearanceConfig, AppearanceConfigSerde, KeyBindingsConfig, MainConfig, MinDimentions,
-        PagesConfig, Search,
+        AppearanceConfig, AppearanceConfigSerde, CommandsConfig, KeyBindingsConfig, MainConfig,
+        MinDimentions, PagesConfig, Search, CommandsConfigSerde,
     },
     global::{
         structs::{InvidiousClient, Message, Page, Status, Tasks},
@@ -52,6 +52,10 @@ pub fn init(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
         .global
         .insert::<KeyBindingsConfig>(*KeyBindingsConfig::load()?);
     framework.data.global.insert::<Message>(Message::None);
+    framework
+        .data
+        .global
+        .insert::<CommandsConfig>(CommandsConfig::from(*CommandsConfigSerde::load()?));
 
     framework.data.state.insert::<Tasks>(Tasks::default());
     framework.data.state.insert::<Page>(Page::default());
