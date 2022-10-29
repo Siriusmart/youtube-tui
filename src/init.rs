@@ -1,7 +1,7 @@
 use crate::{
     config::{
-        AppearanceConfig, AppearanceConfigSerde, CommandsConfig, KeyBindingsConfig, MainConfig,
-        MinDimentions, PagesConfig, Search, CommandsConfigSerde,
+        AppearanceConfig, AppearanceConfigSerde, CommandsConfig, CommandsConfigSerde,
+        KeyBindingsConfig, MainConfig, MinDimentions, PagesConfig, Search,
     },
     global::{
         structs::{InvidiousClient, Message, Page, Status, Tasks},

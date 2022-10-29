@@ -28,6 +28,7 @@ impl FrameworkItem for MessageBar {
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
         let message = framework.data.global.get::<Message>().unwrap();
 
+        // display with different border style according to type of message and config
         let block = Block::default()
             .borders(Borders::ALL)
             .border_type(appearance.borders)

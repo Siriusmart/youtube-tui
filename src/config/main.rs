@@ -8,6 +8,8 @@ use typemap::Key;
 pub struct MainConfig {
     #[serde(default = "invidious_instance_default")]
     pub invidious_instance: String,
+    #[serde(default = "piped_instance_default")]
+    pub piped_instance: String,
     #[serde(default = "allow_unicode_default")]
     pub allow_unicode: bool,
     #[serde(default = "message_bar_default_default")]
@@ -21,7 +23,9 @@ pub struct MainConfig {
     // 0 is usually `maxres` and 3 (default) is good enough for normal uses without having huge files sizes
     // Check `https://{any invidious instance}/api/v1/videos/{any valid video id}` property videoThumbnails in Firefox dev tools to see it for yourself
     pub image_index: usize,
-    #[serde(default)]
+    #[serde(default = "provider_default")]
+    pub provider: Provider,
+    #[serde(default = "default_env")]
     pub env: HashMap<String, String>,
 }
 
@@ -33,14 +37,16 @@ impl Default for MainConfig {
     fn default() -> Self {
         Self {
             invidious_instance: invidious_instance_default(),
+            piped_instance: piped_instance_default(),
             allow_unicode: allow_unicode_default(),
             message_bar_default: message_bar_default_default(),
             images: images_default(),
             image_index: image_index_default(),
             refresh_after_modifying_search_filters: refresh_after_modifying_search_filters_default(
             ),
+            provider: provider_default(),
 
-            env: HashMap::default(),
+            env: default_env(),
         }
     }
 }
@@ -66,10 +72,37 @@ impl Images {
     }
 }
 
+#[derive(Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub enum Provider {
+    YouTube,
+    Invidious,
+    // Piped,
+}
+
+impl Provider {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::YouTube => "YouTube",
+            Self::Invidious => "Invidious",
+        }
+    }
+
+    pub fn rotate(&mut self) {
+        *self = match self {
+            Self::YouTube => Self::Invidious,
+            Self::Invidious => Self::YouTube,
+        };
+    }
+}
+
 // default functions
 
 fn invidious_instance_default() -> String {
-    String::from("https://invidious.sethforprivacy.com")
+    String::from("https://vid.puffyan.us")
+}
+
+fn piped_instance_default() -> String {
+    String::from("https://piped.garudalinux.org")
 }
 
 fn message_bar_default_default() -> String {
@@ -90,4 +123,24 @@ const fn allow_unicode_default() -> bool {
 
 const fn refresh_after_modifying_search_filters_default() -> bool {
     true
+}
+
+const fn provider_default() -> Provider {
+    Provider::YouTube
+}
+
+fn default_env() -> HashMap<String, String> {
+    HashMap::from([
+        (String::from("video-player"), String::from("mpv")),
+        (String::from("browser"), String::from("firefox")),
+        (
+            String::from("terminal-emulator"),
+            String::from("konsole -e"),
+        ),
+        (String::from("youtube-downloader"), String::from("yt-dlp")),
+        (
+            String::from("download-path"),
+            String::from("'~/Downloads/%(title)s-%(id)s.%(ext)s'"),
+        ),
+    ])
 }

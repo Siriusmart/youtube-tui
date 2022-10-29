@@ -7,8 +7,8 @@ use crate::global::traits::ConfigTrait;
 
 #[derive(Clone)]
 pub struct CommandsConfig {
-    pub video: HashMap<String, String>,
-    pub playlist: HashMap<String, String>,
+    pub video: Vec<(String, String)>,
+    pub playlist: Vec<(String, String)>,
 }
 
 impl Key for CommandsConfig {
@@ -18,12 +18,21 @@ impl Key for CommandsConfig {
 impl From<CommandsConfigSerde> for CommandsConfig {
     fn from(original: CommandsConfigSerde) -> Self {
         Self {
-            video: HashMap::from_iter(original.video.into_iter().map(|item| item.into_iter().last().unwrap())),
-            playlist: HashMap::from_iter(original.playlist.into_iter().map(|item| item.into_iter().last().unwrap())),
+            video: original
+                .video
+                .into_iter()
+                .map(|hashmap| hashmap.into_iter().last().unwrap())
+                .collect(),
+            playlist: original
+                .playlist
+                .into_iter()
+                .map(|hashmap| hashmap.into_iter().last().unwrap())
+                .collect(),
         }
     }
 }
 
+// uses vector to keep the ordering of the commands, and hashmap to have that key - value pair look
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CommandsConfigSerde {
     #[serde(default = "video_default")]
@@ -45,20 +54,82 @@ impl Default for CommandsConfigSerde {
     }
 }
 
+// `${label}` will be replaced by the values set in `main.yml` in `env`
+// Different pages may contain different `env`s (for example `url` is different in each page)
+
 fn video_default() -> Vec<HashMap<String, String>> {
-    vec![HashMap::from(
-        [(
-        String::from("Play video"),
-        String::from("${video-player} ${embed-url}"),
-    )])]
+    vec![
+        HashMap::from([(
+            String::from("Play video"),
+            String::from("${video-player} ${embed-url}"),
+        )]),
+        HashMap::from([(
+            String::from("Play audio"),
+            String::from("${terminal-emulator} ${video-player} ${embed-url} --no-video"),
+        )]),
+        HashMap::from([(
+            String::from("Play audio (loop)"),
+            String::from(
+                "${terminal-emulator} ${video-player} ${embed-url} --no-video --loop-file=inf",
+            ),
+        )]),
+        HashMap::from([(
+            String::from("Open in browser"),
+            String::from("${browser} ${url}"),
+        )]),
+        HashMap::from([(
+            String::from("Download video (webm)"),
+            String::from(
+                "${terminal-emulator} ${youtube-downloader} -o ${download-path} ${embed-url}",
+            ),
+        )]),
+        HashMap::from([(
+            String::from("Download audio (opus)"),
+            String::from(
+                "${terminal-emulator} ${youtube-downloader} -o ${download-path} ${embed-url} -x",
+            ),
+        )]),
+        HashMap::from([(
+            String::from("Mode: ${provider}"),
+            String::from("%switch-provider%"),
+        )]),
+    ]
 }
 
 fn playlist_default() -> Vec<HashMap<String, String>> {
     vec![
         HashMap::from([(String::from("Switch view"), String::from("%switch-view%"))]),
         HashMap::from([(
-            String::from("Play entire playlist"),
-            String::from("${video-player} ${embed-url}"),
+            String::from("Play all videos"),
+            String::from("${video-player} ${all-videos}"),
+        )]),
+        HashMap::from([(
+            String::from("Play all audio"),
+            String::from("${terminal-emulator} ${video-player} ${all-videos} --no-video"),
+        )]),
+        HashMap::from([(
+            String::from("Shuffle play all audio"),
+            String::from("${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle"),
+        )]),
+        HashMap::from([(
+            String::from("Shuffle play all audio (loop)"),
+            String::from("${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle --loop-playlist=inf"),
+        )]),
+        HashMap::from([(
+            String::from("Open in browser"),
+            String::from("${browser} ${url}"),
+        )]),
+        HashMap::from([(
+            String::from("Download all video (webm)"),
+            String::from("${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos}")
+        )]),
+        HashMap::from([(
+            String::from("Download all audio (opus)"),
+            String::from("${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos} -x")
+        )]),
+        HashMap::from([(
+            String::from("Mode: ${provider}"),
+            String::from("%switch-provider%"),
         )]),
     ]
 }

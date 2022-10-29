@@ -99,6 +99,43 @@ impl Display for Item {
 }
 
 impl Item {
+    pub fn fullvideo(&self) -> &FullVideoItem {
+        match self {
+            Self::FullVideo(fullvideo) => fullvideo,
+            _ => panic!("not a fullvideo"),
+        }
+    }
+
+    pub fn minivideo(&self) -> &MiniVideoItem {
+        match self {
+            Self::MiniVideo(minivideo) => minivideo,
+            _ => panic!("not a minivideo"),
+        }
+    }
+
+    pub fn miniplaylist(&self) -> &MiniPlaylistItem {
+        match self {
+            Self::MiniPlaylist(miniplaylist) => miniplaylist,
+            _ => panic!("not a miniplaylist"),
+        }
+    }
+
+    pub fn fullplaylist(&self) -> &FullPlaylistItem {
+        match self {
+            Self::FullPlaylist(fullplaylist) => fullplaylist,
+            _ => panic!("not a fullplaylist"),
+        }
+    }
+
+    pub fn minichannel(&self) -> &MiniChannelItem {
+        match self {
+            Self::MiniChannel(minichannel) => minichannel,
+            _ => panic!("not a minichannel"),
+        }
+    }
+}
+
+impl Item {
     // the file save path for thumbnails (which is by their id)
     pub fn thumbnail_id(&self) -> &str {
         match self {

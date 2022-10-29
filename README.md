@@ -10,48 +10,19 @@ An aesthetically pleasing YouTube TUI written in Rust.
 
 > ## Warning
 > 
-> The current code on GitHub is a rewritten-from-scratch version of the old code, it is not functional yet. Therefore if you would like to try the TUI out, please install it from `crates.io` (seen Installation).
-> 
-> ### Changes
-> 
-> #### Framework
-> Now uses the TUI framework from `tui-additions` which I wrote specifically for this project. The main benefits of this are that all "items" are no longer related to each other, so changing one of them won't break the others. This modular framework also make fixing bugs in existing items and adding new ones much easier (which is the main reason that I decided to rewrite the entire thing from scratch).
-> 
-> The main drawbacks of using a framework is there are limitations of what I can do (the old code does excatly what I wanted it to, but it's a hella mess), and the performance may take a hit (just slightly, TUIs written in Rust are still ***blazingly fast!!!***).
-> 
-> #### Config files readability
-> 
-> The old config files uses the YAML format, which is usually very easy to read, but when it comes to `tuples` and custom `struct` representation it actually look pure gibberish.
-> 
-> The new config files are also in YAML, but I prevented tuples from appearing in them by removing stuff nobody is gonna change anyways and options that are gonna break the entire thing anyways, so that even a 6 year old Roblox player would have the ability to read and modify their config.
-> 
-> No docs on the config until I finish the whole thing, so if you want to figure out stuff go read the code yourself it's not that bad now.
-> 
-> #### Sixels!
-> 
-> You can now display PNGs in terminal yay! Terrible performance, but running with `--release` flag improves a bit.
-> 
-> #### Code readability
-> 
-> The code is now more idiomatic and i put comments so yeah go read it and i will memorize the arch wiki
-> 
-> ### Progress
-> 
-> #### Done
-> 
-> - Config files
-> - Home and search page
-> - Search fully functional
-> 
-> #### To do before release
-> 
-> - Item info (WIP), channels page
+> The current code on GitHub is a rewritten-from-scratch version of the old code, it is currently *somewhat* usable. All the config files are undocumented and you'll need to *read the code* or wait for the documentation to come out after the code is done.
+>
+> The default config files are in the `example config files/` folder, go ahead and appreciate :D
+>
+> ### Todo before release:
 > - Watch history
-> - Basically back to where it is before the rewrite
+> - Channel page
+>
+> The previous release on `crates.io` is unaffected, and it should be used instead.
+
 
 ## Overview
 YouTube TUI is a text user interface that provides a clean TUI for browsing YouTube. It can perform YouTube query searches, view and inspect channels, and play the desired content as a regular video or audio-only stream for saving bandwidth.
-
 
 ![Screenshot](https://cdn.discordapp.com/attachments/906941311142219816/990684947830419526/Screenshot_20220626_192433.png)
 
@@ -66,22 +37,6 @@ YouTube TUI is a text user interface that provides a clean TUI for browsing YouT
 ```bash
 cargo install youtube-tui
 ```
-
-### Clone from GitHub and build
-```bash
-git clone https://github.com/sirusmart/youtube-tui && cd youtube-tui && cargo build --release
-```
-Once build, the compiled binary will be located at `./target/release/youtube-tui`. The program is not in your path yet, so you'll have to manually move to to a place from which you would be able to execute it. A common way to do so is to copy the binary executable to `/usr/local/bin/youtube-tui`. 
-
-> ### Dependencies
->
-> This program does not requires any dependencies, but it is suggested these three things on your system that can be launched via command:
->
-> 1. A video player (Defaults to `mpv`)
-> 2. A terminal emulator (Defaults to `konsole`)
-> 3. A YouTube downloader (Defaults to `yt-dlp`, strongly suggest NOT to use `youtube-dl` because it is now very slow)
->
-> None of these dependencies are required as you can change them in config (in `commands.yml`)
 
 ## Usage
 
@@ -127,13 +82,6 @@ Here's the [opened issue](https://github.com/iv-org/invidious/issues/3154)
 * Command line launch options
 * Channel search and channel video sort
 * Recommended videos
-
-## Help needed
-
-Guys please I need help I'm kinda bad at coding tbh, so these are stuff that I need help with
-
-* Publishing to the AUR
-* Printing full resolution images to the terminal with Sixel
 
 ## Credits
 

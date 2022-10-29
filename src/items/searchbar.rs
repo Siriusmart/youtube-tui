@@ -2,7 +2,7 @@ use std::error::Error;
 
 use crate::{
     config::{AppearanceConfig, Search},
-    global::structs::{Page, Task, Tasks},
+    global::structs::{Message, Page, Task, Tasks},
 };
 use crossterm::event::KeyCode;
 use tui::{
@@ -18,7 +18,7 @@ pub struct SearchBar {
 }
 
 impl FrameworkItem for SearchBar {
-    // basically is a text field with borders
+    // basically is a TextField with borders
     fn render(
         &mut self,
         frame: &mut tui::Frame<tui::backend::CrosstermBackend<std::io::Stdout>>,
@@ -83,6 +83,19 @@ impl FrameworkItem for SearchBar {
             KeyCode::Right => self.text_field.right().is_ok(),
             KeyCode::Left => self.text_field.left().is_ok(),
             KeyCode::Enter => {
+                if self.text_field.content.is_empty() {
+                    *framework.data.global.get_mut::<Message>().unwrap() =
+                        Message::Message(String::from("Search string must not be empty"));
+                    framework
+                        .data
+                        .state
+                        .get_mut::<Tasks>()
+                        .unwrap()
+                        .priority
+                        .push(Task::RenderAll);
+                    return Ok(());
+                }
+
                 let mut search = framework.data.state.get_mut::<Search>().unwrap();
                 search.query = self.text_field.content.clone();
                 let search = search.clone();

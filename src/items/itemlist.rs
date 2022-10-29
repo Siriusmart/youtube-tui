@@ -12,7 +12,8 @@ use crate::{
     global::{
         functions::download_all_images,
         structs::{
-            InvidiousClient, Item, KeyAction, MainMenuPage, Page, SingleItemPage, Task, Tasks,
+            FullPlaylistItem, FullVideoItem, InvidiousClient, Item, KeyAction, MainMenuPage,
+            MiniPlaylistItem, MiniVideoItem, Page, SingleItemPage, Task, Tasks,
         },
     },
 };
@@ -28,6 +29,7 @@ pub struct ItemList {
 }
 
 impl ItemList {
+    /// updates the styles of different things that may be updated by deselect/selects
     fn update_appearance(
         &mut self,
         appearance: &AppearanceConfig,
@@ -127,6 +129,8 @@ impl FrameworkItem for ItemList {
         framework: &mut tui_additions::framework::FrameworkClean,
         _info: tui_additions::framework::ItemInfo,
     ) -> Result<(), Box<dyn Error>> {
+        *self = Self::default();
+
         let page = framework.data.state.get::<Page>().unwrap();
         let image_index = framework
             .data
@@ -215,13 +219,16 @@ impl FrameworkItem for ItemList {
             KeyAction::MoveRight => self.textlist.last().is_ok(),
             KeyAction::Select => {
                 let page_to_load = match &self.items[self.textlist.selected] {
-                    Item::MiniVideo(video) => {
-                        Page::SingleItem(SingleItemPage::Video(video.id.clone()))
+                    Item::MiniVideo(MiniVideoItem { id, .. })
+                    | Item::FullVideo(FullVideoItem { id, .. }) => {
+                        Page::SingleItem(SingleItemPage::Video(id.clone()))
                     }
-                    Item::MiniPlaylist(playlist) => {
-                        Page::SingleItem(SingleItemPage::Playlist(playlist.id.clone()))
+                    Item::MiniPlaylist(MiniPlaylistItem { id, .. })
+                    | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
+                        Page::SingleItem(SingleItemPage::Playlist(id.clone()))
                     }
-                    _ => unimplemented!(),
+                    Item::MiniChannel(_) => unimplemented!(),
+                    _ => panic!("wtf did you just selected"),
                 };
                 framework
                     .data
@@ -243,7 +250,7 @@ impl FrameworkItem for ItemList {
                 .state
                 .get_mut::<Tasks>()
                 .unwrap()
-                .last
+                .priority
                 .push(Task::RenderAll);
         }
 

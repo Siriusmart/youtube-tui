@@ -49,6 +49,8 @@ impl FrameworkItem for ItemInfo {
                 .join(item.thumbnail_id());
             if thumbnail_path.exists() {
                 let config = Config {
+                    // channel thumbnails are squares, limiting their maximum width can prevent the
+                    // entire page being taken up by the image
                     width: Some(if let Item::MiniChannel(_) = item {
                         area.width / 2
                     } else {
@@ -85,7 +87,7 @@ impl FrameworkItem for ItemInfo {
                             minivideo.title.to_owned(),
                             Style::default().fg(appearance.colors.item_info.title),
                         ),
-                                     ],
+                    ],
                     minivideo.description.as_ref().map(|description| {
                         (
                             description.to_owned(),
@@ -104,9 +106,9 @@ impl FrameworkItem for ItemInfo {
                     Style::default().fg(appearance.colors.item_info.length),
                 ));
                 out.0.push((
-                            format!("Uploaded by {}", minivideo.channel),
-                            Style::default().fg(appearance.colors.item_info.author),
-                        ));
+                    format!("Uploaded by {}", minivideo.channel),
+                    Style::default().fg(appearance.colors.item_info.author),
+                ));
                 if let Some(published) = &minivideo.published {
                     out.0.push((
                         format!("Published {}", published),
@@ -264,10 +266,10 @@ impl FrameworkItem for ItemInfo {
             ),
         };
 
-        // puts each "span" in its own line
         let mut y = if scroll >= area.height { 0 } else { scroll } + area.y;
         let bottom = area.bottom();
 
+        // puts each "span" in its own line
         for (text, style) in spans.into_iter().take((bottom - y) as usize) {
             let paragraph = Paragraph::new(text).style(style);
             frame.render_widget(
@@ -285,7 +287,7 @@ impl FrameworkItem for ItemInfo {
             return;
         }
 
-        // renders the "text"
+        // displays description only if its a non empty string
         let (text, style) = text.unwrap();
         if text.is_empty() {
             return;

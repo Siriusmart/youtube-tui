@@ -14,12 +14,9 @@ pub fn run(
     mut framework: Framework,
 ) -> Result<(), Box<dyn Error>> {
     // push the initial page load
-    let tasks = framework
-        .data
-        .state
-        .get_mut::<Tasks>()
-        .unwrap();
-    tasks.priority
+    let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
+    tasks
+        .priority
         .push(Task::LoadPage(Page::MainMenu(MainMenuPage::Trending)));
     tasks.pop().unwrap().run(&mut framework, terminal)?;
     framework.clear_history();
@@ -30,6 +27,8 @@ pub fn run(
             tasks.run(&mut framework, terminal)?;
             continue;
         }
+
+        *framework.data.global.get_mut::<Message>().unwrap() = Message::None;
 
         match event::read()? {
             Event::Key(key) => {
@@ -62,6 +61,9 @@ pub fn run(
                         .push(Task::RenderAll);
                 }
 
+                // if something is selected, pass the key input into that item
+                // if nothing is selected, the following big chunk of code handles to movement of
+                // cursor and stuff
                 if framework.is_selected() {
                     if let Err(e) = framework.key_input(key) {
                         *framework.data.global.get_mut::<Message>().unwrap() =
@@ -88,6 +90,14 @@ pub fn run(
                                     Message::Error(String::from(
                                         "This is already the beginning of history",
                                     ))
+                            } else {
+                                framework
+                                    .data
+                                    .state
+                                    .get_mut::<Tasks>()
+                                    .unwrap()
+                                    .priority
+                                    .push(Task::ClearPage);
                             }
                         }
                         KeyAction::Select => {

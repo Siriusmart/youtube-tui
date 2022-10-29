@@ -74,31 +74,6 @@ impl TaskQueue {
             terminal.clear()?;
         }
 
-        match self.render {
-            RenderTask::All => {
-                Self::render(framework, terminal)?;
-            }
-            RenderTask::Only(_locations) => {
-                // need to file an issue to tui-rs suggesting this as a feature
-                unimplemented!("tui-rs does not support partial re-rendering");
-            }
-            RenderTask::None => {}
-        }
-
-        if self.reload {
-            // reload simply runs `.load()` on all items
-            *framework.data.global.get_mut::<Message>().unwrap() =
-                Message::Message(String::from("Reloading page..."));
-            Self::render_force_clear(framework, terminal)?;
-            *framework.data.global.get_mut::<Message>().unwrap() = if let Err(e) = framework.load()
-            {
-                Message::Error(format!("{}", e))
-            } else {
-                Message::None
-            };
-            Self::render(framework, terminal)?;
-        }
-
         // save state in history, then replace all items by whats in the new page and run `.load()` on them
         if let Some(page) = self.load_page {
             *framework.data.global.get_mut::<Message>().unwrap() =
@@ -124,6 +99,31 @@ impl TaskQueue {
                 Message::None
             };
             Self::render(framework, terminal)?;
+        }
+
+        if self.reload {
+            // reload simply runs `.load()` on all items
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Message(String::from("Reloading page..."));
+            Self::render_force_clear(framework, terminal)?;
+            *framework.data.global.get_mut::<Message>().unwrap() = if let Err(e) = framework.load()
+            {
+                Message::Error(format!("{}", e))
+            } else {
+                Message::None
+            };
+            Self::render(framework, terminal)?;
+        }
+
+        match self.render {
+            RenderTask::All => {
+                Self::render(framework, terminal)?;
+            }
+            RenderTask::Only(_locations) => {
+                // need to file an issue to tui-rs suggesting this as a feature
+                unimplemented!("tui-rs does not support partial re-rendering");
+            }
+            RenderTask::None => {}
         }
 
         Ok(())
