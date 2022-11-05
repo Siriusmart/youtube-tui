@@ -100,6 +100,34 @@ pub fn run(
                                     .push(Task::ClearPage);
                             }
                         }
+                        KeyAction::FirstHistory => {
+                            if framework.revert_history(0).is_err() {
+                                *framework.data.global.get_mut::<Message>().unwrap() =
+                                    Message::Error(String::from(
+                                        "This is already the beginning of history",
+                                    ))
+                            } else {
+                                framework
+                                    .data
+                                    .state
+                                    .get_mut::<Tasks>()
+                                    .unwrap()
+                                    .priority
+                                    .push(Task::ClearPage);
+                            }
+                        }
+                        KeyAction::ClearHistory => {
+                            if framework.history.is_empty() {
+                                *framework.data.global.get_mut::<Message>().unwrap() =
+                                    Message::Error(String::from(
+                                        "This is already the beginning of history",
+                                    ))
+                            } else {
+                                framework.clear_history();
+                                *framework.data.global.get_mut::<Message>().unwrap() =
+                                    Message::Success(String::from("History cleared!"))
+                            }
+                        }
                         KeyAction::Select => {
                             let _ = framework.select();
                         }

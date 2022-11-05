@@ -13,3 +13,5 @@ mod searchfilters;
 pub use searchfilters::*;
 mod singleitem;
 pub use singleitem::*;
+mod channeldisplay;
+pub use channeldisplay::*;

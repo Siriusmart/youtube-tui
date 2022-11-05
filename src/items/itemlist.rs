@@ -12,8 +12,9 @@ use crate::{
     global::{
         functions::download_all_images,
         structs::{
-            FullPlaylistItem, FullVideoItem, InvidiousClient, Item, KeyAction, MainMenuPage,
-            MiniPlaylistItem, MiniVideoItem, Page, SingleItemPage, Task, Tasks,
+            ChannelDisplayPage, ChannelDisplayPageType, FullPlaylistItem, FullVideoItem,
+            InvidiousClient, Item, KeyAction, MainMenuPage, MiniChannelItem, MiniPlaylistItem,
+            MiniVideoItem, Page, SingleItemPage, Task, Tasks,
         },
     },
 };
@@ -99,7 +100,7 @@ impl FrameworkItem for ItemList {
 
         // creates the grid
         let grid = self.grid.clone();
-        let chunks = grid.chunks(area).unwrap()[0].to_owned();
+        let chunks = grid.chunks(area).unwrap()[0].clone();
 
         // creates the text list in cell (0, 1)
         self.textlist.set_height(chunks[0].height);
@@ -227,7 +228,12 @@ impl FrameworkItem for ItemList {
                     | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
                         Page::SingleItem(SingleItemPage::Playlist(id.clone()))
                     }
-                    Item::MiniChannel(_) => unimplemented!(),
+                    Item::MiniChannel(MiniChannelItem { id, .. }) => {
+                        Page::ChannelDisplay(ChannelDisplayPage {
+                            id: id.clone(),
+                            r#type: ChannelDisplayPageType::Main,
+                        })
+                    }
                     _ => panic!("wtf did you just selected"),
                 };
                 framework

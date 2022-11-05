@@ -16,7 +16,6 @@ An aesthetically pleasing YouTube TUI written in Rust.
 >
 > ### Todo before release:
 > - Watch history
-> - Channel page
 >
 > The previous release on `crates.io` is unaffected, and it should be used instead.
 

@@ -1,6 +1,8 @@
 use crate::{
     config::AppearanceConfig,
-    global::structs::{MainMenuPage, Page, Task, Tasks},
+    global::structs::{
+        ChannelDisplayPage, ChannelDisplayPageType, MainMenuPage, Page, Task, Tasks,
+    },
 };
 use tui::{
     layout::Alignment,
@@ -14,13 +16,28 @@ use tui_additions::framework::FrameworkItem;
 pub enum PageButton {
     Trending,
     Popular,
+    ChannelMain,
+    ChannelVideos,
+    ChannelPlaylists,
 }
 
 impl PageButton {
-    pub fn page(&self) -> Page {
+    pub fn page(&self, current_page: &Page) -> Page {
         match self {
             Self::Trending => Page::MainMenu(MainMenuPage::Trending),
             Self::Popular => Page::MainMenu(MainMenuPage::Popular),
+            Self::ChannelMain => Page::ChannelDisplay(ChannelDisplayPage {
+                id: current_page.channeldisplay().id.clone(),
+                r#type: ChannelDisplayPageType::Main,
+            }),
+            Self::ChannelVideos => Page::ChannelDisplay(ChannelDisplayPage {
+                id: current_page.channeldisplay().id.clone(),
+                r#type: ChannelDisplayPageType::Videos,
+            }),
+            Self::ChannelPlaylists => Page::ChannelDisplay(ChannelDisplayPage {
+                id: current_page.channeldisplay().id.clone(),
+                r#type: ChannelDisplayPageType::Playlists,
+            }),
         }
     }
 }
@@ -30,6 +47,9 @@ impl ToString for PageButton {
         match self {
             Self::Popular => String::from("Popular"),
             Self::Trending => String::from("Trending"),
+            Self::ChannelMain => String::from("Main"),
+            Self::ChannelVideos => String::from("Videos"),
+            Self::ChannelPlaylists => String::from("Playlists"),
         }
     }
 }
@@ -49,7 +69,8 @@ impl FrameworkItem for PageButton {
         }
 
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
-        let same_page = &self.page() == framework.data.state.get::<Page>().unwrap();
+        let same_page = &self.page(framework.data.state.get::<Page>().unwrap())
+            == framework.data.state.get::<Page>().unwrap();
 
         let block = Block::default()
             .border_type(appearance.borders)
@@ -70,8 +91,11 @@ impl FrameworkItem for PageButton {
 
     // when selected creates a load page task, but returns false to show that it is not being selected
     fn select(&mut self, framework: &mut tui_additions::framework::FrameworkClean) -> bool {
+        let current_page = framework.data.state.get::<Page>().unwrap().clone();
         let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
-        tasks.priority.push(Task::LoadPage(self.page()));
+        tasks
+            .priority
+            .push(Task::LoadPage(self.page(&current_page)));
 
         false
     }

@@ -31,6 +31,10 @@ impl From<&Item> for Option<DownloadRequest> {
                 url: fullplaylist.thumbnail_url.clone(),
                 id: fullplaylist.id.clone(),
             },
+            Item::FullChannel(fullchannel) => DownloadRequest {
+                url: fullchannel.thumbnail_url.clone(),
+                id: fullchannel.id.clone(),
+            },
             Item::Unknown(_) => return None,
         })
     }
@@ -62,7 +66,7 @@ async fn download_all_images_async(downloads: Vec<DownloadRequest>) {
         if !path.exists() {
             actions.push(download_single(
                 download.url,
-                path.to_owned().into_os_string().into_string().unwrap(),
+                path.clone().into_os_string().into_string().unwrap(),
             ));
         }
 

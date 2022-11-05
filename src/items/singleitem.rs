@@ -404,7 +404,7 @@ impl FrameworkItem for SingleItem {
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
         self.update_appearance(appearance, &info);
 
-        let chunks = self.grid.chunks(area).unwrap()[0].to_owned();
+        let chunks = self.grid.chunks(area).unwrap()[0].clone();
 
         frame.render_widget(self.grid.clone(), area);
 

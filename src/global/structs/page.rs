@@ -6,11 +6,12 @@ use typemap::Key;
 
 // Page can be converted into PageConfig, which can then be converted into State
 /// Covers all possible pages and variants
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq)]
 pub enum Page {
     MainMenu(MainMenuPage),
     Search(Search),
     SingleItem(SingleItemPage),
+    ChannelDisplay(ChannelDisplayPage),
 }
 
 impl Debug for Page {
@@ -21,8 +22,19 @@ impl Debug for Page {
                 Self::MainMenu(_) => "MainMenu",
                 Self::Search(_) => "Search",
                 Self::SingleItem(_) => "SingleItem",
+                Self::ChannelDisplay(_) => "ChannelDisplay",
             }
         ))
+    }
+}
+
+impl Page {
+    pub fn channeldisplay(&self) -> &ChannelDisplayPage {
+        if let Self::ChannelDisplay(channeldisplaypage) = self {
+            channeldisplaypage
+        } else {
+            panic!("not a channel display");
+        }
     }
 }
 
@@ -37,7 +49,7 @@ impl Key for Page {
 }
 
 /// page variants for the main menu
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum MainMenuPage {
     Trending,
     Popular,
@@ -49,8 +61,21 @@ impl Default for MainMenuPage {
     }
 }
 
+#[derive(Clone, PartialEq)]
+pub struct ChannelDisplayPage {
+    pub id: String,
+    pub r#type: ChannelDisplayPageType,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub enum ChannelDisplayPageType {
+    Main,
+    Videos,
+    Playlists,
+}
+
 /// Different items to be displayed on a single item page
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq)]
 pub enum SingleItemPage {
     Video(String),
     Playlist(String),
@@ -63,6 +88,7 @@ impl Page {
             Self::MainMenu(_) => pages_config.main_menu.clone(),
             Self::Search(_) => pages_config.search.clone(),
             Self::SingleItem(_) => pages_config.singleitem.clone(),
+            Self::ChannelDisplay(_) => pages_config.channeldisplay.clone(),
         }
     }
 
@@ -73,6 +99,7 @@ impl Page {
             Self::MainMenu(_) => pages_config.main_menu.message.clone(),
             Self::Search(_) => pages_config.search.message.clone(),
             Self::SingleItem(_) => pages_config.singleitem.message.clone(),
+            Self::ChannelDisplay(_) => pages_config.channeldisplay.message.clone(),
         }
     }
 }

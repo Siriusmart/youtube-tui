@@ -1,6 +1,8 @@
 use crate::{
     global::traits::ConfigTrait,
-    items::{ItemList, MessageBar, PageButton, SearchBar, SearchFilter, SingleItem},
+    items::{
+        ChannelDisplay, ItemList, MessageBar, PageButton, SearchBar, SearchFilter, SingleItem,
+    },
 };
 use serde::{Deserialize, Serialize};
 use std::slice;
@@ -35,6 +37,8 @@ pub struct PagesConfig {
     pub search: PageConfig,
     #[serde(default = "singleitem_default")]
     pub singleitem: PageConfig,
+    #[serde(default = "channeldisplay_default")]
+    pub channeldisplay: PageConfig,
 }
 
 impl Key for PagesConfig {
@@ -51,6 +55,7 @@ impl Default for PagesConfig {
             main_menu: main_menu_default(),
             search: search_default(),
             singleitem: singleitem_default(),
+            channeldisplay: channeldisplay_default(),
         }
     }
 }
@@ -158,6 +163,10 @@ pub enum PageItems {
     Popular,
     SearchFilters,
     SingleItemInfo,
+    ChannelDisplay,
+    ChannelMain,
+    ChannelVideos,
+    ChannelPlaylists,
 }
 
 impl PageItems {
@@ -171,15 +180,23 @@ impl PageItems {
             Self::ItemList => Box::new(ItemList::default()),
             Self::SearchFilters => Box::new(SearchFilter::default()),
             Self::SingleItemInfo => Box::new(SingleItem::default()),
+            Self::ChannelDisplay => Box::new(ChannelDisplay::default()),
+            Self::ChannelMain => Box::new(PageButton::ChannelMain),
+            Self::ChannelVideos => Box::new(PageButton::ChannelVideos),
+            Self::ChannelPlaylists => Box::new(PageButton::ChannelPlaylists),
         }
     }
 
     pub fn width(&self) -> Constraint {
         match self {
-            Self::Popular | Self::Trending => Constraint::Length(15),
+            Self::Popular
+            | Self::Trending
+            | Self::ChannelMain
+            | Self::ChannelVideos
+            | Self::ChannelPlaylists => Constraint::Length(15),
             Self::SearchBar => Constraint::Min(16),
             Self::MessageBar => Constraint::Min(3),
-            Self::ItemList | Self::SingleItemInfo => Constraint::Min(9),
+            Self::ItemList | Self::SingleItemInfo | Self::ChannelDisplay => Constraint::Min(9),
             Self::SearchFilters => Constraint::Length(5),
         }
     }
@@ -187,11 +204,14 @@ impl PageItems {
     pub fn height(&self) -> Constraint {
         match self {
             Self::Popular
+            | Self::ChannelMain
+            | Self::ChannelVideos
+            | Self::ChannelPlaylists
             | Self::Trending
             | Self::MessageBar
             | Self::SearchBar
             | Self::SearchFilters => Constraint::Length(3),
-            Self::ItemList | Self::SingleItemInfo => Constraint::Min(6),
+            Self::ItemList | Self::SingleItemInfo | Self::ChannelDisplay => Constraint::Min(6),
         }
     }
 }
@@ -251,5 +271,24 @@ fn singleitem_default() -> PageConfig {
             PageRow::from_vec(vec![PageItems::MessageBar], false),
         ],
         message: String::from("Loading item details..."),
+    }
+}
+
+fn channeldisplay_default() -> PageConfig {
+    PageConfig {
+        layout: vec![
+            PageRow::from_vec(vec![PageItems::SearchBar, PageItems::SearchFilters], false),
+            PageRow::from_vec(
+                vec![
+                    PageItems::ChannelMain,
+                    PageItems::ChannelVideos,
+                    PageItems::ChannelPlaylists,
+                ],
+                true,
+            ),
+            PageRow::from_vec(vec![PageItems::ChannelDisplay], false),
+            PageRow::from_vec(vec![PageItems::MessageBar], false),
+        ],
+        message: String::from("Loading channel details..."),
     }
 }
