@@ -1,0 +1,12 @@
+[book]
+authors = ["Siriusmart"]
+language = "en"
+multilingual = false
+src = "src"
+title = "YouTube TUI User Manual"
+description = "The user manual, documentation and contribution guide for YouTube TUI"
+
+[output.html]
+default-theme = "ayu"
+git-repository-url = "https://github.com/siriusmart/youtube-tui/tree/master/docs"
+edit-url-template = "https://github.com/siriusmart/youtube-tui/edit/master/docs/{path}"

@@ -14,7 +14,7 @@ use crate::{
         structs::{
             ChannelDisplayPage, ChannelDisplayPageType, FullPlaylistItem, FullVideoItem,
             InvidiousClient, Item, KeyAction, MainMenuPage, MiniChannelItem, MiniPlaylistItem,
-            MiniVideoItem, Page, SingleItemPage, Task, Tasks,
+            MiniVideoItem, Page, SingleItemPage, Task, Tasks, WatchHistory,
         },
     },
 };
@@ -157,6 +157,20 @@ impl FrameworkItem for ItemList {
                     .items
                     .into_iter()
                     .map(|item| Item::from_popular_item(item, image_index))
+                    .collect();
+            }
+            Page::MainMenu(MainMenuPage::History) => {
+                // the vector needs to be reversed because the latest watch history is pushed to
+                // the back, meaning it needs to be reversed so that the latests one are on top
+                self.items = framework
+                    .data
+                    .global
+                    .get::<WatchHistory>()
+                    .unwrap()
+                    .0
+                    .clone()
+                    .into_iter()
+                    .rev()
                     .collect();
             }
             Page::Search(search) => {

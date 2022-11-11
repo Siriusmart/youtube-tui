@@ -156,16 +156,29 @@ impl PageRow {
 /// All avaliable items for `PageConfig`
 #[derive(Clone, Copy, Serialize, Deserialize)]
 pub enum PageItems {
+    /// the search bar
     SearchBar,
+    /// a list of item e.g. in the main menu or search items
     ItemList,
+    /// the bottom panel which optionally displays a text
     MessageBar,
+    /// the trending button which loads the trending page
     Trending,
+    /// the popular button which loads the popular page
     Popular,
+    /// the history button which loads the watch history page
+    History,
+    /// the search filters `...` button, displays a popup when selected
     SearchFilters,
+    /// playlist and video info display
     SingleItemInfo,
+    /// displays channel info
     ChannelDisplay,
+    /// button which loads the main channel page
     ChannelMain,
+    /// button which loads the channel videos page
     ChannelVideos,
+    /// button which loads the channel playlists page
     ChannelPlaylists,
 }
 
@@ -176,6 +189,7 @@ impl PageItems {
             Self::SearchBar => Box::new(SearchBar::default()),
             Self::Popular => Box::new(PageButton::Popular),
             Self::Trending => Box::new(PageButton::Trending),
+            Self::History => Box::new(PageButton::History),
             Self::MessageBar => Box::new(MessageBar::default()),
             Self::ItemList => Box::new(ItemList::default()),
             Self::SearchFilters => Box::new(SearchFilter::default()),
@@ -191,6 +205,7 @@ impl PageItems {
         match self {
             Self::Popular
             | Self::Trending
+            | Self::History
             | Self::ChannelMain
             | Self::ChannelVideos
             | Self::ChannelPlaylists => Constraint::Length(15),
@@ -204,6 +219,7 @@ impl PageItems {
     pub fn height(&self) -> Constraint {
         match self {
             Self::Popular
+            | Self::History
             | Self::ChannelMain
             | Self::ChannelVideos
             | Self::ChannelPlaylists
@@ -244,7 +260,10 @@ fn main_menu_default() -> PageConfig {
     PageConfig {
         layout: vec![
             PageRow::from_vec(vec![PageItems::SearchBar, PageItems::SearchFilters], false),
-            PageRow::from_vec(vec![PageItems::Trending, PageItems::Popular], true),
+            PageRow::from_vec(
+                vec![PageItems::Popular, PageItems::Trending, PageItems::History],
+                true,
+            ),
             PageRow::from_vec(vec![PageItems::ItemList], false),
             PageRow::from_vec(vec![PageItems::MessageBar], false),
         ],

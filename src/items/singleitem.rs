@@ -3,7 +3,10 @@ use crate::{
     config::{AppearanceConfig, CommandsConfig, KeyBindingsConfig, MainConfig, Provider},
     global::{
         functions::download_all_images,
-        structs::{InvidiousClient, Item, KeyAction, Message, Page, SingleItemPage, Task, Tasks},
+        structs::{
+            InvidiousClient, Item, KeyAction, Message, Page, SingleItemPage, Task, Tasks,
+            WatchHistory,
+        },
     },
 };
 use std::{collections::HashMap, thread};
@@ -115,7 +118,7 @@ impl SingleVideoItem {
 
     /// creates a hashmap from `self`, containing info of the current item
     pub fn inflate_map(&self, mainconfig: &MainConfig, item: &Item) -> HashMap<String, String> {
-        let video_item = item.fullvideo();
+        let video_item = item.fullvideo().unwrap();
 
         HashMap::from([
             (
@@ -182,7 +185,7 @@ impl SinglePlaylistItem {
                     items.extend(
                         playlist_items
                             .iter()
-                            .map(|item| item.minivideo().title.as_str()),
+                            .map(|item| item.minivideo().unwrap().title.as_str()),
                     );
                     items
                 })
@@ -265,7 +268,7 @@ impl SinglePlaylistItem {
 
     /// creates a hashmap from `self`, containing info of the current item
     pub fn inflate_map(&self, mainconfig: &MainConfig, item: &Item) -> HashMap<String, String> {
-        let playlist_item = item.fullplaylist();
+        let playlist_item = item.fullplaylist().unwrap();
         HashMap::from([
             (
                 String::from("url"),
@@ -289,7 +292,9 @@ impl SinglePlaylistItem {
                     Provider::YouTube => playlist_item
                         .videos
                         .iter()
-                        .map(|video| format!("'https://youtu.be/{}'", video.minivideo().id))
+                        .map(|video| {
+                            format!("'https://youtu.be/{}'", video.minivideo().unwrap().id)
+                        })
                         .collect::<Vec<_>>()
                         .join(" "),
                     Provider::Invidious => playlist_item
@@ -299,7 +304,7 @@ impl SinglePlaylistItem {
                             format!(
                                 "'{}/watch?v={}'",
                                 mainconfig.invidious_instance,
-                                video.minivideo().id
+                                video.minivideo().unwrap().id
                             )
                         })
                         .collect::<Vec<_>>()
@@ -486,7 +491,7 @@ impl FrameworkItem for SingleItem {
             SingleItemPage::Playlist(id) => {
                 let playlist =
                     Item::from_full_playlist(client.playlist(id, None)?, mainconfig.image_index);
-                let videos = &playlist.fullplaylist().videos;
+                let videos = &playlist.fullplaylist()?.videos;
                 self.r#type = SingleItemType::Playlist(
                     SinglePlaylistItem::new(
                         framework.data.global.get::<CommandsConfig>().unwrap(),
@@ -511,6 +516,20 @@ impl FrameworkItem for SingleItem {
         // need to update provider every time the item loads or else it will display `${provider}`
         // instead of the actual provider (e.g. `YouTube`)
         self.update_provider();
+
+        if let Some(item) = &self.item {
+            if item.is_unknown() {
+                return Ok(());
+            }
+
+            let item = item.clone();
+            let max_watch_history = mainconfig.max_watch_history;
+
+            // push to watch history
+            let watch_history = framework.data.global.get_mut::<WatchHistory>().unwrap();
+            watch_history.push(item, max_watch_history);
+            watch_history.save()?;
+        }
 
         Ok(())
     }
@@ -659,7 +678,7 @@ impl FrameworkItem for SingleItem {
                             let updated = singleplaylistitem.videos_view.up().is_ok();
                             if updated && singleplaylistitem.videos_view.selected != 0 {
                                 singleplaylistitem.hovered_video.item = Some(
-                                    self.item.as_ref().unwrap().fullplaylist().videos
+                                    self.item.as_ref().unwrap().fullplaylist()?.videos
                                         [singleplaylistitem.videos_view.selected - 1]
                                         .clone(),
                                 );
@@ -681,7 +700,7 @@ impl FrameworkItem for SingleItem {
                             let updated = singleplaylistitem.videos_view.down().is_ok();
                             if updated && singleplaylistitem.videos_view.selected != 0 {
                                 singleplaylistitem.hovered_video.item = Some(
-                                    self.item.as_ref().unwrap().fullplaylist().videos
+                                    self.item.as_ref().unwrap().fullplaylist()?.videos
                                         [singleplaylistitem.videos_view.selected - 1]
                                         .clone(),
                                 );
@@ -692,7 +711,7 @@ impl FrameworkItem for SingleItem {
                             let updated = singleplaylistitem.videos_view.first().is_ok();
                             if updated && singleplaylistitem.videos_view.selected != 0 {
                                 singleplaylistitem.hovered_video.item = Some(
-                                    self.item.as_ref().unwrap().fullplaylist().videos
+                                    self.item.as_ref().unwrap().fullplaylist()?.videos
                                         [singleplaylistitem.videos_view.selected - 1]
                                         .clone(),
                                 );
@@ -703,7 +722,7 @@ impl FrameworkItem for SingleItem {
                             let updated = singleplaylistitem.videos_view.last().is_ok();
                             if updated && singleplaylistitem.videos_view.selected != 0 {
                                 singleplaylistitem.hovered_video.item = Some(
-                                    self.item.as_ref().unwrap().fullplaylist().videos
+                                    self.item.as_ref().unwrap().fullplaylist()?.videos
                                         [singleplaylistitem.videos_view.selected - 1]
                                         .clone(),
                                 );
@@ -728,9 +747,9 @@ impl FrameworkItem for SingleItem {
                                     .unwrap()
                                     .priority
                                     .push(Task::LoadPage(Page::SingleItem(SingleItemPage::Video(
-                                        self.item.as_ref().unwrap().fullplaylist().videos
+                                        self.item.as_ref().unwrap().fullplaylist()?.videos
                                             [singleplaylistitem.videos_view.selected - 1]
-                                            .minivideo()
+                                            .minivideo()?
                                             .id
                                             .clone(),
                                     ))));

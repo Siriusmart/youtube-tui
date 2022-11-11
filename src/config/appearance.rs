@@ -209,7 +209,7 @@ fn video_count_default() -> Color {
 }
 
 fn sub_count_default() -> Color {
-    Color::LightYellow
+    Color::Rgb(101, 255, 186)
 }
 
 fn likes_default() -> Color {

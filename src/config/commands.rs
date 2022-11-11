@@ -5,6 +5,7 @@ use typemap::Key;
 
 use crate::global::traits::ConfigTrait;
 
+/// Stores combinations of label and commands
 #[derive(Clone)]
 pub struct CommandsConfig {
     pub video: Vec<(String, String)>,
@@ -32,6 +33,7 @@ impl From<CommandsConfigSerde> for CommandsConfig {
     }
 }
 
+/// Hashmaps are better formatted in YAML, impls Into<CommandsConfig>
 // uses vector to keep the ordering of the commands, and hashmap to have that key - value pair look
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CommandsConfigSerde {

@@ -11,20 +11,20 @@ use crate::{
 /// the main event loop of the program
 pub fn run(
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
-    mut framework: Framework,
+    framework: &mut Framework,
 ) -> Result<(), Box<dyn Error>> {
     // push the initial page load
     let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
     tasks
         .priority
-        .push(Task::LoadPage(Page::MainMenu(MainMenuPage::Trending)));
-    tasks.pop().unwrap().run(&mut framework, terminal)?;
+        .push(Task::LoadPage(Page::MainMenu(MainMenuPage::Popular)));
+    tasks.pop().unwrap().run(framework, terminal)?;
     framework.clear_history();
 
     loop {
         // repeat forever until all tasks are ran (and Tasks is cleared)
         if let Some(tasks) = framework.data.state.get_mut::<Tasks>().unwrap().pop() {
-            tasks.run(&mut framework, terminal)?;
+            tasks.run(framework, terminal)?;
             continue;
         }
 

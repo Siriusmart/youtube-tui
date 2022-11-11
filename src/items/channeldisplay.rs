@@ -4,8 +4,8 @@ use crate::{
     global::{
         functions::download_all_images,
         structs::{
-            ChannelDisplayPageType, InvidiousClient, Item, KeyAction, Page, SingleItemPage, Task,
-            Tasks, Message,
+            ChannelDisplayPageType, InvidiousClient, Item, KeyAction, Message, Page,
+            SingleItemPage, Task, Tasks,
         },
     },
 };
@@ -217,13 +217,14 @@ impl FrameworkItem for ChannelDisplay {
                                 .unwrap()
                                 .priority
                                 .push(Task::LoadPage(Page::SingleItem(SingleItemPage::Video(
-                                    videos[textlist.selected].minivideo().id.clone(),
+                                    videos[textlist.selected].minivideo()?.id.clone(),
                                 ))));
                         } else {
-                            *framework.data.global.get_mut::<Message>().unwrap() = Message::Error(String::from("There is nothing to select"));
+                            *framework.data.global.get_mut::<Message>().unwrap() =
+                                Message::Error(String::from("There is nothing to select"));
                         }
                         true
-                    },
+                    }
                     _ => false,
                 };
 
@@ -259,13 +260,14 @@ impl FrameworkItem for ChannelDisplay {
                                 .unwrap()
                                 .priority
                                 .push(Task::LoadPage(Page::SingleItem(SingleItemPage::Playlist(
-                                    playlists[textlist.selected].miniplaylist().id.clone(),
+                                    playlists[textlist.selected].miniplaylist()?.id.clone(),
                                 ))));
                         } else {
-                            *framework.data.global.get_mut::<Message>().unwrap() = Message::Error(String::from("There is nothing to select"));
+                            *framework.data.global.get_mut::<Message>().unwrap() =
+                                Message::Error(String::from("There is nothing to select"));
                         }
                         true
-                    },
+                    }
                     _ => false,
                 };
 

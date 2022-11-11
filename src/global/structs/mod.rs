@@ -7,6 +7,7 @@ mod message;
 mod page;
 mod status;
 mod tasks;
+mod watchhistory;
 
 pub use errors::*;
 pub use invidiousclient::*;
@@ -16,3 +17,4 @@ pub use message::*;
 pub use page::*;
 pub use status::*;
 pub use tasks::*;
+pub use watchhistory::*;

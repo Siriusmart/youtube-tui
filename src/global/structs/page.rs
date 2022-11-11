@@ -53,6 +53,7 @@ impl Key for Page {
 pub enum MainMenuPage {
     Trending,
     Popular,
+    History,
 }
 
 impl Default for MainMenuPage {
@@ -61,6 +62,7 @@ impl Default for MainMenuPage {
     }
 }
 
+/// variants of the coannel display page
 #[derive(Clone, PartialEq)]
 pub struct ChannelDisplayPage {
     pub id: String,

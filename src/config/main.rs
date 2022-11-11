@@ -8,8 +8,8 @@ use typemap::Key;
 pub struct MainConfig {
     #[serde(default = "invidious_instance_default")]
     pub invidious_instance: String,
-    #[serde(default = "piped_instance_default")]
-    pub piped_instance: String,
+    #[serde(default = "max_watch_history_default")]
+    pub max_watch_history: usize,
     #[serde(default = "allow_unicode_default")]
     pub allow_unicode: bool,
     #[serde(default = "message_bar_default_default")]
@@ -37,7 +37,7 @@ impl Default for MainConfig {
     fn default() -> Self {
         Self {
             invidious_instance: invidious_instance_default(),
-            piped_instance: piped_instance_default(),
+            max_watch_history: max_watch_history_default(),
             allow_unicode: allow_unicode_default(),
             message_bar_default: message_bar_default_default(),
             images: images_default(),
@@ -55,7 +55,8 @@ impl ConfigTrait for MainConfig {
     const LABEL: &'static str = "main";
 }
 
-#[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+/// how images are handled/displayed
+#[derive(Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum Images {
     r#None,
     HalfBlocks,
@@ -101,16 +102,12 @@ fn invidious_instance_default() -> String {
     String::from("https://vid.puffyan.us")
 }
 
-fn piped_instance_default() -> String {
-    String::from("https://piped.garudalinux.org")
-}
-
 fn message_bar_default_default() -> String {
     String::from("All good :)")
 }
 
 const fn images_default() -> Images {
-    Images::HalfBlocks
+    Images::Sixels
 }
 
 const fn image_index_default() -> usize {
@@ -127,6 +124,10 @@ const fn refresh_after_modifying_search_filters_default() -> bool {
 
 const fn provider_default() -> Provider {
     Provider::YouTube
+}
+
+const fn max_watch_history_default() -> usize {
+    50
 }
 
 fn default_env() -> HashMap<String, String> {

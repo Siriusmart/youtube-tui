@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let res = run(&mut terminal, framework);
+    let res = run(&mut terminal, &mut framework);
 
     disable_raw_mode()?;
     execute!(
@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     )?;
     terminal.show_cursor()?;
 
-    let exit_res = exit();
+    let exit_res = exit(&framework);
 
     res?;
     exit_res?;

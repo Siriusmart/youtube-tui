@@ -49,7 +49,7 @@ impl Default for KeyBindingsConfig {
             (KeyCode::Enter, HashMap::from([(0, KeyAction::Select)])),
             (KeyCode::Esc, HashMap::from([(0, KeyAction::Deselect)])),
             (KeyCode::Char('q'), HashMap::from([(0, KeyAction::Exit)])),
-            (KeyCode::Char('r'), HashMap::from([(0, KeyAction::Reload)])),
+            (KeyCode::Char('r'), HashMap::from([(2, KeyAction::Reload)])),
             // history
             (KeyCode::Backspace, HashMap::from([(0, KeyAction::Back)])),
             (KeyCode::End, HashMap::from([(0, KeyAction::ClearHistory)])),

@@ -8,11 +8,14 @@ use invidious::structs::{
     universal::Playlist as FullPlaylist,
     video::Video,
 };
+use serde::{Deserialize, Serialize};
 use std::fmt::Display;
+
+use super::Errors;
 
 /// Items are things like a single video/playlist and channel
 // they are displayed by the item info widget in `iteminfo.rs`
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum Item {
     // minivideos are all videos that appeared without actually clicking into the video
     MiniVideo(MiniVideoItem),
@@ -24,7 +27,7 @@ pub enum Item {
     Unknown(SearchItemTransition),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MiniVideoItem {
     pub title: String,
     pub id: String,
@@ -37,7 +40,7 @@ pub struct MiniVideoItem {
     pub description: Option<String>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MiniPlaylistItem {
     pub title: String,
     pub id: String,
@@ -47,7 +50,7 @@ pub struct MiniPlaylistItem {
     pub thumbnail_url: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MiniChannelItem {
     pub name: String,
     pub id: String,
@@ -58,7 +61,7 @@ pub struct MiniChannelItem {
     pub description: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct FullVideoItem {
     pub title: String,
     pub id: String,
@@ -75,7 +78,7 @@ pub struct FullVideoItem {
     pub genre: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct FullPlaylistItem {
     pub title: String,
     pub id: String,
@@ -88,7 +91,7 @@ pub struct FullPlaylistItem {
     pub videos: Vec<Item>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct FullChannelItem {
     pub name: String,
     pub id: String,
@@ -116,38 +119,56 @@ impl Display for Item {
 }
 
 impl Item {
-    pub fn fullvideo(&self) -> &FullVideoItem {
+    pub fn id(&self) -> Option<&str> {
         match self {
-            Self::FullVideo(fullvideo) => fullvideo,
-            _ => panic!("not a fullvideo"),
+            Self::MiniVideo(MiniVideoItem { id, .. })
+            | Self::MiniChannel(MiniChannelItem { id, .. })
+            | Self::MiniPlaylist(MiniPlaylistItem { id, .. })
+            | Self::FullVideo(FullVideoItem { id, .. })
+            | Self::FullChannel(FullChannelItem { id, .. })
+            | Self::FullPlaylist(FullPlaylistItem { id, .. }) => Some(id),
+            _ => None,
         }
     }
 
-    pub fn minivideo(&self) -> &MiniVideoItem {
+    pub fn is_unknown(&self) -> bool {
+        matches!(self, Self::Unknown(_))
+    }
+}
+
+impl Item {
+    pub fn fullvideo(&self) -> Result<&FullVideoItem, Errors> {
         match self {
-            Self::MiniVideo(minivideo) => minivideo,
-            _ => panic!("not a minivideo"),
+            Self::FullVideo(fullvideo) => Ok(fullvideo),
+            _ => Err(Errors::StrError("not a full video")),
         }
     }
 
-    pub fn miniplaylist(&self) -> &MiniPlaylistItem {
+    pub fn minivideo(&self) -> Result<&MiniVideoItem, Errors> {
         match self {
-            Self::MiniPlaylist(miniplaylist) => miniplaylist,
-            _ => panic!("not a miniplaylist"),
+            Self::MiniVideo(minivideo) => Ok(minivideo),
+            _ => Err(Errors::StrError("not a mini video")),
         }
     }
 
-    pub fn fullplaylist(&self) -> &FullPlaylistItem {
+    pub fn miniplaylist(&self) -> Result<&MiniPlaylistItem, Errors> {
         match self {
-            Self::FullPlaylist(fullplaylist) => fullplaylist,
-            _ => panic!("not a fullplaylist"),
+            Self::MiniPlaylist(miniplaylist) => Ok(miniplaylist),
+            _ => Err(Errors::StrError("not a mini playlist")),
         }
     }
 
-    pub fn minichannel(&self) -> &MiniChannelItem {
+    pub fn fullplaylist(&self) -> Result<&FullPlaylistItem, Errors> {
         match self {
-            Self::MiniChannel(minichannel) => minichannel,
-            _ => panic!("not a minichannel"),
+            Self::FullPlaylist(fullplaylist) => Ok(fullplaylist),
+            _ => Err(Errors::StrError("not a full playlist")),
+        }
+    }
+
+    pub fn minichannel(&self) -> Result<&MiniChannelItem, Errors> {
+        match self {
+            Self::MiniChannel(minichannel) => Ok(minichannel),
+            _ => Err(Errors::StrError("not a mini channel")),
         }
     }
 }
@@ -286,7 +307,11 @@ impl Item {
             channel: original.author,
             channel_id: original.author_id,
             sub_count: original.sub_count_text,
-            published: original.published_text,
+            published: format!(
+                "{} [{}]",
+                original.published_text,
+                date_text(original.published)
+            ),
             description: original.description,
             likes: viewcount_text(original.likes as u64),
             genre: original.genre,
@@ -348,7 +373,11 @@ impl Item {
             views: Some(viewcount_text(original.view_count)),
             channel: original.author,
             channel_id: original.author_id,
-            published: Some(date_text(original.published)),
+            published: Some(format!(
+                "{} [{}]",
+                original.published_text,
+                date_text(original.published)
+            )),
             description: Some(original.description),
         })
     }

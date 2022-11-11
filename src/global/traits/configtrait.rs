@@ -1,3 +1,4 @@
+use home::home_dir;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     error::Error,
@@ -15,10 +16,9 @@ pub trait ConfigTrait {
     where
         Self: Serialize + DeserializeOwned + Default + Clone,
     {
-        let mut config_path = home::home_dir().expect("cannot get home directory");
-        config_path.push(".config");
-        config_path.push("youtube-tui");
-        config_path.push(format!("{}.{}", Self::LABEL, EXTENSION));
+        let home_dir = home_dir().unwrap();
+        let config_path =
+            home_dir.join(format!(".config/youtube-tui/{}.{}", Self::LABEL, EXTENSION));
 
         // The config struct
         let config: Self = {

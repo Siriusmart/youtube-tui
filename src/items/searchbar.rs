@@ -12,6 +12,7 @@ use tui::{
 };
 use tui_additions::{framework::FrameworkItem, widgets::TextField};
 
+/// the search bar item
 #[derive(Clone, Default)]
 pub struct SearchBar {
     pub text_field: TextField,

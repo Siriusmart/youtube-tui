@@ -1,6 +1,6 @@
 use crate::global::structs::Item;
 use futures::future::join_all;
-use std::{error::Error, fs, io::Cursor, thread};
+use std::{error::Error, io::Cursor, thread};
 use tokio::runtime::Runtime;
 
 pub struct DownloadRequest {
@@ -59,9 +59,7 @@ async fn download_all_images_async(downloads: Vec<DownloadRequest>) {
     path.push(".cache/youtube-tui/thumbnails/");
 
     for download in downloads.into_iter() {
-        let mut path = path.clone();
-        fs::create_dir_all(&path).unwrap();
-        path.push(download.id);
+        let path = path.clone().join(download.id);
 
         if !path.exists() {
             actions.push(download_single(
@@ -69,8 +67,6 @@ async fn download_all_images_async(downloads: Vec<DownloadRequest>) {
                 path.clone().into_os_string().into_string().unwrap(),
             ));
         }
-
-        path.pop();
     }
 
     join_all(actions).await;

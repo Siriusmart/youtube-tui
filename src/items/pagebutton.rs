@@ -1,7 +1,7 @@
 use crate::{
     config::AppearanceConfig,
     global::structs::{
-        ChannelDisplayPage, ChannelDisplayPageType, MainMenuPage, Page, Task, Tasks,
+        ChannelDisplayPage, ChannelDisplayPageType, MainMenuPage, Page, Task, Tasks, Message,
     },
 };
 use tui::{
@@ -16,6 +16,7 @@ use tui_additions::framework::FrameworkItem;
 pub enum PageButton {
     Trending,
     Popular,
+    History,
     ChannelMain,
     ChannelVideos,
     ChannelPlaylists,
@@ -26,6 +27,7 @@ impl PageButton {
         match self {
             Self::Trending => Page::MainMenu(MainMenuPage::Trending),
             Self::Popular => Page::MainMenu(MainMenuPage::Popular),
+            Self::History => Page::MainMenu(MainMenuPage::History),
             Self::ChannelMain => Page::ChannelDisplay(ChannelDisplayPage {
                 id: current_page.channeldisplay().id.clone(),
                 r#type: ChannelDisplayPageType::Main,
@@ -47,6 +49,7 @@ impl ToString for PageButton {
         match self {
             Self::Popular => String::from("Popular"),
             Self::Trending => String::from("Trending"),
+            Self::History => String::from("History"),
             Self::ChannelMain => String::from("Main"),
             Self::ChannelVideos => String::from("Videos"),
             Self::ChannelPlaylists => String::from("Playlists"),
@@ -92,6 +95,12 @@ impl FrameworkItem for PageButton {
     // when selected creates a load page task, but returns false to show that it is not being selected
     fn select(&mut self, framework: &mut tui_additions::framework::FrameworkClean) -> bool {
         let current_page = framework.data.state.get::<Page>().unwrap().clone();
+
+        if self.page(&current_page) == current_page {
+            *framework.data.global.get_mut::<Message>().unwrap() = Message::Message(String::from("You are already on this page"));
+            return false;
+        }
+
         let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
         tasks
             .priority

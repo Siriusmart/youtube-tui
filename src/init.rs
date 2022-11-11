@@ -4,7 +4,7 @@ use crate::{
         KeyBindingsConfig, MainConfig, MinDimentions, PagesConfig, Search,
     },
     global::{
-        structs::{InvidiousClient, Message, Page, Status, Tasks},
+        structs::{InvidiousClient, Message, Page, Status, Tasks, WatchHistory},
         traits::ConfigTrait,
     },
 };
@@ -21,15 +21,24 @@ pub fn init(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
     // creating files
     let home_dir = home_dir().unwrap();
     let config_path = home_dir.join(".config/youtube-tui/");
-    let cache_path = home_dir.join(".cache/youtube-tui/");
+    let cache_thumbnails_path = home_dir.join(".cache/youtube-tui/thumbnails/");
+    let history_thumbnails_path =
+        home_dir.join(".local/share/youtube-tui/watch_history/thumbnails/");
 
     if !&config_path.exists() {
         fs::create_dir_all(&config_path).unwrap();
     }
 
-    if !&cache_path.exists() {
-        fs::create_dir_all(&config_path).unwrap();
+    if !&cache_thumbnails_path.exists() {
+        fs::create_dir_all(&cache_thumbnails_path).unwrap();
     }
+
+    if !&history_thumbnails_path.exists() {
+        fs::create_dir_all(&history_thumbnails_path).unwrap();
+    }
+
+    // watch history init
+    WatchHistory::init_move();
 
     // inserting data
     let main_config = *MainConfig::load()?;
@@ -38,6 +47,10 @@ pub fn init(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
         .data
         .global
         .insert::<InvidiousClient>(InvidiousClient::new(main_config.invidious_instance.clone()));
+    framework
+        .data
+        .global
+        .insert::<WatchHistory>(WatchHistory::load());
     framework
         .data
         .global

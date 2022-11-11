@@ -189,6 +189,7 @@ impl TaskQueue {
     }
 }
 
+/// a single task
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum RenderTask {
     All,
