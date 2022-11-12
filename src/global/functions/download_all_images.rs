@@ -42,10 +42,15 @@ impl From<&Item> for Option<DownloadRequest> {
 
 /// Function to download all thumbnails (or just any files) to `~/.cache/thumbnails` with  no file exitension (cuz its not needed)
 pub fn download_all_images(downloads: Vec<Option<DownloadRequest>>) {
+    // do not download the images if non of the features are enabled
+    if cfg!(not(any(feature = "sixel", feature = "halfblock"))) {
+        return;
+    }
+
     thread::spawn(move || {
         let rt: Runtime = tokio::runtime::Runtime::new().unwrap();
 
-        let _ = rt.block_on(download_all_images_async(
+        rt.block_on(download_all_images_async(
             downloads.into_iter().flatten().collect(),
         ));
     });

@@ -1,7 +1,7 @@
 use crate::{
     config::AppearanceConfig,
     global::structs::{
-        ChannelDisplayPage, ChannelDisplayPageType, MainMenuPage, Page, Task, Tasks, Message,
+        ChannelDisplayPage, ChannelDisplayPageType, MainMenuPage, Message, Page, Task, Tasks,
     },
 };
 use tui::{
@@ -97,7 +97,8 @@ impl FrameworkItem for PageButton {
         let current_page = framework.data.state.get::<Page>().unwrap().clone();
 
         if self.page(&current_page) == current_page {
-            *framework.data.global.get_mut::<Message>().unwrap() = Message::Message(String::from("You are already on this page"));
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Message(String::from("You are already on this page"));
             return false;
         }
 

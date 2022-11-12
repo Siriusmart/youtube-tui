@@ -47,3 +47,25 @@ youtube-tui
 ```
 
 If installed correctly, a TUI should be launched. Press `q` to close the TUI.
+
+## Features
+
+The TUI has features that can be enabled/disabled when compiling.
+
+```sh
+cargo install youtube-tui # install with all default features
+cargo install youtube-tui --no-default-features # install without any features enabled
+cargo install youtube-tui --no-default-features -F 'halfblock' # install with only HalfBlocks support (but not Sixels)
+cargo install youtube-tui --no-default-features -F 'halfblock' -F 'sixel' # can install with multiple features by doing this
+cargo install youtube-tui --all-features # install with all features (even if not included in default)
+```
+
+### `halfblock` (default)
+
+Display images through HalfBlocks, work best in terminals with TrueColour support (so would not recommend for Windows users).
+
+### `sixel` (default)
+
+Display images with Sixels, allows the display of images at full definition. Not present on windows.
+
+Enabling this will also enable `halfblock`.

@@ -11,4 +11,4 @@ In the following sections we will go through all config files including:
 - [`keybindings.yml`](./keybindings.md)
 - [`pages.yml`](./pages.md)
 - [`appearance.yml`](./appearance.md)
-- `search.yml`
+- [`search.yml`](./search.md)

@@ -1,6 +1,6 @@
 [package]
 name = "youtube-tui"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Siriusmart <siriusmart@tuta.io>"]
 edition = "2021"
 description = "An aesthetically pleasing YouTube TUI written in Rust"
@@ -9,18 +9,22 @@ readme = "README.md"
 homepage = "https://siriusmart.github.io/youtube-tui"
 repository = "https://github.com/siriusmart/youtube-tui"
 license = "GPL-3.0"
-license-file = "LICENSE"
 keywords = ["cli", "terminal", "youtube", "tui"]
 categories =["command-line-interface", "command-line-utilities"]
 exclude = ["/docs"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["sixel", "halfblock"]
+sixel = ["viuer/sixel"]
+halfblock = ["viuer"]
+
 [dependencies]
 serde = {version = "1.0", default-features = false, features = ["derive"]}
 tui = {version = "0.19", default-features = false, features = ["serde"]}
 crossterm = {version = "0.25", default-features = false, features = ["serde"]}
-viuer = {version = "0.6", default-features = false, features = ["sixel"]}
+viuer = {version = "0.6", default-features = false, optional = true}
 home = "0.5"
 chrono = {version = "0.4", default-features = false, features = ["clock"]}
 tui-additions = {version = "0.1", default-features = false, features = ["framework", "widgets"]}

@@ -56,7 +56,7 @@ impl ConfigTrait for MainConfig {
 }
 
 /// how images are handled/displayed
-#[derive(Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Images {
     r#None,
     HalfBlocks,
@@ -73,7 +73,7 @@ impl Images {
     }
 }
 
-#[derive(Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Provider {
     YouTube,
     Invidious,

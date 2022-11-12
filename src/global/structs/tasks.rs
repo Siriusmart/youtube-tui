@@ -19,7 +19,7 @@ pub enum Task {
 }
 
 /// multiple tasks joined together, with duplicates removed
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct TaskQueue {
     pub render: RenderTask,
     pub reload: bool,

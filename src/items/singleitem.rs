@@ -370,14 +370,12 @@ impl SingleItem {
         if iteminfo.selected {
             self.grid
                 .set_border_style(Style::default().fg(appearance.colors.outline_selected));
+        } else if iteminfo.hover {
+            self.grid
+                .set_border_style(Style::default().fg(appearance.colors.outline_hover));
         } else {
-            if iteminfo.hover {
-                self.grid
-                    .set_border_style(Style::default().fg(appearance.colors.outline_hover));
-            } else {
-                self.grid
-                    .set_border_style(Style::default().fg(appearance.colors.outline));
-            }
+            self.grid
+                .set_border_style(Style::default().fg(appearance.colors.outline));
         }
 
         self.r#type

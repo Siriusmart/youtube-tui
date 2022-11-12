@@ -4,6 +4,7 @@ use tui::{
     widgets::{Paragraph, Wrap},
 };
 use tui_additions::framework::FrameworkItem;
+#[cfg(any(feature = "sixel", feature = "halfblock"))]
 use viuer::{print_from_file, Config};
 
 use crate::{
@@ -40,37 +41,45 @@ impl FrameworkItem for ItemInfo {
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
 
         // The scroll (space above) text info will be the height of the image, but if the image fail to display, the scroll will be 0
-        let scroll = if main_config.images.display()
+        let scroll = if cfg!(any(feature = "halfblock", feature = "sixel"))
+            && main_config.images.display()
             && !framework.data.state.get::<Status>().unwrap().popup_opened
         {
-            let thumbnail_path = home::home_dir()
-                .unwrap()
-                .join(".cache/youtube-tui/thumbnails/")
-                .join(item.thumbnail_id());
-            if thumbnail_path.exists() {
-                let config = Config {
-                    // channel thumbnails are squares, limiting their maximum width can prevent the
-                    // entire page being taken up by the image
-                    width: Some(if let Item::MiniChannel(_) = item {
-                        area.width / 2
-                    } else if let Item::FullChannel(_) = item {
-                        area.width / 4
+            let mut scroll = 0;
+
+            #[cfg(any(feature = "sixel", feature = "halfblock"))]
+            {
+                let thumbnail_path = home::home_dir()
+                    .unwrap()
+                    .join(".cache/youtube-tui/thumbnails/")
+                    .join(item.thumbnail_id());
+                if thumbnail_path.exists() {
+                    #[cfg(any(feature = "sixel", feature = "halfblock"))]
+                    let config = Config {
+                        // channel thumbnails are squares, limiting their maximum width can prevent the
+                        // entire page being taken up by the image
+                        width: Some(if let Item::MiniChannel(_) = item {
+                            area.width / 2
+                        } else if let Item::FullChannel(_) = item {
+                            area.width / 4
+                        } else {
+                            area.width
+                        } as u32),
+                        x: area.x,
+                        y: area.y as i16,
+                        #[cfg(feature = "sixel")]
+                        use_sixel: main_config.images.use_sixels(),
+                        ..Default::default()
+                    };
+
+                    if let Ok((_, height)) = print_from_file(thumbnail_path, &config) {
+                        scroll = height as u16;
                     } else {
-                        area.width
-                    } as u32),
-                    x: area.x,
-                    y: area.y as i16,
-                    use_sixel: main_config.images.use_sixels(),
-                    ..Default::default()
-                };
-                if let Ok((_, height)) = print_from_file(thumbnail_path, &config) {
-                    height as u16
-                } else {
-                    0
+                        scroll = 0;
+                    }
                 }
-            } else {
-                0
             }
+            scroll
         } else {
             0
         };

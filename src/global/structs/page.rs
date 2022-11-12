@@ -6,7 +6,7 @@ use typemap::Key;
 
 // Page can be converted into PageConfig, which can then be converted into State
 /// Covers all possible pages and variants
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum Page {
     MainMenu(MainMenuPage),
     Search(Search),
@@ -49,7 +49,7 @@ impl Key for Page {
 }
 
 /// page variants for the main menu
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum MainMenuPage {
     Trending,
     Popular,
@@ -63,13 +63,13 @@ impl Default for MainMenuPage {
 }
 
 /// variants of the coannel display page
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct ChannelDisplayPage {
     pub id: String,
     pub r#type: ChannelDisplayPageType,
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ChannelDisplayPageType {
     Main,
     Videos,
@@ -77,7 +77,7 @@ pub enum ChannelDisplayPageType {
 }
 
 /// Different items to be displayed on a single item page
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum SingleItemPage {
     Video(String),
     Playlist(String),
