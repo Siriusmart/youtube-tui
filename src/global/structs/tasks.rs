@@ -16,6 +16,7 @@ pub enum Task {
     RenderOnly(usize, usize),
     LoadPage(Page),
     ClearPage,
+    LazyRendered,
 }
 
 /// multiple tasks joined together, with duplicates removed
@@ -25,6 +26,7 @@ pub struct TaskQueue {
     pub reload: bool,
     pub load_page: Option<Page>,
     pub clear_all: bool,
+    pub lazy_rendered: bool,
 }
 
 impl Default for TaskQueue {
@@ -34,6 +36,7 @@ impl Default for TaskQueue {
             reload: false,
             load_page: None,
             clear_all: false,
+            lazy_rendered: false,
         }
     }
 }
@@ -56,6 +59,7 @@ impl TaskQueue {
             },
             Task::LoadPage(page) => self.load_page = Some(page),
             Task::ClearPage => self.clear_all = true,
+            Task::LazyRendered => self.lazy_rendered = true,
             // _ => {}
         }
     }
@@ -74,6 +78,15 @@ impl TaskQueue {
             terminal.clear()?;
         }
 
+        if self.lazy_rendered {
+            framework
+                .data
+                .global
+                .get_mut::<Status>()
+                .unwrap()
+                .render_image = false;
+        }
+
         // save state in history, then replace all items by whats in the new page and run `.load()` on them
         if let Some(page) = self.load_page {
             *framework.data.global.get_mut::<Message>().unwrap() =
@@ -87,7 +100,7 @@ impl TaskQueue {
 
             let state = page_config.to_state(framework);
             framework.set_state(state);
-            framework.data.state.get_mut::<Status>().unwrap().reset();
+            framework.data.global.get_mut::<Status>().unwrap().reset();
             *framework.data.state.get_mut::<Page>().unwrap() = page;
             Self::render_force_clear(framework, terminal)?;
             *framework.data.global.get_mut::<Message>().unwrap() = Message::None;

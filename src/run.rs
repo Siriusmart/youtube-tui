@@ -5,7 +5,7 @@ use tui_additions::framework::{Framework, FrameworkDirection};
 
 use crate::{
     config::KeyBindingsConfig,
-    global::structs::{KeyAction, MainMenuPage, Message, Page, Task, Tasks},
+    global::structs::{KeyAction, MainMenuPage, Message, Page, Status, Task, Tasks},
 };
 
 /// the main event loop of the program
@@ -93,6 +93,12 @@ pub fn run(
                             } else {
                                 framework
                                     .data
+                                    .global
+                                    .get_mut::<Status>()
+                                    .unwrap()
+                                    .render_image = true;
+                                framework
+                                    .data
                                     .state
                                     .get_mut::<Tasks>()
                                     .unwrap()
@@ -107,6 +113,12 @@ pub fn run(
                                         "This is already the beginning of history",
                                     ))
                             } else {
+                                framework
+                                    .data
+                                    .global
+                                    .get_mut::<Status>()
+                                    .unwrap()
+                                    .render_image = true;
                                 framework
                                     .data
                                     .state
@@ -153,6 +165,12 @@ pub fn run(
                     .unwrap()
                     .priority
                     .push(Task::RenderAll);
+                framework
+                    .data
+                    .global
+                    .get_mut::<Status>()
+                    .unwrap()
+                    .render_image = true;
             }
             _ => {}
         }

@@ -69,6 +69,7 @@ pub fn init(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
         .data
         .global
         .insert::<CommandsConfig>(CommandsConfig::from(*CommandsConfigSerde::load()?));
+    framework.data.global.insert::<Status>(Status::default());
 
     framework.data.state.insert::<Tasks>(Tasks::default());
     framework.data.state.insert::<Page>(Page::default());
@@ -77,7 +78,6 @@ pub fn init(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
         .data
         .state
         .insert::<MinDimentions>(MinDimentions::default());
-    framework.data.state.insert::<Status>(Status::default());
 
     Ok(())
 }

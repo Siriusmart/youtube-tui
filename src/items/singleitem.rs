@@ -4,7 +4,7 @@ use crate::{
     global::{
         functions::download_all_images,
         structs::{
-            InvidiousClient, Item, KeyAction, Message, Page, SingleItemPage, Task, Tasks,
+            InvidiousClient, Item, KeyAction, Message, Page, SingleItemPage, Status, Task, Tasks,
             WatchHistory,
         },
     },
@@ -168,13 +168,11 @@ impl SinglePlaylistItem {
         mainconfig: &MainConfig,
         playlist_items: &[Item],
     ) -> Self {
-        let hovered_video = ItemInfo {
-            item: if playlist_items.is_empty() {
-                None
-            } else {
-                Some(playlist_items[0].clone())
-            },
-        };
+        let hovered_video = ItemInfo::new(if playlist_items.is_empty() {
+            None
+        } else {
+            Some(playlist_items[0].clone())
+        });
         Self {
             commands_view: TextList::default()
                 .items(&commands.playlist.iter().map(|command| &command.0).collect())
@@ -763,6 +761,12 @@ impl FrameworkItem for SingleItem {
         };
 
         if updated {
+            framework
+                .data
+                .global
+                .get_mut::<Status>()
+                .unwrap()
+                .render_image = true;
             framework
                 .data
                 .state

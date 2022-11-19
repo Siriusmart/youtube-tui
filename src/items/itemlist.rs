@@ -14,7 +14,7 @@ use crate::{
         structs::{
             ChannelDisplayPage, ChannelDisplayPageType, FullPlaylistItem, FullVideoItem,
             InvidiousClient, Item, KeyAction, MainMenuPage, MiniChannelItem, MiniPlaylistItem,
-            MiniVideoItem, Page, SingleItemPage, Task, Tasks, WatchHistory,
+            MiniVideoItem, Page, SingleItemPage, Status, Task, Tasks, WatchHistory,
         },
     },
 };
@@ -264,6 +264,12 @@ impl FrameworkItem for ItemList {
 
         // only create a render task if the key event actually changed something
         if updated {
+            framework
+                .data
+                .global
+                .get_mut::<Status>()
+                .unwrap()
+                .render_image = true;
             self.info.item = Some(self.items[self.textlist.selected].clone());
             framework
                 .data

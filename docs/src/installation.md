@@ -2,6 +2,8 @@
 
 It's about download (or building) the binary and putting them in an easily accessible location (like `/bin/`).
 
+The YouTube TUI is not tested for Windows.
+
 ## Install from Crates.io (recommended)
 
 Crates.io is a repository for programs written in Rust, and the YouTube TUI is avaliable <a href="https://crates.io/crates/youtube-tui" target=_blank>*there*</a>.
@@ -62,10 +64,14 @@ cargo install youtube-tui --all-features # install with all features (even if no
 
 ### `halfblock` (default)
 
-Display images through HalfBlocks, work best in terminals with TrueColour support (so would not recommend for Windows users).
+Display images through HalfBlocks, work best in terminals with TrueColour support.
 
 ### `sixel` (default)
 
 Display images with Sixels, allows the display of images at full definition. Not present on windows.
 
 Enabling this will also enable `halfblock`.
+
+Requires <a href="https://github.com/saitoha/libsixel" target=_blank>`libsixel`</a>.
+
+> `sixel` and `halfblock` does not compile on Windows.

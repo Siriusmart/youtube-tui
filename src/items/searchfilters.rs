@@ -188,7 +188,7 @@ impl FrameworkItem for SearchFilter {
     fn select(&mut self, framework: &mut tui_additions::framework::FrameworkClean) -> bool {
         framework
             .data
-            .state
+            .global
             .get_mut::<Status>()
             .unwrap()
             .popup_opened = true;
@@ -220,12 +220,10 @@ impl FrameworkItem for SearchFilter {
     }
 
     fn deselect(&mut self, framework: &mut tui_additions::framework::FrameworkClean) -> bool {
-        framework
-            .data
-            .state
-            .get_mut::<Status>()
-            .unwrap()
-            .popup_opened = false;
+        *framework.data.global.get_mut::<Status>().unwrap() = Status {
+            popup_opened: false,
+            render_image: true,
+        };
 
         // refresh page only if changed and enabled in options
         let search_options = framework.data.state.get::<Search>().unwrap().clone();

@@ -4,6 +4,8 @@ use typemap::Key;
 #[derive(Clone)]
 pub struct Status {
     pub popup_opened: bool,
+    /// to prevent rerendering the same image
+    pub render_image: bool,
 }
 
 impl Key for Status {
@@ -14,6 +16,7 @@ impl Default for Status {
     fn default() -> Self {
         Self {
             popup_opened: false,
+            render_image: true,
         }
     }
 }

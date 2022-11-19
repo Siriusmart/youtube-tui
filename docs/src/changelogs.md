@@ -1,6 +1,13 @@
 # Changelogs
 
-## v0.5.0
+## v0.5.1
+
+#### Added
+
+- Image lazy loading (will not rerender image if already rendered)
+- Optional features that can be disabled
+
+### v0.5.0
 
 #### Added
 

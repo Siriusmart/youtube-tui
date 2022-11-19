@@ -5,7 +5,7 @@ use crate::{
         functions::download_all_images,
         structs::{
             ChannelDisplayPageType, InvidiousClient, Item, KeyAction, Message, Page,
-            SingleItemPage, Task, Tasks,
+            SingleItemPage, Status, Task, Tasks,
         },
     },
 };
@@ -25,6 +25,7 @@ pub enum ChannelDisplay {
     None,
     Main {
         channel: Item,
+        iteminfo: ItemInfo,
     },
     Videos {
         videos: Vec<Item>,
@@ -133,7 +134,7 @@ impl FrameworkItem for ChannelDisplay {
                     .border_style(border_style);
                 frame.render_widget(block, area);
             }
-            Self::Main { channel } => {
+            Self::Main { iteminfo, .. } => {
                 let block = Block::default()
                     .border_type(appearance.borders)
                     .borders(Borders::ALL)
@@ -141,10 +142,7 @@ impl FrameworkItem for ChannelDisplay {
                 let inner = block.inner(area);
 
                 frame.render_widget(block, area);
-                ItemInfo {
-                    item: Some(channel.clone()),
-                }
-                .render(frame, framework, inner, popup_render, info);
+                iteminfo.render(frame, framework, inner, popup_render, info);
             }
             Self::Videos {
                 textlist,
@@ -237,6 +235,12 @@ impl FrameworkItem for ChannelDisplay {
                         .unwrap()
                         .priority
                         .push(Task::RenderAll);
+                    framework
+                        .data
+                        .global
+                        .get_mut::<Status>()
+                        .unwrap()
+                        .render_image = true;
                     iteminfo.item = Some(videos[textlist.selected].clone());
                 }
             }
@@ -279,6 +283,12 @@ impl FrameworkItem for ChannelDisplay {
                         .unwrap()
                         .priority
                         .push(Task::RenderAll);
+                    framework
+                        .data
+                        .global
+                        .get_mut::<Status>()
+                        .unwrap()
+                        .render_image = true;
                     iteminfo.item = Some(playlists[textlist.selected].clone());
                 }
             }
@@ -310,7 +320,10 @@ impl FrameworkItem for ChannelDisplay {
                     mainconfig.image_index,
                 );
                 download_all_images(vec![(&channel).into()]);
-                *self = Self::Main { channel }
+                *self = Self::Main {
+                    iteminfo: ItemInfo::new(Some(channel.clone())),
+                    channel,
+                }
             }
             ChannelDisplayPageType::Videos => {
                 let videos = framework
@@ -331,9 +344,7 @@ impl FrameworkItem for ChannelDisplay {
                         .border_type(appearance.borders)
                         .style(Style::default().fg(appearance.colors.text))
                         .items(&videos)?,
-                    iteminfo: ItemInfo {
-                        item: videos.first().cloned(),
-                    },
+                    iteminfo: ItemInfo::new(videos.first().cloned()),
                     grid: Grid::new(
                         vec![Constraint::Percentage(60), Constraint::Percentage(40)],
                         vec![Constraint::Percentage(100)],
@@ -361,9 +372,7 @@ impl FrameworkItem for ChannelDisplay {
                         .border_type(appearance.borders)
                         .style(Style::default().fg(appearance.colors.text))
                         .items(&playlists)?,
-                    iteminfo: ItemInfo {
-                        item: playlists.first().cloned(),
-                    },
+                    iteminfo: ItemInfo::new(playlists.first().cloned()),
                     grid: Grid::new(
                         vec![Constraint::Percentage(60), Constraint::Percentage(40)],
                         vec![Constraint::Percentage(100)],

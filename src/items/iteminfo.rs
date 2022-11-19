@@ -9,13 +9,14 @@ use viuer::{print_from_file, Config};
 
 use crate::{
     config::{AppearanceConfig, MainConfig},
-    global::structs::{Item, Status},
+    global::structs::{Item, Status, Task, Tasks},
 };
 
 /// an item info displays info of any `Item`s
 #[derive(Clone)]
 pub struct ItemInfo {
     pub item: Option<Item>,
+    pub lazy_scroll: u16,
 }
 
 impl FrameworkItem for ItemInfo {
@@ -38,12 +39,14 @@ impl FrameworkItem for ItemInfo {
         };
 
         let main_config = framework.data.global.get::<MainConfig>().unwrap();
-        let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
+        let status = framework.data.global.get::<Status>().unwrap();
 
         // The scroll (space above) text info will be the height of the image, but if the image fail to display, the scroll will be 0
-        let scroll = if cfg!(any(feature = "halfblock", feature = "sixel"))
+        let scroll = if !status.render_image {
+            self.lazy_scroll
+        } else if cfg!(any(feature = "halfblock", feature = "sixel"))
             && main_config.images.display()
-            && !framework.data.state.get::<Status>().unwrap().popup_opened
+            && !status.popup_opened
         {
             let mut scroll = 0;
 
@@ -74,6 +77,13 @@ impl FrameworkItem for ItemInfo {
 
                     if let Ok((_, height)) = print_from_file(thumbnail_path, &config) {
                         scroll = height as u16;
+                        framework
+                            .data
+                            .state
+                            .get_mut::<Tasks>()
+                            .unwrap()
+                            .priority
+                            .push(Task::LazyRendered);
                     } else {
                         scroll = 0;
                     }
@@ -83,6 +93,10 @@ impl FrameworkItem for ItemInfo {
         } else {
             0
         };
+
+        self.lazy_scroll = scroll;
+
+        let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
 
         // Each "span" contains a string and a Style, and they are one line max each
         // A "text" is used for descriptions in video/playlist and channels, and starts a new line if the old one runs out
@@ -359,6 +373,18 @@ impl FrameworkItem for ItemInfo {
 
 impl Default for ItemInfo {
     fn default() -> Self {
-        Self { item: None }
+        Self {
+            item: None,
+            lazy_scroll: 0,
+        }
+    }
+}
+
+impl ItemInfo {
+    pub fn new(item: Option<Item>) -> Self {
+        Self {
+            item,
+            ..Default::default()
+        }
     }
 }
