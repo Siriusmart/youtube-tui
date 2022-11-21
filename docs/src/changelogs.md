@@ -1,6 +1,17 @@
 # Changelogs
 
-## v0.5.1
+## v0.5.2
+
+#### Added
+
+- Improved config files (including hex colour support)
+- Page turners (next/prev page in search)
+
+### Fixed
+
+- Where the image and text are displaying in the same place, and the image is displayed over the text
+
+### v0.5.1
 
 #### Added
 
@@ -14,6 +25,8 @@
 - Entire TUI rewritten from scratch, now using the <a href="https://crates.io/crates/tui-additions" target=_blank>`tui-additions`</a> crate
 - Sixels image support
 - Improved config files
+
+<hr>
 
 ## v0.4.4
 

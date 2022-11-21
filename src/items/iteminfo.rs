@@ -48,7 +48,11 @@ impl FrameworkItem for ItemInfo {
             && main_config.images.display()
             && !status.popup_opened
         {
-            let mut scroll = 0;
+            #[cfg(any(feature = "sixel", feature = "halfblock"))]
+            let scroll;
+
+            #[cfg(not(any(feature = "sixel", feature = "halfblock")))]
+            let scroll = 0;
 
             #[cfg(any(feature = "sixel", feature = "halfblock"))]
             {
@@ -85,13 +89,15 @@ impl FrameworkItem for ItemInfo {
                             .priority
                             .push(Task::LazyRendered);
                     } else {
-                        scroll = 0;
+                        scroll = self.lazy_scroll;
                     }
+                } else {
+                    scroll = self.lazy_scroll;
                 }
             }
             scroll
         } else {
-            0
+            self.lazy_scroll
         };
 
         self.lazy_scroll = scroll;
@@ -324,6 +330,13 @@ impl FrameworkItem for ItemInfo {
                     serde_json::to_string(&searchitem_transitional).unwrap(),
                     Style::default().fg(appearance.colors.item_info.description),
                 )),
+            ),
+            Item::Page(b) => (
+                vec![(
+                    if *b { "Next page" } else { "Previous page" }.to_string(),
+                    Style::default().fg(appearance.colors.item_info.page_turner),
+                )],
+                None,
             ),
         };
 

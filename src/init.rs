@@ -1,15 +1,17 @@
 use crate::{
     config::{
-        AppearanceConfig, AppearanceConfigSerde, CommandsConfig, CommandsConfigSerde,
-        KeyBindingsConfig, MainConfig, MinDimentions, PagesConfig, Search,
+        AppearanceConfig, CommandsConfig, CommandsConfigSerde, KeyBindingsConfig, MainConfig,
+        MinDimentions, PagesConfig, Search,
     },
     global::{
+        functions::run_command,
         structs::{InvidiousClient, Message, Page, Status, Tasks, WatchHistory},
         traits::ConfigTrait,
     },
 };
 use home::home_dir;
-use std::{error::Error, fs};
+use std::{error::Error, fs, io::Stdout};
+use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::framework::Framework;
 
 /// app to run before the app starts
@@ -17,7 +19,10 @@ use tui_additions::framework::Framework;
 //  - create folders like `~/.config/youtube-tui/` and `~/.cache/youtube-tui/thumbnails/`
 //  - load all config files
 //  - insert data
-pub fn init(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
+pub fn init(
+    framework: &mut Framework,
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+) -> Result<(), Box<dyn Error>> {
     // creating files
     let home_dir = home_dir().unwrap();
     let config_path = home_dir.join(".config/youtube-tui/");
@@ -54,7 +59,7 @@ pub fn init(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
     framework
         .data
         .global
-        .insert::<AppearanceConfig>(AppearanceConfig::from(*AppearanceConfigSerde::load()?));
+        .insert::<AppearanceConfig>(AppearanceConfig::load()?);
     framework.data.global.insert::<MainConfig>(main_config);
     framework
         .data
@@ -63,7 +68,7 @@ pub fn init(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
     framework
         .data
         .global
-        .insert::<KeyBindingsConfig>(*KeyBindingsConfig::load()?);
+        .insert::<KeyBindingsConfig>(KeyBindingsConfig::load()?);
     framework.data.global.insert::<Message>(Message::None);
     framework
         .data
@@ -79,5 +84,8 @@ pub fn init(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
         .state
         .insert::<MinDimentions>(MinDimentions::default());
 
+    run_command(&["loadpage", "popular"], framework, terminal);
+    run_command(&["flush"], framework, terminal);
+    run_command(&["history", "clear"], framework, terminal);
     Ok(())
 }

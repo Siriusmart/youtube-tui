@@ -24,6 +24,7 @@ pub enum Item {
     FullVideo(FullVideoItem),
     FullPlaylist(FullPlaylistItem),
     FullChannel(FullChannelItem),
+    Page(bool), // true: next false: prev
     Unknown(SearchItemTransition),
 }
 
@@ -113,6 +114,13 @@ impl Display for Item {
             Self::FullVideo(video) => &video.title,
             Self::FullPlaylist(playlist) => &playlist.title,
             Self::FullChannel(channel) => &channel.name,
+            Self::Page(b) => {
+                if *b {
+                    "Next page"
+                } else {
+                    "Previous page"
+                }
+            }
             Self::Unknown(_) => "Unknown item",
         })
     }
@@ -183,7 +191,7 @@ impl Item {
             Self::FullVideo(video) => &video.id,
             Self::FullPlaylist(playlist) => &playlist.id,
             Self::FullChannel(channel) => &channel.id,
-            Self::Unknown(_) => "invalid",
+            Self::Unknown(_) | Self::Page(_) => "invalid",
         }
     }
 

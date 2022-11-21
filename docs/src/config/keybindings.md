@@ -5,26 +5,48 @@ The keybindings config binds each key to an action, or multiple keys for the sam
 ## Example keybindings config
 
 ```yaml
-Up:
-  0: MoveUp
+'q':
+  0: Exit
 Down:
   0: MoveDown
+'r':
+  2: Reload
+Enter:
+  0: Select
+'l':
+  0: MoveRight
+Up:
+  0: MoveUp
+'j':
+  0: MoveDown
+End:
+  0: ClearHistory
 Right:
   0: MoveRight
+Backspace:
+  0: Back
+'h':
+  0: MoveLeft
+F5:
+  0: Reload
+'k':
+  0: MoveUp
+Esc:
+  0: Deselect
+Home:
+  0: FirstHistory
 Left:
   0: MoveLeft
   4: Back
-Esc:
-  0: Deselect
-Backspace:
-  0: Back
-Enter:
-  0: Select
 ```
 
 ## Keys
 
-Keys are the name of the keys that are pressed in the keyboard, all keys are avaliable <a href="https://docs.rs/crossterm/latest/crossterm/event/enum.KeyCode.html" target=_blank>*here*</a>.
+Keys can be:
+
+- A single character (e.g. `'q'`)
+- Named keys (e.g. `Up`, `Down`)
+- Function keys (e.g. `F5`)
 
 ## Key modifiers
 

@@ -5,7 +5,7 @@ use tui_additions::framework::{Framework, FrameworkDirection};
 
 use crate::{
     config::KeyBindingsConfig,
-    global::structs::{KeyAction, MainMenuPage, Message, Page, Status, Task, Tasks},
+    global::structs::{KeyAction, Message, Status, Task, Tasks},
 };
 
 /// the main event loop of the program
@@ -13,14 +13,6 @@ pub fn run(
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     framework: &mut Framework,
 ) -> Result<(), Box<dyn Error>> {
-    // push the initial page load
-    let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
-    tasks
-        .priority
-        .push(Task::LoadPage(Page::MainMenu(MainMenuPage::Popular)));
-    tasks.pop().unwrap().run(framework, terminal)?;
-    framework.clear_history();
-
     loop {
         // repeat forever until all tasks are ran (and Tasks is cleared)
         if let Some(tasks) = framework.data.state.get_mut::<Tasks>().unwrap().pop() {

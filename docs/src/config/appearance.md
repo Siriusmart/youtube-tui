@@ -15,10 +15,7 @@ colors:
   outline_selected: LightBlue
   outline_hover: LightRed
   outline_secondary: LightYellow
-  message_outline: !Rgb # todo: represent colours with hex values or `rgb(r,g,b)`
-  - 255
-  - 127
-  - 0
+  message_outline: '#FF7F00'
   message_error_outline: LightRed
   message_success_outline: LightGreen
   item_info:
@@ -29,22 +26,11 @@ colors:
     viewcount: LightYellow
     length: LightCyan
     published: LightMagenta
-    video_count: !Rgb
-    - 131
-    - 141
-    - 255
-    sub_count: !Rgb
-    - 101
-    - 255
-    - 186
-    likes: !Rgb
-    - 200
-    - 255
-    - 129
-    genre: !Rgb
-    - 255
-    - 121
-    - 215
+    video_count: '#838DFF'
+    sub_count: '#65FFBA'
+    likes: '#C8FF81'
+    genre: '#FF75D7'
+    page_turner: Gray
 ```
 
 <hr>
@@ -63,10 +49,10 @@ Any colours, here are the 2 main represenations of colours, for more check out t
 
 #### Terminal colour
 
-This can be modified by the themes of your terminal.
+This can be modified by the themes of your terminal (e.g. white, green, etc).
 
-#### RGB
+#### Hex
 
-RGB colour values, requires TrueColour support in terminal (for instance Windows CMD cannot display RBG colours).
+Hex should be a string that starts with the `#` character, and can be from `000000` (black) to `FFFFFF` (white).
 
-> Hex colour values to be implemented.
+> RGB color values has been deprecated

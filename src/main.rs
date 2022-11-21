@@ -16,7 +16,6 @@ use youtube_tui::{exit, init, run};
 fn main() -> Result<(), Box<dyn Error>> {
     let state = State(Vec::new());
     let mut framework = Framework::new(state);
-    init(&mut framework)?;
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -24,7 +23,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let res = run(&mut terminal, &mut framework);
+    let res = (|| -> Result<(), Box<dyn Error>> {
+        init(&mut framework, &mut terminal)?;
+        run(&mut terminal, &mut framework)?;
+        Ok(())
+    })();
 
     disable_raw_mode()?;
     execute!(

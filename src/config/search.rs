@@ -7,10 +7,21 @@ use typemap::Key;
 
 // can be turned into URL Params for the search term with filters
 /// Search query & filters
-#[derive(Clone, Default, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Search {
     pub query: String,
     pub filters: SearchFilters,
+    pub page: u16,
+}
+
+impl Default for Search {
+    fn default() -> Self {
+        Self {
+            query: String::new(),
+            filters: SearchFilters::default(),
+            page: 1,
+        }
+    }
 }
 
 impl Key for Search {
@@ -23,14 +34,18 @@ impl ConfigTrait for Search {
 
 impl ToString for Search {
     fn to_string(&self) -> String {
-        vec![
-            format!("q={}", self.query),
-            self.filters.sort.as_url_string(),
-            self.filters.date.as_url_string(),
-            self.filters.duration.as_url_string(),
-            self.filters.r#type.as_url_string(),
-        ]
-        .join("&")
+        format!(
+            "{}&page={}",
+            vec![
+                format!("q={}", self.query),
+                self.filters.sort.as_url_string(),
+                self.filters.date.as_url_string(),
+                self.filters.duration.as_url_string(),
+                self.filters.r#type.as_url_string(),
+            ]
+            .join("&"),
+            self.page
+        )
     }
 }
 

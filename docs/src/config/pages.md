@@ -7,16 +7,20 @@ The layout config determins the position of where each item is placed, mainly th
 ```yaml
 main_menu:
   layout:
-  - !NonCenteredRow
+  - type: NonCenteredRow
+    items:
     - SearchBar
     - SearchFilters
-  - !CenteredRow
+  - type: CenteredRow
+    items:
     - Popular
     - Trending
     - History
-  - !NonCenteredRow
+  - type: NonCenteredRow
+    items:
     - ItemList
-  - !NonCenteredRow
+  - type: NonCenteredRow
+    items:
     - MessageBar
   message: Loading main menu...
 

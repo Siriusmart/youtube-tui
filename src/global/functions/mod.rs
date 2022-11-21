@@ -9,3 +9,5 @@ mod download_all_images;
 pub use download_all_images::download_all_images;
 mod popup_area;
 pub use popup_area::popup_area;
+mod run_command;
+pub use run_command::run_command;

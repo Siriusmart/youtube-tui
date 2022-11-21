@@ -122,6 +122,7 @@ impl PageConfig {
 
 /// CenteredRow will have its items centered, while NonCenteredRow will align to the left
 #[derive(Clone, Serialize, Deserialize)]
+#[serde(tag = "type", content = "items")]
 pub enum PageRow {
     CenteredRow(Vec<PageItems>),
     NonCenteredRow(Vec<PageItems>),

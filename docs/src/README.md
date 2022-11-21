@@ -48,9 +48,9 @@ The YouTube TUI allows you to browse YouTube with (almost) all of it's features,
 
 ### What it doesn't have
 
-- Next page button in pages (first priority)
-- Lazy image loading (first priority)
-- Vim-like commands (will implement)
+- Vim-like commands (first priority)
+- Command line args (first priority)
+- Bootleg Vimscript? (will implement)
 - Channel search (will implement)
 - Channel videos sorting (will implement)
 - Subscriptions (will implement)

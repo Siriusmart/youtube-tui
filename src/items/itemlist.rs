@@ -8,13 +8,14 @@ use tui_additions::{
 
 use super::ItemInfo;
 use crate::{
-    config::{AppearanceConfig, KeyBindingsConfig, MainConfig},
+    config::{AppearanceConfig, KeyBindingsConfig, MainConfig, Search},
     global::{
         functions::download_all_images,
         structs::{
-            ChannelDisplayPage, ChannelDisplayPageType, FullPlaylistItem, FullVideoItem,
-            InvidiousClient, Item, KeyAction, MainMenuPage, MiniChannelItem, MiniPlaylistItem,
-            MiniVideoItem, Page, SingleItemPage, Status, Task, Tasks, WatchHistory,
+            ChannelDisplayPage, ChannelDisplayPageType, FullChannelItem, FullPlaylistItem,
+            FullVideoItem, InvidiousClient, Item, KeyAction, MainMenuPage, Message,
+            MiniChannelItem, MiniPlaylistItem, MiniVideoItem, Page, SingleItemPage, Status, Task,
+            Tasks, WatchHistory,
         },
     },
 };
@@ -180,6 +181,12 @@ impl FrameworkItem for ItemList {
                     .into_iter()
                     .map(|item| Item::from_search_item(item, image_index))
                     .collect();
+                if !self.items.is_empty() {
+                    self.items.push(Item::Page(true));
+                }
+                if search.page != 1 {
+                    self.items.insert(0, Item::Page(false));
+                }
             }
             _ => unreachable!("item `ItemList` cannot be used in `{page:?}`"),
         }
@@ -236,27 +243,49 @@ impl FrameworkItem for ItemList {
                 let page_to_load = match &self.items[self.textlist.selected] {
                     Item::MiniVideo(MiniVideoItem { id, .. })
                     | Item::FullVideo(FullVideoItem { id, .. }) => {
-                        Page::SingleItem(SingleItemPage::Video(id.clone()))
+                        Some(Page::SingleItem(SingleItemPage::Video(id.clone())))
                     }
                     Item::MiniPlaylist(MiniPlaylistItem { id, .. })
                     | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
-                        Page::SingleItem(SingleItemPage::Playlist(id.clone()))
+                        Some(Page::SingleItem(SingleItemPage::Playlist(id.clone())))
                     }
-                    Item::MiniChannel(MiniChannelItem { id, .. }) => {
-                        Page::ChannelDisplay(ChannelDisplayPage {
+                    Item::MiniChannel(MiniChannelItem { id, .. })
+                    | Item::FullChannel(FullChannelItem { id, .. }) => {
+                        Some(Page::ChannelDisplay(ChannelDisplayPage {
                             id: id.clone(),
                             r#type: ChannelDisplayPageType::Main,
-                        })
+                        }))
                     }
-                    _ => panic!("wtf did you just selected"),
+                    Item::Unknown(_) => {
+                        *framework.data.global.get_mut::<Message>().unwrap() =
+                            Message::Message(String::from("Unknown item"));
+                        framework
+                            .data
+                            .state
+                            .get_mut::<Tasks>()
+                            .unwrap()
+                            .priority
+                            .push(Task::RenderAll);
+                        None
+                    }
+                    Item::Page(b) => match framework.data.state.get::<Page>().unwrap() {
+                        Page::Search(search) => Some(Page::Search(Search {
+                            page: if *b { search.page + 1 } else { search.page - 1 },
+                            ..search.clone()
+                        })),
+                        _ => unreachable!("Page turners can only be used in search pages"),
+                    },
                 };
-                framework
-                    .data
-                    .state
-                    .get_mut::<Tasks>()
-                    .unwrap()
-                    .priority
-                    .push(Task::LoadPage(page_to_load));
+
+                if let Some(page_to_load) = page_to_load {
+                    framework
+                        .data
+                        .state
+                        .get_mut::<Tasks>()
+                        .unwrap()
+                        .priority
+                        .push(Task::LoadPage(page_to_load));
+                }
                 false
             }
             _ => false,

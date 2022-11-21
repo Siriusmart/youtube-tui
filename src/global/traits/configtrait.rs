@@ -6,7 +6,7 @@ use std::{
     io::Write,
 };
 
-const EXTENSION: &str = "yml";
+pub const EXTENSION: &str = "yml";
 
 /// Trait for loading, saving config files
 pub trait ConfigTrait {
