@@ -115,7 +115,7 @@ const fn image_index_default() -> usize {
 }
 
 const fn allow_unicode_default() -> bool {
-    false
+    true
 }
 
 const fn refresh_after_modifying_search_filters_default() -> bool {

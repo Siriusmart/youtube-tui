@@ -10,7 +10,7 @@
 
 Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal.
 
-![](./images/search-showcase.png)
+![](./docs/src/images/search-showcase.png)
 
 It is like an *app launcher*, it launches other programs to do the heavy lifting (for example, `mpv` for playing videos).
 
@@ -43,7 +43,7 @@ The YouTube TUI does not work on its own, it is instead like a *TUI frontend* fo
 
 However, the programs to launch can be changed, and therefore the YouTube TUI <u>does not rely on any specific dependencies</u> to run.
 
-![](./images/custom-dependencies-showcase.png)
+![](./docs/src/images/custom-dependencies-showcase.png)
 
 ## Powerful
 

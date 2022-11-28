@@ -69,7 +69,7 @@ impl SingleVideoItem {
     pub fn new(commands: &CommandsConfig, mainconfig: &MainConfig) -> Self {
         Self {
             textlist: TextList::default()
-                .items(&commands.video.iter().map(|command| &command.0).collect())
+                .items(&commands.video.iter().map(|command| &command.0).collect::<Vec<_>>())
                 .unwrap(),
             commands: commands
                 .video
@@ -175,7 +175,7 @@ impl SinglePlaylistItem {
         });
         Self {
             commands_view: TextList::default()
-                .items(&commands.playlist.iter().map(|command| &command.0).collect())
+                .items(&commands.playlist.iter().map(|command| &command.0).collect::<Vec<_>>())
                 .unwrap(),
             videos_view: TextList::default()
                 .items(&{

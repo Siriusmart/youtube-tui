@@ -1,6 +1,12 @@
 # Changelogs
 
-## v0.5.2
+## v0.5.3
+
+#### Fixed
+
+- Search bar could not handle non English characters (e.g. <a href="https://github.com/Siriusmart/youtube-tui/issues/14" target=_blank>Russian</a>)
+
+### v0.5.2
 
 #### Added
 
