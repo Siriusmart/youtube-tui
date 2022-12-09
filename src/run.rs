@@ -1,4 +1,4 @@
-use crossterm::event::{self, Event};
+use crossterm::event::{self, Event, MouseEventKind, MouseButton};
 use std::{error::Error, io::Stdout};
 use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::framework::{Framework, FrameworkDirection};
@@ -23,6 +23,23 @@ pub fn run(
         *framework.data.global.get_mut::<Message>().unwrap() = Message::None;
 
         match event::read()? {
+            Event::Mouse(mouse) => {
+                if mouse.kind != MouseEventKind::Down(MouseButton::Left) {
+                    continue;
+                }
+
+                let updated = framework.mouse_event(mouse.column, mouse.row);
+
+                if updated {
+                    framework
+                        .data
+                        .state
+                        .get_mut::<Tasks>()
+                        .unwrap()
+                        .priority
+                        .push(Task::RenderAll);
+                }
+            },
             Event::Key(key) => {
                 // 1. get the corresponding action
                 // 2. check if action is deselect, if yes, deselect

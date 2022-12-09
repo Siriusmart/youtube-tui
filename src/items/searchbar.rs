@@ -116,6 +116,25 @@ impl FrameworkItem for SearchBar {
         Ok(())
     }
 
+    fn mouse_event(&mut self, _framework: &mut tui_additions::framework::FrameworkClean, mut x: u16, y: u16) -> bool {
+        if y != 1 || x == 0 {
+            return false;
+        }
+
+        x -= 1; // there is 1 character to the left of the text field
+
+        if x == self.text_field.cursor as u16 {
+            return false;
+        }
+
+        if x > self.text_field.content.len() as u16 {
+            return self.text_field.last().is_ok();
+        }
+
+        self.text_field.cursor = x as usize;
+        self.text_field.update().is_ok()
+    }
+
     fn selectable(&self) -> bool {
         true
     }
