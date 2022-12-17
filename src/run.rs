@@ -1,11 +1,17 @@
-use crossterm::event::{self, Event, MouseEventKind, MouseButton};
+use crossterm::event::{self, Event, MouseButton, MouseEventKind};
 use std::{error::Error, io::Stdout};
 use tui::{backend::CrosstermBackend, Terminal};
-use tui_additions::framework::{Framework, FrameworkDirection};
+use tui_additions::{
+    framework::{Framework, FrameworkDirection},
+    widgets::TextField,
+};
 
 use crate::{
-    config::KeyBindingsConfig,
-    global::structs::{KeyAction, Message, Status, Task, Tasks},
+    config::{KeyBindingsConfig, MainConfig},
+    global::{
+        functions::command_capture,
+        structs::{KeyAction, Message, Status, Task, Tasks},
+    },
 };
 
 /// the main event loop of the program
@@ -20,15 +26,67 @@ pub fn run(
             continue;
         }
 
+        // exits the function is `.exit` is true - a way for items/commands to exit the program
+        if framework.data.global.get::<Status>().unwrap().exit {
+            break;
+        }
         *framework.data.global.get_mut::<Message>().unwrap() = Message::None;
 
         match event::read()? {
-            Event::Mouse(mouse) => {
+            Event::Mouse(mouse)
+                if framework
+                    .data
+                    .global
+                    .get::<MainConfig>()
+                    .unwrap()
+                    .mouse_support =>
+            {
                 if mouse.kind != MouseEventKind::Down(MouseButton::Left) {
                     continue;
                 }
 
-                let updated = framework.mouse_event(mouse.column, mouse.row);
+                *framework.data.global.get_mut::<Message>().unwrap() = Message::None;
+
+                // check if the search filter popup is clicked
+                let mut searchfilter_clicked = false;
+                if framework
+                    .data
+                    .global
+                    .get::<Status>()
+                    .unwrap()
+                    .search_filter_opened
+                {
+                    let (mut frameworkclean, state) = framework.split_clean();
+                    for row in state.0.iter_mut() {
+                        for item in row.items.iter_mut() {
+                            match item.item.r#type() {
+                                "youtube_tui::items::searchfilters::SearchFilter" => {
+                                    if item.item.mouse_event(
+                                        &mut frameworkclean,
+                                        0,
+                                        0,
+                                        mouse.column,
+                                        mouse.row,
+                                    ) {
+                                        searchfilter_clicked = true;
+                                        break;
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+
+                        if searchfilter_clicked {
+                            break;
+                        }
+                    }
+                }
+
+                let updated = if searchfilter_clicked {
+                    true
+                } else {
+                    framework.mouse_event(mouse.column, mouse.row)
+                };
 
                 if updated {
                     framework
@@ -39,25 +97,19 @@ pub fn run(
                         .priority
                         .push(Task::RenderAll);
                 }
-            },
+            }
             Event::Key(key) => {
                 // 1. get the corresponding action
                 // 2. check if action is deselect, if yes, deselect
                 // 3. check is anything is selected, if yes, run `.key_event()` with the key
                 // 4. if nothing is selected, do stuff like moving the cursor or exiting
 
-                let action = if let Some(keyactions) = framework
+                let action = framework
                     .data
                     .global
                     .get::<KeyBindingsConfig>()
                     .unwrap()
-                    .0
-                    .get(&key.code)
-                {
-                    keyactions.get(&key.modifiers.bits()).copied()
-                } else {
-                    None
-                };
+                    .get(key);
 
                 if action == Some(KeyAction::Deselect) {
                     let _ = framework.deselect();
@@ -68,6 +120,13 @@ pub fn run(
                         .unwrap()
                         .priority
                         .push(Task::RenderAll);
+                    framework
+                        .data
+                        .global
+                        .get_mut::<Status>()
+                        .unwrap()
+                        .command_capture = None;
+                    continue;
                 }
 
                 // if something is selected, pass the key input into that item
@@ -78,9 +137,42 @@ pub fn run(
                         *framework.data.global.get_mut::<Message>().unwrap() =
                             Message::Error(format!("{}", e));
                     };
-                } else if let Some(action) = action {
+                    continue;
+                }
+
+                // the first part check for if the keys should be captured for entering commands
+                if framework
+                    .data
+                    .global
+                    .get::<Status>()
+                    .unwrap()
+                    .command_capture
+                    .is_some()
+                    // the second part runs the command, and see if the returned boolean
+                    // `is_updated` is true, if so update the screen
+                    && command_capture(&mut framework.split_clean().0, key)
+                {
+                    framework
+                        .data
+                        .state
+                        .get_mut::<Tasks>()
+                        .unwrap()
+                        .priority
+                        .push(Task::RenderAll);
+                    continue;
+                }
+
+                if let Some(action) = action {
                     let mut render = true;
                     match action {
+                        KeyAction::StartCommandCapture => {
+                            framework
+                                .data
+                                .global
+                                .get_mut::<Status>()
+                                .unwrap()
+                                .command_capture = Some(TextField::default());
+                        }
                         KeyAction::Exit => break,
                         KeyAction::MoveUp => framework.r#move(FrameworkDirection::Up)?,
                         KeyAction::MoveDown => framework.r#move(FrameworkDirection::Down)?,

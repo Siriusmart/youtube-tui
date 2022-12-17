@@ -9,6 +9,7 @@ pub struct DownloadRequest {
 }
 
 impl From<&Item> for Option<DownloadRequest> {
+    // turn `Item` into a thumbnail download request
     fn from(item: &Item) -> Self {
         Some(match item {
             Item::MiniVideo(minivideo) => DownloadRequest {

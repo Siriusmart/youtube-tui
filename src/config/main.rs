@@ -6,6 +6,8 @@ use typemap::Key;
 /// `main.yml`, the main config file
 #[derive(Serialize, Deserialize, Clone)]
 pub struct MainConfig {
+    #[serde(default = "mouse_support_default")]
+    pub mouse_support: bool,
     #[serde(default = "invidious_instance_default")]
     pub invidious_instance: String,
     #[serde(default = "max_watch_history_default")]
@@ -36,6 +38,7 @@ impl Key for MainConfig {
 impl Default for MainConfig {
     fn default() -> Self {
         Self {
+            mouse_support: mouse_support_default(),
             invidious_instance: invidious_instance_default(),
             max_watch_history: max_watch_history_default(),
             allow_unicode: allow_unicode_default(),
@@ -128,6 +131,10 @@ const fn provider_default() -> Provider {
 
 const fn max_watch_history_default() -> usize {
     50
+}
+
+const fn mouse_support_default() -> bool {
+    true
 }
 
 fn default_env() -> HashMap<String, String> {

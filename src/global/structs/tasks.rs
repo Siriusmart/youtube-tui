@@ -1,4 +1,7 @@
-use crate::config::{AppearanceConfig, MinDimentions};
+use crate::{
+    config::{AppearanceConfig, MinDimentions},
+    global::functions::run_command,
+};
 
 use super::{message::Message, page::Page, status::Status};
 use std::{error::Error, io::Stdout, mem};
@@ -17,6 +20,7 @@ pub enum Task {
     LoadPage(Page),
     ClearPage,
     LazyRendered,
+    Command(String),
 }
 
 /// multiple tasks joined together, with duplicates removed
@@ -27,6 +31,7 @@ pub struct TaskQueue {
     pub load_page: Option<Page>,
     pub clear_all: bool,
     pub lazy_rendered: bool,
+    pub commands: Vec<String>,
 }
 
 impl Default for TaskQueue {
@@ -37,6 +42,7 @@ impl Default for TaskQueue {
             load_page: None,
             clear_all: false,
             lazy_rendered: false,
+            commands: Vec::new(),
         }
     }
 }
@@ -60,6 +66,7 @@ impl TaskQueue {
             Task::LoadPage(page) => self.load_page = Some(page),
             Task::ClearPage => self.clear_all = true,
             Task::LazyRendered => self.lazy_rendered = true,
+            Task::Command(s) => self.commands.push(s),
             // _ => {}
         }
     }
@@ -74,6 +81,16 @@ impl TaskQueue {
         framework: &mut Framework,
         terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     ) -> Result<(), Box<dyn Error>> {
+        // if there is any commands, run them first as they may modify data, which is rendered
+        // later in this function
+        for command in self.commands.iter() {
+            run_command(
+                &command.split_whitespace().collect::<Vec<_>>(),
+                framework,
+                terminal,
+            );
+        }
+
         if self.clear_all {
             terminal.clear()?;
         }
@@ -173,6 +190,13 @@ impl TaskQueue {
     ) {
         let min_dimentions = framework.data.state.get::<MinDimentions>().unwrap();
         let area = frame.size();
+
+        framework
+            .data
+            .global
+            .get_mut::<Status>()
+            .unwrap()
+            .prev_frame = Some(area);
 
         // if the minimum width and height is not meet, then displays a "protective screen" to prevent panicking
         if area.width < min_dimentions.width || area.height < min_dimentions.height {

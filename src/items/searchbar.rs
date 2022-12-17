@@ -1,8 +1,11 @@
 use std::error::Error;
 
 use crate::{
-    config::{AppearanceConfig, Search},
-    global::structs::{Message, Page, Task, Tasks},
+    config::{AppearanceConfig, KeyBindingsConfig, Search},
+    global::{
+        functions::get_clipboard,
+        structs::{KeyAction, Message, Page, Task, Tasks},
+    },
 };
 use crossterm::event::KeyCode;
 use tui::{
@@ -76,6 +79,43 @@ impl FrameworkItem for SearchBar {
         key: crossterm::event::KeyEvent,
         _info: tui_additions::framework::ItemInfo,
     ) -> Result<(), Box<dyn Error>> {
+        // pasting clipboard content
+        if framework
+            .data
+            .global
+            .get::<KeyBindingsConfig>()
+            .unwrap()
+            .get(key)
+            == Some(KeyAction::Paste)
+        {
+            let content = get_clipboard();
+            if content.is_empty() {
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Error(String::from("Clipboard empty"));
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::RenderAll);
+                return Ok(());
+            }
+
+            // push all characters at cursor location
+            content.chars().for_each(|c| {
+                let _ = self.text_field.push(c);
+            });
+            framework
+                .data
+                .state
+                .get_mut::<Tasks>()
+                .unwrap()
+                .priority
+                .push(Task::RenderAll);
+            return Ok(());
+        }
+
         let updated = match key.code {
             KeyCode::Backspace => self.text_field.remove(self.text_field.cursor).is_ok(),
             KeyCode::Char(c) => self.text_field.push(c).is_ok(),
@@ -116,7 +156,14 @@ impl FrameworkItem for SearchBar {
         Ok(())
     }
 
-    fn mouse_event(&mut self, _framework: &mut tui_additions::framework::FrameworkClean, mut x: u16, y: u16) -> bool {
+    fn mouse_event(
+        &mut self,
+        _framework: &mut tui_additions::framework::FrameworkClean,
+        mut x: u16,
+        y: u16,
+        _absolute_x: u16,
+        _absolute_y: u16,
+    ) -> bool {
         if y != 1 || x == 0 {
             return false;
         }

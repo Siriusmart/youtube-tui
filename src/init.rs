@@ -12,7 +12,7 @@ use crate::{
 use home::home_dir;
 use std::{error::Error, fs, io::Stdout};
 use tui::{backend::CrosstermBackend, Terminal};
-use tui_additions::framework::Framework;
+use tui_additions::framework::{Framework, FrameworkClean};
 
 /// app to run before the app starts
 // init tasks:
@@ -25,14 +25,9 @@ pub fn init(
 ) -> Result<(), Box<dyn Error>> {
     // creating files
     let home_dir = home_dir().unwrap();
-    let config_path = home_dir.join(".config/youtube-tui/");
     let cache_thumbnails_path = home_dir.join(".cache/youtube-tui/thumbnails/");
     let history_thumbnails_path =
         home_dir.join(".local/share/youtube-tui/watch_history/thumbnails/");
-
-    if !&config_path.exists() {
-        fs::create_dir_all(&config_path).unwrap();
-    }
 
     if !&cache_thumbnails_path.exists() {
         fs::create_dir_all(&cache_thumbnails_path).unwrap();
@@ -45,6 +40,32 @@ pub fn init(
     // watch history init
     WatchHistory::init_move();
 
+    framework.data.global.insert::<Message>(Message::None);
+    framework.data.global.insert::<Status>(Status::default());
+
+    framework.data.state.insert::<Tasks>(Tasks::default());
+    framework.data.state.insert::<Page>(Page::default());
+    framework
+        .data
+        .state
+        .insert::<MinDimentions>(MinDimentions::default());
+
+    load_configs(&mut framework.split_clean().0).ok();
+
+    run_command(&["loadpage", "popular"], framework, terminal);
+    run_command(&["flush"], framework, terminal);
+    run_command(&["history", "clear"], framework, terminal);
+    Ok(())
+}
+
+pub fn load_configs(framework: &mut FrameworkClean) -> Result<(), Box<dyn Error>> {
+    let home_dir = home_dir().unwrap();
+    let config_path = home_dir.join(".config/youtube-tui/");
+
+    if !&config_path.exists() {
+        fs::create_dir_all(&config_path).unwrap();
+    }
+
     // inserting data
     let main_config = *MainConfig::load()?;
 
@@ -52,6 +73,10 @@ pub fn init(
         .data
         .global
         .insert::<InvidiousClient>(InvidiousClient::new(main_config.invidious_instance.clone()));
+    framework
+        .data
+        .global
+        .insert::<CommandsConfig>(CommandsConfig::from(*CommandsConfigSerde::load()?));
     framework
         .data
         .global
@@ -69,23 +94,7 @@ pub fn init(
         .data
         .global
         .insert::<KeyBindingsConfig>(KeyBindingsConfig::load()?);
-    framework.data.global.insert::<Message>(Message::None);
-    framework
-        .data
-        .global
-        .insert::<CommandsConfig>(CommandsConfig::from(*CommandsConfigSerde::load()?));
-    framework.data.global.insert::<Status>(Status::default());
-
-    framework.data.state.insert::<Tasks>(Tasks::default());
-    framework.data.state.insert::<Page>(Page::default());
     framework.data.state.insert::<Search>(*Search::load()?);
-    framework
-        .data
-        .state
-        .insert::<MinDimentions>(MinDimentions::default());
 
-    run_command(&["loadpage", "popular"], framework, terminal);
-    run_command(&["flush"], framework, terminal);
-    run_command(&["history", "clear"], framework, terminal);
     Ok(())
 }

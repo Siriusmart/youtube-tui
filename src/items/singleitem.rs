@@ -10,9 +10,12 @@ use crate::{
     },
 };
 use std::{collections::HashMap, thread};
-use tui::{layout::Constraint, style::Style};
+use tui::{
+    layout::{Constraint, Rect},
+    style::Style,
+};
 use tui_additions::{
-    framework::FrameworkItem,
+    framework::{FrameworkClean, FrameworkItem},
     widgets::{Grid, TextList},
 };
 
@@ -69,7 +72,13 @@ impl SingleVideoItem {
     pub fn new(commands: &CommandsConfig, mainconfig: &MainConfig) -> Self {
         Self {
             textlist: TextList::default()
-                .items(&commands.video.iter().map(|command| &command.0).collect::<Vec<_>>())
+                .items(
+                    &commands
+                        .video
+                        .iter()
+                        .map(|command| &command.0)
+                        .collect::<Vec<_>>(),
+                )
                 .unwrap(),
             commands: commands
                 .video
@@ -129,11 +138,9 @@ impl SingleVideoItem {
                         mainconfig.invidious_instance, video_item.id
                     ),
                     Provider::YouTube => format!("'https://youtu.be/{}'", video_item.id),
-                    // Provider::Piped => {
-                    //     format!("'{}/watch?v={}'", mainconfig.piped_instance, video_item.id)
-                    // }
                 },
             ),
+            (String::from("id"), video_item.id.clone()),
             (
                 String::from("embed-url"),
                 match self.provider {
@@ -142,9 +149,19 @@ impl SingleVideoItem {
                         mainconfig.invidious_instance, video_item.id
                     ),
                     Provider::YouTube => format!("'https://youtube.com/embed/{}'", video_item.id),
-                    // Provider::Piped => {
-                    //     format!("'{}/embed/{}'", mainconfig.piped_instance, video_item.id)
-                    // }
+                },
+            ),
+            (String::from("channel_id"), video_item.channel_id.clone()),
+            (
+                String::from("channel_url"),
+                match self.provider {
+                    Provider::YouTube => {
+                        format!("https://www.youtube.com/channel/{}", video_item.channel_id)
+                    }
+                    Provider::Invidious => format!(
+                        "{}/channel/{}",
+                        mainconfig.invidious_instance, video_item.channel_id
+                    ),
                 },
             ),
         ])
@@ -175,7 +192,13 @@ impl SinglePlaylistItem {
         });
         Self {
             commands_view: TextList::default()
-                .items(&commands.playlist.iter().map(|command| &command.0).collect::<Vec<_>>())
+                .items(
+                    &commands
+                        .playlist
+                        .iter()
+                        .map(|command| &command.0)
+                        .collect::<Vec<_>>(),
+                )
                 .unwrap(),
             videos_view: TextList::default()
                 .items(&{
@@ -278,12 +301,9 @@ impl SinglePlaylistItem {
                         "{}/playlist?list={}",
                         mainconfig.invidious_instance, playlist_item.id
                     ),
-                    // Provider::Piped => format!(
-                    //     "{}/playlist?list={}",
-                    //     mainconfig.piped_instance, playlist_item.id
-                    // ),
                 },
             ),
+            (String::from("id"), playlist_item.id.clone()),
             (
                 String::from("all-videos"),
                 match self.provider {
@@ -307,18 +327,20 @@ impl SinglePlaylistItem {
                         })
                         .collect::<Vec<_>>()
                         .join(" "),
-                    // Provider::Piped => playlist_item
-                    //     .videos
-                    //     .iter()
-                    //     .map(|video| {
-                    //         format!(
-                    //             "'{}/watch?v={}'",
-                    //             mainconfig.piped_instance,
-                    //             video.minivideo().id
-                    //         )
-                    //     })
-                    //     .collect::<Vec<_>>()
-                    //     .join(" "),
+                },
+            ),
+            (String::from("channel_id"), playlist_item.channel_id.clone()),
+            (
+                String::from("channel_url"),
+                match self.provider {
+                    Provider::YouTube => format!(
+                        "https://www.youtube.com/channel/{}",
+                        playlist_item.channel_id
+                    ),
+                    Provider::Invidious => format!(
+                        "{}/channel/{}",
+                        mainconfig.invidious_instance, playlist_item.channel_id
+                    ),
                 },
             ),
         ])
@@ -378,6 +400,149 @@ impl SingleItem {
 
         self.r#type
             .update_appearance(appearance, iteminfo, &mut self.grid);
+    }
+
+    fn update(&mut self) {
+        if let SingleItemType::Playlist(singleplaylistitem) = &mut self.r#type {
+            let SinglePlaylistItem {
+                hovered_video,
+                videos_view,
+                ..
+            } = &mut **singleplaylistitem;
+            if videos_view.items.is_empty() {
+                hovered_video.item = None;
+                return;
+            }
+
+            if self.item.as_ref().unwrap().fullplaylist().unwrap().videos[videos_view.selected].id()
+                != hovered_video.item.as_ref().unwrap().id()
+            {
+                hovered_video.item = Some(
+                    self.item.as_ref().unwrap().fullplaylist().unwrap().videos
+                        [videos_view.selected]
+                        .clone(),
+                );
+            }
+        }
+    }
+
+    fn select_at_cursor(
+        &mut self,
+        framework: &mut FrameworkClean,
+        // info: tui_additions::framework::ItemInfo,
+    ) {
+        match &mut self.r#type {
+            SingleItemType::Video(singlevideoitem) => {
+                let command_string = singlevideoitem.commands[singlevideoitem.textlist.selected]
+                    .1
+                    .clone();
+
+                match command_string.as_str() {
+                    // checks for special cases that the items should consume the command
+                    // instead of running it
+                    "%switch-provider%" => {
+                        singlevideoitem.provider.rotate();
+                        singlevideoitem.update_provider();
+                        *framework.data.global.get_mut::<Message>().unwrap() = Message::Success(
+                            format!("Switched provider to {}", singlevideoitem.provider.as_str()),
+                        );
+                    }
+                    _ => {
+                        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
+                        // joins the env from the one in mainconfig and video info
+                        let env = singlevideoitem.inflate(
+                            mainconfig.env.clone(),
+                            mainconfig,
+                            self.item.as_ref().unwrap(),
+                        );
+                        let command_string = apply_env(command_string, &env);
+
+                        // check if the command starts with an ':' which case should be captured
+                        if &command_string[0..1] == ":" {
+                            framework
+                                .data
+                                .state
+                                .get_mut::<Tasks>()
+                                .unwrap()
+                                .priority
+                                .push(Task::Command(command_string[1..].to_string()))
+                        }
+
+                        *framework.data.global.get_mut::<Message>().unwrap() =
+                            Message::Success(command_string.clone());
+
+                        // this allows creating commands from string
+                        let mut command = execute::command(command_string);
+
+                        // run the command in a new thread so it doesn't freeze the current one
+                        thread::spawn(move || {
+                            let _ = command.output();
+                        });
+                    }
+                }
+            }
+            SingleItemType::Playlist(singleplaylistitem) => {
+                let command_string = singleplaylistitem.commands
+                    [singleplaylistitem.commands_view.selected]
+                    .1
+                    .clone();
+
+                // checks for special cases
+                match command_string.as_str() {
+                    "%switch-view%" => {
+                        singleplaylistitem.is_commands_view = !singleplaylistitem.is_commands_view;
+                        // self.update_appearance(
+                        //     framework.data.global.get::<AppearanceConfig>().unwrap(),
+                        //     &info,
+                        // );
+                        *framework.data.global.get_mut::<Message>().unwrap() =
+                            Message::Success(String::from("Switched view"));
+                    }
+                    "%switch-provider%" => {
+                        singleplaylistitem.provider.rotate();
+                        singleplaylistitem.update_provider();
+                    }
+                    // same as before if string is not a special case then the run the command
+                    _ => {
+                        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
+                        let env = singleplaylistitem.inflate(
+                            mainconfig.env.clone(),
+                            mainconfig,
+                            self.item.as_ref().unwrap(),
+                        );
+                        let command_string = apply_env(command_string, &env);
+
+                        // check if the command starts with an ':' which case should be captured
+                        if &command_string[0..1] == ":" {
+                            framework
+                                .data
+                                .state
+                                .get_mut::<Tasks>()
+                                .unwrap()
+                                .priority
+                                .push(Task::Command(command_string[1..].to_string()))
+                        }
+
+                        *framework.data.global.get_mut::<Message>().unwrap() =
+                            Message::Success(command_string.clone());
+                        let mut command = execute::command(command_string);
+
+                        thread::spawn(move || {
+                            let _ = command.output();
+                        });
+                    }
+                };
+            }
+            _ => return,
+        }
+
+        framework
+            .data
+            .state
+            .get_mut::<Tasks>()
+            .unwrap()
+            .priority
+            .push(Task::RenderAll);
     }
 
     pub fn update_provider(&mut self) {
@@ -541,19 +706,14 @@ impl FrameworkItem for SingleItem {
             return Ok(());
         }
 
-        let action = if let Some(keyactions) = framework
+        let action = if let Some(action) = framework
             .data
             .global
             .get::<KeyBindingsConfig>()
             .unwrap()
-            .0
-            .get(&key.code)
+            .get(key)
         {
-            if let Some(action) = keyactions.get(&key.modifiers.bits()) {
-                *action
-            } else {
-                return Ok(());
-            }
+            action
         } else {
             return Ok(());
         };
@@ -566,47 +726,8 @@ impl FrameworkItem for SingleItem {
                 KeyAction::MoveLeft => singlevideoitem.textlist.first().is_ok(),
                 KeyAction::MoveRight => singlevideoitem.textlist.last().is_ok(),
                 KeyAction::Select => {
-                    let command_string = singlevideoitem.commands
-                        [singlevideoitem.textlist.selected]
-                        .1
-                        .clone();
-
-                    match command_string.as_str() {
-                        // checks for special cases that the items should consume the command
-                        // instead of running it
-                        "%switch-provider%" => {
-                            singlevideoitem.provider.rotate();
-                            singlevideoitem.update_provider();
-                            *framework.data.global.get_mut::<Message>().unwrap() =
-                                Message::Success(format!(
-                                    "Switched provider to {}",
-                                    singlevideoitem.provider.as_str()
-                                ));
-                        }
-                        _ => {
-                            let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
-                            // joins the env from the one in mainconfig and video info
-                            let env = singlevideoitem.inflate(
-                                mainconfig.env.clone(),
-                                mainconfig,
-                                self.item.as_ref().unwrap(),
-                            );
-                            let command_string = apply_env(command_string, &env);
-
-                            *framework.data.global.get_mut::<Message>().unwrap() =
-                                Message::Success(command_string.clone());
-
-                            // this allows creating commands from string
-                            let mut command = execute::command(command_string);
-
-                            // run the command in a new thread so it doesn't freeze the current one
-                            thread::spawn(move || {
-                                let _ = command.output();
-                            });
-                        }
-                    }
-
-                    true
+                    self.select_at_cursor(framework);
+                    return Ok(());
                 }
                 _ => false,
             },
@@ -620,49 +741,8 @@ impl FrameworkItem for SingleItem {
                         KeyAction::MoveLeft => singleplaylistitem.commands_view.first().is_ok(),
                         KeyAction::MoveRight => singleplaylistitem.commands_view.last().is_ok(),
                         KeyAction::Select => {
-                            let command_string = singleplaylistitem.commands
-                                [singleplaylistitem.commands_view.selected]
-                                .1
-                                .clone();
-
-                            // checks for special cases
-                            match command_string.as_str() {
-                                "%switch-view%" => {
-                                    singleplaylistitem.is_commands_view =
-                                        !singleplaylistitem.is_commands_view;
-                                    self.update_appearance(
-                                        framework.data.global.get::<AppearanceConfig>().unwrap(),
-                                        &info,
-                                    );
-                                    *framework.data.global.get_mut::<Message>().unwrap() =
-                                        Message::Success(String::from("Switched view"));
-                                }
-                                "%switch-provider%" => {
-                                    singleplaylistitem.provider.rotate();
-                                    singleplaylistitem.update_provider();
-                                }
-                                // same as before if string is not a special case then the run the command
-                                _ => {
-                                    let mainconfig =
-                                        framework.data.global.get::<MainConfig>().unwrap();
-                                    let env = singleplaylistitem.inflate(
-                                        mainconfig.env.clone(),
-                                        mainconfig,
-                                        self.item.as_ref().unwrap(),
-                                    );
-                                    let command_string = apply_env(command_string, &env);
-
-                                    *framework.data.global.get_mut::<Message>().unwrap() =
-                                        Message::Success(command_string.clone());
-                                    let mut command = execute::command(command_string);
-
-                                    thread::spawn(move || {
-                                        let _ = command.output();
-                                    });
-                                }
-                            };
-
-                            true
+                            self.select_at_cursor(framework);
+                            return Ok(());
                         }
                         _ => false,
                     }
@@ -777,6 +857,77 @@ impl FrameworkItem for SingleItem {
         }
 
         Ok(())
+    }
+
+    fn mouse_event(
+        &mut self,
+        framework: &mut FrameworkClean,
+        x: u16,
+        y: u16,
+        _absolute_x: u16,
+        _absolute_y: u16,
+    ) -> bool {
+        let chunk = self
+            .grid
+            .chunks(
+                if let Some(prev_frame) = framework.data.global.get::<Status>().unwrap().prev_frame
+                {
+                    prev_frame
+                } else {
+                    return false;
+                },
+            )
+            .unwrap()[0][1];
+
+        if !chunk.intersects(Rect::new(x, y, 1, 1)) {
+            return false;
+        }
+
+        let textlist = match &mut self.r#type {
+            SingleItemType::Video(SingleVideoItem { textlist, .. }) => textlist,
+            SingleItemType::Playlist(singleplaylistitem) => {
+                if singleplaylistitem.is_commands_view {
+                    &mut singleplaylistitem.commands_view
+                } else {
+                    &mut singleplaylistitem.videos_view
+                }
+            }
+            _ => return false,
+        };
+
+        let y = (y - chunk.y) as usize + textlist.scroll;
+
+        // clicking on already selected item
+        if y == textlist.selected || y == textlist.selected + 2 || y == textlist.selected + 1 {
+            self.select_at_cursor(framework);
+            return true;
+        }
+
+        // clicking on rows after the last item
+        if y > textlist.items.len() + 1 {
+            return false;
+        }
+
+        // moving the cursor
+        if y <= textlist.selected {
+            textlist.selected = y;
+        }
+
+        if y >= textlist.selected + 2 {
+            textlist.selected = y - 2;
+        }
+
+        self.update();
+
+        // render the new image
+        framework
+            .data
+            .global
+            .get_mut::<Status>()
+            .unwrap()
+            .render_image = true;
+
+        true
     }
 }
 

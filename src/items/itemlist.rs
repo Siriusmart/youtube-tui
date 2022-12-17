@@ -1,8 +1,11 @@
 use std::error::Error;
 
-use tui::{layout::Constraint, style::Style};
+use tui::{
+    layout::{Constraint, Rect},
+    style::Style,
+};
 use tui_additions::{
-    framework::FrameworkItem,
+    framework::{FrameworkClean, FrameworkItem},
     widgets::{Grid, TextList},
 };
 
@@ -63,6 +66,55 @@ impl ItemList {
                 self.grid
                     .set_border_style(Style::default().fg(appearance.colors.outline));
             }
+        }
+    }
+
+    fn select_at_cursor(&self, framework: &mut FrameworkClean) {
+        let page_to_load = match &self.items[self.textlist.selected] {
+            Item::MiniVideo(MiniVideoItem { id, .. })
+            | Item::FullVideo(FullVideoItem { id, .. }) => {
+                Some(Page::SingleItem(SingleItemPage::Video(id.clone())))
+            }
+            Item::MiniPlaylist(MiniPlaylistItem { id, .. })
+            | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
+                Some(Page::SingleItem(SingleItemPage::Playlist(id.clone())))
+            }
+            Item::MiniChannel(MiniChannelItem { id, .. })
+            | Item::FullChannel(FullChannelItem { id, .. }) => {
+                Some(Page::ChannelDisplay(ChannelDisplayPage {
+                    id: id.clone(),
+                    r#type: ChannelDisplayPageType::Main,
+                }))
+            }
+            Item::Unknown(_) => {
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Message(String::from("Unknown item"));
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::RenderAll);
+                None
+            }
+            Item::Page(b) => match framework.data.state.get::<Page>().unwrap() {
+                Page::Search(search) => Some(Page::Search(Search {
+                    page: if *b { search.page + 1 } else { search.page - 1 },
+                    ..search.clone()
+                })),
+                _ => unreachable!("Page turners can only be used in search pages"),
+            },
+        };
+
+        if let Some(page_to_load) = page_to_load {
+            framework
+                .data
+                .state
+                .get_mut::<Tasks>()
+                .unwrap()
+                .priority
+                .push(Task::LoadPage(page_to_load));
         }
     }
 }
@@ -216,19 +268,14 @@ impl FrameworkItem for ItemList {
         key: crossterm::event::KeyEvent,
         _info: tui_additions::framework::ItemInfo,
     ) -> Result<(), Box<dyn Error>> {
-        let action = if let Some(keyactions) = framework
+        let action = if let Some(action) = framework
             .data
             .global
             .get::<KeyBindingsConfig>()
             .unwrap()
-            .0
-            .get(&key.code)
+            .get(key)
         {
-            if let Some(action) = keyactions.get(&key.modifiers.bits()) {
-                *action
-            } else {
-                return Ok(());
-            }
+            action
         } else {
             return Ok(());
         };
@@ -240,52 +287,7 @@ impl FrameworkItem for ItemList {
             KeyAction::MoveLeft => self.textlist.first().is_ok(),
             KeyAction::MoveRight => self.textlist.last().is_ok(),
             KeyAction::Select => {
-                let page_to_load = match &self.items[self.textlist.selected] {
-                    Item::MiniVideo(MiniVideoItem { id, .. })
-                    | Item::FullVideo(FullVideoItem { id, .. }) => {
-                        Some(Page::SingleItem(SingleItemPage::Video(id.clone())))
-                    }
-                    Item::MiniPlaylist(MiniPlaylistItem { id, .. })
-                    | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
-                        Some(Page::SingleItem(SingleItemPage::Playlist(id.clone())))
-                    }
-                    Item::MiniChannel(MiniChannelItem { id, .. })
-                    | Item::FullChannel(FullChannelItem { id, .. }) => {
-                        Some(Page::ChannelDisplay(ChannelDisplayPage {
-                            id: id.clone(),
-                            r#type: ChannelDisplayPageType::Main,
-                        }))
-                    }
-                    Item::Unknown(_) => {
-                        *framework.data.global.get_mut::<Message>().unwrap() =
-                            Message::Message(String::from("Unknown item"));
-                        framework
-                            .data
-                            .state
-                            .get_mut::<Tasks>()
-                            .unwrap()
-                            .priority
-                            .push(Task::RenderAll);
-                        None
-                    }
-                    Item::Page(b) => match framework.data.state.get::<Page>().unwrap() {
-                        Page::Search(search) => Some(Page::Search(Search {
-                            page: if *b { search.page + 1 } else { search.page - 1 },
-                            ..search.clone()
-                        })),
-                        _ => unreachable!("Page turners can only be used in search pages"),
-                    },
-                };
-
-                if let Some(page_to_load) = page_to_load {
-                    framework
-                        .data
-                        .state
-                        .get_mut::<Tasks>()
-                        .unwrap()
-                        .priority
-                        .push(Task::LoadPage(page_to_load));
-                }
+                self.select_at_cursor(framework);
                 false
             }
             _ => false,
@@ -310,6 +312,68 @@ impl FrameworkItem for ItemList {
         }
 
         Ok(())
+    }
+
+    fn mouse_event(
+        &mut self,
+        framework: &mut tui_additions::framework::FrameworkClean,
+        x: u16,
+        y: u16,
+        _absolute_x: u16,
+        _absolute_y: u16,
+    ) -> bool {
+        let chunk = self
+            .grid
+            .chunks(
+                if let Some(prev_frame) = framework.data.global.get::<Status>().unwrap().prev_frame
+                {
+                    prev_frame
+                } else {
+                    return false;
+                },
+            )
+            .unwrap()[0][0];
+
+        if !chunk.intersects(Rect::new(x, y, 1, 1)) {
+            return false;
+        }
+
+        let y = (y - chunk.y) as usize + self.textlist.scroll;
+
+        // clicking on already selected item
+        if y == self.textlist.selected
+            || y == self.textlist.selected + 2
+            || y == self.textlist.selected + 1
+        {
+            self.select_at_cursor(framework);
+            return true;
+        }
+
+        // clicking on rows after the last item
+        if y > self.textlist.items.len() + 1 {
+            return false;
+        }
+
+        // moving the cursor
+        if y <= self.textlist.selected {
+            self.textlist.selected = y;
+        }
+
+        if y >= self.textlist.selected + 2 {
+            self.textlist.selected = y - 2;
+        }
+
+        self.update();
+
+        // render the new image
+        framework
+            .data
+            .global
+            .get_mut::<Status>()
+            .unwrap()
+            .render_image = true;
+
+        true
     }
 }
 

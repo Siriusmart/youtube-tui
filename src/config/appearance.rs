@@ -92,6 +92,7 @@ pub struct ColorsConfig {
     pub message_outline: Color,
     pub message_error_outline: Color,
     pub message_success_outline: Color,
+    pub command_capture: Color,
     pub item_info: ItemInfoColors,
 }
 
@@ -136,6 +137,8 @@ pub struct ColorsConfigSerde {
     pub message_error_outline: ColorSerde,
     #[serde(default = "message_success_outline_default")]
     pub message_success_outline: ColorSerde,
+    #[serde(default = "command_capture_default")]
+    pub command_capture: ColorSerde,
     #[serde(default)]
     pub item_info: ItemInfoColorsSerde,
 }
@@ -184,6 +187,7 @@ impl ColorsConfigSerde {
             message_outline: self.message_outline.to_color()?,
             message_error_outline: self.message_error_outline.to_color()?,
             message_success_outline: self.message_success_outline.to_color()?,
+            command_capture: self.command_capture.to_color()?,
             item_info: self.item_info.into()?,
         })
     }
@@ -222,6 +226,7 @@ impl Default for ColorsConfigSerde {
             message_error_outline: message_error_outline_default(),
             message_success_outline: message_success_outline_default(),
             text_error: text_error_default(),
+            command_capture: command_capture_default(),
             item_info: ItemInfoColorsSerde::default(),
         }
     }
@@ -355,4 +360,8 @@ fn genre_default() -> ColorSerde {
 
 fn page_turner_default() -> ColorSerde {
     ColorSerde::ColorVariant(ColorVariantSerde::Gray)
+}
+
+fn command_capture_default() -> ColorSerde {
+    ColorSerde::Hex(String::from("#64FF64"))
 }

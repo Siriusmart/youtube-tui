@@ -10,12 +10,12 @@ use crate::{
     },
 };
 use tui::{
-    layout::Constraint,
+    layout::{Constraint, Rect},
     style::Style,
     widgets::{Block, Borders},
 };
 use tui_additions::{
-    framework::FrameworkItem,
+    framework::{FrameworkClean, FrameworkItem},
     widgets::{Grid, TextList},
 };
 
@@ -89,6 +89,79 @@ impl ChannelDisplay {
                         .set_selected_style(Style::default().fg(appearance.colors.text_secondary));
                     textlist
                         .set_cursor_style(Style::default().fg(appearance.colors.outline_secondary));
+                }
+            }
+            _ => {}
+        }
+    }
+
+    fn select_at_cursor(&self, framework: &mut FrameworkClean) {
+        match self {
+            Self::None | Self::Main { .. } => {}
+            Self::Videos {
+                videos, textlist, ..
+            } => {
+                // on select loads that in singleitem
+                if !videos.is_empty() {
+                    framework
+                        .data
+                        .state
+                        .get_mut::<Tasks>()
+                        .unwrap()
+                        .priority
+                        .push(Task::LoadPage(Page::SingleItem(SingleItemPage::Video(
+                            videos[textlist.selected].minivideo().unwrap().id.clone(),
+                        ))));
+                } else {
+                    *framework.data.global.get_mut::<Message>().unwrap() =
+                        Message::Error(String::from("There is nothing to select"));
+                }
+            }
+            Self::Playlists {
+                playlists,
+                textlist,
+                ..
+            } => {
+                if !playlists.is_empty() {
+                    framework
+                        .data
+                        .state
+                        .get_mut::<Tasks>()
+                        .unwrap()
+                        .priority
+                        .push(Task::LoadPage(Page::SingleItem(SingleItemPage::Playlist(
+                            playlists[textlist.selected]
+                                .miniplaylist()
+                                .unwrap()
+                                .id
+                                .clone(),
+                        ))));
+                } else {
+                    *framework.data.global.get_mut::<Message>().unwrap() =
+                        Message::Error(String::from("There is nothing to select"));
+                }
+            }
+        }
+    }
+
+    fn update(&mut self) {
+        match self {
+            Self::Videos {
+                videos: items,
+                textlist,
+                iteminfo,
+                ..
+            }
+            | Self::Playlists {
+                playlists: items,
+                textlist,
+                iteminfo,
+                ..
+            } => {
+                if !items.is_empty()
+                    && items[textlist.selected].id() != iteminfo.item.as_ref().unwrap().id()
+                {
+                    iteminfo.item = Some(items[textlist.selected].clone())
                 }
             }
             _ => {}
@@ -176,19 +249,14 @@ impl FrameworkItem for ChannelDisplay {
         key: crossterm::event::KeyEvent,
         _info: tui_additions::framework::ItemInfo,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let action = if let Some(keyactions) = framework
+        let action = if let Some(action) = framework
             .data
             .global
             .get::<KeyBindingsConfig>()
             .unwrap()
-            .0
-            .get(&key.code)
+            .get(key)
         {
-            if let Some(action) = keyactions.get(&key.modifiers.bits()) {
-                *action
-            } else {
-                return Ok(());
-            }
+            action
         } else {
             return Ok(());
         };
@@ -206,22 +274,8 @@ impl FrameworkItem for ChannelDisplay {
                     KeyAction::MoveLeft => textlist.first().is_ok(),
                     KeyAction::MoveRight => textlist.last().is_ok(),
                     KeyAction::Select => {
-                        // on select loads that in singleitem
-                        if !videos.is_empty() {
-                            framework
-                                .data
-                                .state
-                                .get_mut::<Tasks>()
-                                .unwrap()
-                                .priority
-                                .push(Task::LoadPage(Page::SingleItem(SingleItemPage::Video(
-                                    videos[textlist.selected].minivideo()?.id.clone(),
-                                ))));
-                        } else {
-                            *framework.data.global.get_mut::<Message>().unwrap() =
-                                Message::Error(String::from("There is nothing to select"));
-                        }
-                        true
+                        self.select_at_cursor(framework);
+                        return Ok(());
                     }
                     _ => false,
                 };
@@ -256,21 +310,8 @@ impl FrameworkItem for ChannelDisplay {
                     KeyAction::MoveLeft => textlist.first().is_ok(),
                     KeyAction::MoveRight => textlist.last().is_ok(),
                     KeyAction::Select => {
-                        if !playlists.is_empty() {
-                            framework
-                                .data
-                                .state
-                                .get_mut::<Tasks>()
-                                .unwrap()
-                                .priority
-                                .push(Task::LoadPage(Page::SingleItem(SingleItemPage::Playlist(
-                                    playlists[textlist.selected].miniplaylist()?.id.clone(),
-                                ))));
-                        } else {
-                            *framework.data.global.get_mut::<Message>().unwrap() =
-                                Message::Error(String::from("There is nothing to select"));
-                        }
-                        true
+                        self.select_at_cursor(framework);
+                        return Ok(());
                     }
                     _ => false,
                 };
@@ -384,5 +425,70 @@ impl FrameworkItem for ChannelDisplay {
         }
 
         Ok(())
+    }
+
+    fn mouse_event(
+        &mut self,
+        framework: &mut tui_additions::framework::FrameworkClean,
+        x: u16,
+        y: u16,
+        _absolute_x: u16,
+        _absolute_y: u16,
+    ) -> bool {
+        match self {
+            Self::None | Self::Main { .. } => false,
+            Self::Videos { textlist, grid, .. } | Self::Playlists { textlist, grid, .. } => {
+                let chunk = grid
+                    .chunks(
+                        if let Some(prev_frame) =
+                            framework.data.global.get::<Status>().unwrap().prev_frame
+                        {
+                            prev_frame
+                        } else {
+                            return false;
+                        },
+                    )
+                    .unwrap()[0][0];
+
+                if !chunk.intersects(Rect::new(x, y, 1, 1)) {
+                    return false;
+                }
+
+                let y = (y - chunk.y) as usize + textlist.scroll;
+
+                // clicking on already selected item
+                if y == textlist.selected
+                    || y == textlist.selected + 2
+                    || y == textlist.selected + 1
+                {
+                    self.select_at_cursor(framework);
+                    return true;
+                }
+
+                // clicking on rows after the last item
+                if y > textlist.items.len() + 1 {
+                    return false;
+                }
+
+                // moving the cursor
+                if y <= textlist.selected {
+                    textlist.selected = y;
+                } else if y >= textlist.selected + 2 {
+                    textlist.selected = y - 2;
+                }
+
+                self.update();
+
+                // render the new image
+                framework
+                    .data
+                    .global
+                    .get_mut::<Status>()
+                    .unwrap()
+                    .render_image = true;
+
+                true
+            }
+        }
     }
 }

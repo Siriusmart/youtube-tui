@@ -16,7 +16,7 @@ It is like an *app launcher*, it launches other programs to do the heavy lifting
 
 > ### Mouse support
 >
-> Mouse click support partially implemented, now it works for selecting/deselecting, interacting with buttons and moving the cursor in the search bar.
+> Mouse support completely implemented, currently writing docs.
 
 ## Customisable
 

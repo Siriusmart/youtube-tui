@@ -76,6 +76,10 @@ fn video_default() -> Vec<HashMap<String, String>> {
             ),
         )]),
         HashMap::from([(
+            String::from("View channel"),
+            String::from(":channel ${channel_id}"),
+        )]),
+        HashMap::from([(
             String::from("Open in browser"),
             String::from("${browser} ${url}"),
         )]),
@@ -116,6 +120,10 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
         HashMap::from([(
             String::from("Shuffle play all audio (loop)"),
             String::from("${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle --loop-playlist=inf"),
+        )]),
+        HashMap::from([(
+            String::from("View channel"),
+            String::from(":channel ${channel_id}"),
         )]),
         HashMap::from([(
             String::from("Open in browser"),

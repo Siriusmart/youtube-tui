@@ -6,7 +6,7 @@ use crate::{
     },
 };
 use tui::{
-    layout::{Alignment, Constraint},
+    layout::{Alignment, Constraint, Rect},
     style::Style,
     widgets::{Block, Borders, Clear, Paragraph},
 };
@@ -29,6 +29,8 @@ pub struct SearchFilter {
     pub left_options: Vec<&'static str>,
     pub current_hover: bool,
     pub grid: Grid,
+    /// if the popup is opened
+    pub opened: bool,
     pub previous_state: Option<SearchFilters>,
 }
 
@@ -46,6 +48,7 @@ impl Default for SearchFilter {
                 vec![Constraint::Percentage(100)],
             )
             .unwrap(),
+            opened: false,
             previous_state: None,
         }
     }
@@ -186,12 +189,12 @@ impl FrameworkItem for SearchFilter {
     }
 
     fn select(&mut self, framework: &mut tui_additions::framework::FrameworkClean) -> bool {
-        framework
-            .data
-            .global
-            .get_mut::<Status>()
-            .unwrap()
-            .popup_opened = true;
+        self.opened = true;
+
+        let status = framework.data.global.get_mut::<Status>().unwrap();
+
+        status.popup_opened = true;
+        status.search_filter_opened = true;
         framework
             .data
             .state
@@ -220,10 +223,12 @@ impl FrameworkItem for SearchFilter {
     }
 
     fn deselect(&mut self, framework: &mut tui_additions::framework::FrameworkClean) -> bool {
-        *framework.data.global.get_mut::<Status>().unwrap() = Status {
-            popup_opened: false,
-            render_image: true,
-        };
+        self.opened = true;
+
+        let status = framework.data.global.get_mut::<Status>().unwrap();
+        status.popup_opened = false;
+        status.search_filter_opened = false;
+        status.render_image = true;
 
         // refresh page only if changed and enabled in options
         let search_options = framework.data.state.get::<Search>().unwrap().clone();
@@ -259,19 +264,14 @@ impl FrameworkItem for SearchFilter {
         key: crossterm::event::KeyEvent,
         _info: tui_additions::framework::ItemInfo,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let action = if let Some(keyactions) = framework
+        let action = if let Some(action) = framework
             .data
             .global
             .get::<KeyBindingsConfig>()
             .unwrap()
-            .0
-            .get(&key.code)
+            .get(key)
         {
-            if let Some(action) = keyactions.get(&key.modifiers.bits()) {
-                *action
-            } else {
-                return Ok(());
-            }
+            action
         } else {
             return Ok(());
         };
@@ -326,5 +326,89 @@ impl FrameworkItem for SearchFilter {
         self.update(framework);
 
         Ok(())
+    }
+
+    // returns true if the popup is clicked at all
+    fn mouse_event(
+        &mut self,
+        framework: &mut FrameworkClean,
+        _x: u16,
+        _y: u16,
+        absolute_x: u16,
+        absolute_y: u16,
+    ) -> bool {
+        if !self.opened {
+            return false;
+        }
+
+        let previous_frame_area = match framework.data.global.get::<Status>().unwrap().prev_frame {
+            Some(previous_frame_area) => previous_frame_area,
+            None => return false,
+        };
+
+        let popup_area = match popup_area(
+            (POPUP_WIDTH_PERCENTAGE, POPOUP_HEIGHT_PERCENTAGE),
+            (POPUP_MIN_WIDTH, POPUP_MIN_HEIGHT),
+            previous_frame_area,
+        ) {
+            Ok(popup_area) => popup_area,
+            Err(_) => return false,
+        };
+
+        if !popup_area.intersects(Rect::new(absolute_x, absolute_y, 1, 1)) {
+            return false;
+        }
+
+        let chunks = self.grid.chunks(popup_area).unwrap().remove(0);
+
+        // get which playlist is clicked
+        let (is_left_list, textlist) =
+            if chunks[0].intersects(Rect::new(absolute_x, absolute_y, 1, 1)) {
+                (true, &mut self.left_textlist)
+            } else if chunks[1].intersects(Rect::new(absolute_x, absolute_y, 1, 1)) {
+                (false, &mut self.right_textlist)
+            } else {
+                // if the grid is clicked, returns true to indicate the popup is clicked
+                return true;
+            };
+
+        if is_left_list == self.current_hover {
+            self.current_hover = !self.current_hover;
+        }
+
+        let y = (absolute_y - chunks[0].y) as usize;
+
+        if y >= textlist.selected && y <= textlist.selected + 2 {
+            self.update(framework);
+            return true;
+        } else if y < textlist.selected {
+            textlist.selected = y;
+            let _ = textlist.update();
+        } else if textlist.items.len() >= y - 1 {
+            textlist.selected = y - 2;
+            let _ = textlist.update();
+        }
+
+        if is_left_list {
+            self.right_textlist
+                .set_items(&self.right_options[self.left_textlist.selected])
+                .unwrap();
+        } else {
+            framework
+                .data
+                .state
+                .get_mut::<Search>()
+                .unwrap()
+                .filters
+                .set_index(
+                    self.left_textlist.selected,
+                    self.right_textlist.selected,
+                    framework.data.global.get_mut::<Message>().unwrap(),
+                );
+        }
+
+        self.update(framework);
+
+        true
     }
 }

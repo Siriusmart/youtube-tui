@@ -3,7 +3,7 @@ use crate::global::{
     structs::KeyAction,
     traits::{ConfigTrait, EXTENSION},
 };
-use crossterm::event::KeyCode;
+use crossterm::event::{KeyCode, KeyEvent};
 use home::home_dir;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -91,6 +91,10 @@ impl Default for KeyBindingsConfigSerde {
                 KeyCodeSerde::Char('r'),
                 HashMap::from([(2, KeyAction::Reload)]),
             ),
+            (
+                KeyCodeSerde::Char(':'),
+                HashMap::from([(0, KeyAction::StartCommandCapture)]),
+            ),
             // history
             (
                 KeyCodeSerde::KeyVariants(KeyVariantsSerde::Backspace),
@@ -103,6 +107,15 @@ impl Default for KeyBindingsConfigSerde {
             (
                 KeyCodeSerde::KeyVariants(KeyVariantsSerde::Home),
                 HashMap::from([(0, KeyAction::FirstHistory)]),
+            ),
+            // clipboard
+            (
+                KeyCodeSerde::Char('c'),
+                HashMap::from([(2, KeyAction::Copy)]),
+            ),
+            (
+                KeyCodeSerde::Char('v'),
+                HashMap::from([(2, KeyAction::Paste)]),
             ),
         ]))
     }
@@ -169,6 +182,15 @@ impl KeyBindingsConfig {
                 KeyBindingsConfigSerde::LABEL,
                 EXTENSION
             ),
+        }
+    }
+
+    // gets the keyaction with the key
+    pub fn get(&self, key: KeyEvent) -> Option<KeyAction> {
+        if let Some(keyactions) = self.0.get(&key.code) {
+            keyactions.get(&key.modifiers.bits()).copied()
+        } else {
+            None
         }
     }
 }

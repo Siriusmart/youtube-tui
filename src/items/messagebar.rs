@@ -1,8 +1,9 @@
 use crate::{
     config::{AppearanceConfig, MainConfig},
-    global::structs::Message,
+    global::structs::{Message, Status},
 };
 use tui::{
+    layout::Rect,
     style::Style,
     widgets::{Block, Borders, Paragraph},
 };
@@ -28,16 +29,44 @@ impl FrameworkItem for MessageBar {
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
         let message = framework.data.global.get::<Message>().unwrap();
 
+        // the Option<TextList> that is Some if keys were captured for entering command
+        let command_capture = &framework
+            .data
+            .global
+            .get::<Status>()
+            .unwrap()
+            .command_capture;
+
         // display with different border style according to type of message and config
         let block = Block::default()
             .borders(Borders::ALL)
             .border_type(appearance.borders)
-            .border_style(Style::default().fg(match message {
-                Message::None => appearance.colors.outline,
-                Message::Success(_) => appearance.colors.message_success_outline,
-                Message::Error(_) => appearance.colors.message_error_outline,
-                Message::Message(_) => appearance.colors.message_outline,
+            .border_style(Style::default().fg(if command_capture.is_some() {
+                appearance.colors.command_capture
+            } else {
+                match message {
+                    Message::None => appearance.colors.outline,
+                    Message::Success(_) => appearance.colors.message_success_outline,
+                    Message::Error(_) => appearance.colors.message_error_outline,
+                    Message::Message(_) => appearance.colors.message_outline,
+                }
             }));
+
+        // if keys are captured, render the textlist instead of the message text, and exits the
+        // function
+        if let Some(textfield) = command_capture {
+            let paragraph = Paragraph::new(":").block(block);
+            frame.render_widget(paragraph, area);
+            let mut textfield = textfield.clone();
+            textfield.set_width(area.width - 3);
+            let _ = textfield.update();
+            frame.render_widget(
+                textfield,
+                Rect::new(area.x + 2, area.y + 1, area.width - 3, 1),
+            );
+
+            return;
+        }
 
         let paragraph = Paragraph::new(
             message.to_string(
