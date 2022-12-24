@@ -1,8 +1,8 @@
 use crate::{
     config::Search,
     global::structs::{
-        ChannelDisplayPage, ChannelDisplayPageType, MainMenuPage, Message, Page, Status, Task,
-        Tasks,
+        ChannelDisplayPage, ChannelDisplayPageType, MainMenuPage, Message, Page, SingleItemPage,
+        Status, Task, Tasks,
     },
     load_configs,
 };
@@ -10,7 +10,7 @@ use std::io::Stdout;
 use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::framework::Framework;
 
-use super::fake_rand_range;
+use super::{fake_rand_range, from_channel_url, from_video_url, from_playlist_url};
 
 /// WIP text command support
 pub fn run_command(
@@ -35,47 +35,57 @@ pub fn run_command(
             let page = match *page {
                 "popular" => Some(Page::MainMenu(MainMenuPage::Popular)),
                 "trending" => Some(Page::MainMenu(MainMenuPage::Trending)),
-                "history" => Some(Page::MainMenu(MainMenuPage::History)),
+                "watchhistory" => Some(Page::MainMenu(MainMenuPage::History)),
                 "channel" => {
                     if command.len() == 2 {
                         *framework.data.global.get_mut::<Message>().unwrap() =
-                            Message::Message(String::from(
-                                "Usage: `loadpage channel {id/url}` or `channel {id/url}`",
-                            ));
+                            Message::Message(String::from("Usage: `loadpage channel {id/url}`"));
                         return;
                     }
-                    // a youtube channel id is exactly 24 characters long, so if the identifier to 24 chars
-                    // long, then just assume its the channel id
-                    let id = if command[2].len() == 24 {
-                        command[2].to_string()
-                    } else {
-                        // the channel id comes after `/channel/` in an url
-                        let index = if let Some(index) = command[2].find("/channel/") {
-                            // if there isnt 24 characters after `/channel/`, that url must not have
-                            // contained a channel id
-                            if command[2].len() < index + 33 {
-                                *framework.data.global.get_mut::<Message>().unwrap() =
-                                    Message::Error(format!(
-                                        "Cannot find channel id from string `{}`",
-                                        command[2]
-                                    ));
-                                return;
-                            }
-                            index + 9
-                        } else {
-                            *framework.data.global.get_mut::<Message>().unwrap() = Message::Error(
-                                format!("Cannot find channel id from string `{}`", command[2]),
-                            );
+
+                    match from_channel_url(command[2]) {
+                        Ok(id) => Some(Page::ChannelDisplay(ChannelDisplayPage {
+                            id,
+                            r#type: ChannelDisplayPageType::Main,
+                        })),
+                        Err(e) => {
+                            *framework.data.global.get_mut::<Message>().unwrap() =
+                                Message::Error(e);
                             return;
-                        };
+                        }
+                    }
+                }
+                "video" => {
+                    if command.len() == 2 {
+                        *framework.data.global.get_mut::<Message>().unwrap() =
+                            Message::Message(String::from("Usage: `loadpage video {id/url}`"));
+                        return;
+                    }
 
-                        command[2][index..index + 24].to_string()
-                    };
+                    match from_video_url(command[2]) {
+                        Ok(id) => Some(Page::SingleItem(SingleItemPage::Video(id))),
+                        Err(e) => {
+                            *framework.data.global.get_mut::<Message>().unwrap() =
+                                Message::Error(e);
+                            return;
+                        }
+                    }
+                }
+                "playlist" => {
+                    if command.len() == 2 {
+                        *framework.data.global.get_mut::<Message>().unwrap() =
+                            Message::Message(String::from("Usage: `loadpage playlist {id/url}`"));
+                        return;
+                    }
 
-                    Some(Page::ChannelDisplay(ChannelDisplayPage {
-                        id,
-                        r#type: ChannelDisplayPageType::Main,
-                    }))
+                    match from_playlist_url(command[2]) {
+                        Ok(id) => Some(Page::SingleItem(SingleItemPage::Playlist(id))),
+                        Err(e) => {
+                            *framework.data.global.get_mut::<Message>().unwrap() =
+                                Message::Error(e);
+                            return;
+                        }
+                    }
                 }
                 "search" => {
                     if command.len() == 2 {
@@ -109,6 +119,9 @@ pub fn run_command(
             }
         }
         // redirects to the relevant `loadpage` command
+        ["popular"] => run_command(&["loadpage", "popular"], framework, terminal),
+        ["trending"] => run_command(&["loadpage", "trending"], framework, terminal),
+        ["watchhistory"] => run_command(&["loadpage", "watchhistory"], framework, terminal),
         ["search"] => run_command(&["loadpage", "search"], framework, terminal),
         ["search", ..] => run_command(
             &format!("loadpage search {}", command[1..].join(" "))
@@ -121,7 +134,22 @@ pub fn run_command(
         ["channel", identifier] => {
             run_command(&["loadpage", "channel", *identifier], framework, terminal)
         }
+        ["video"] => run_command(&["loadpage", "video"], framework, terminal),
+        ["video", identifier] => {
+            run_command(&["loadpage", "video", *identifier], framework, terminal)
+        }
+        ["playlist"] => run_command(&["loadpage", "playlist"], framework, terminal),
+        ["playlist", identifier] => {
+            run_command(&["loadpage", "playlist", *identifier], framework, terminal)
+        }
         ["history"] => { /* help message */ }
+        ["history", "back"] | ["back"] => {
+            let _ = framework.revert_last_history();
+            framework.data.state.get_mut::<Tasks>().unwrap().priority.push(Task::ClearPage);
+            framework.data.state.get_mut::<Tasks>().unwrap().priority.push(Task::RenderAll);
+            run_command(&["flush"], framework, terminal);
+            framework.data.global.get_mut::<Status>().unwrap().render_image = true;
+        },
         ["history", "clear"] => framework.clear_history(),
         ["flush"] => loop {
             // runs all stacked actions
@@ -131,7 +159,8 @@ pub fn run_command(
             }
             break;
         },
-        ["reload", "config"] | ["reload", "configs"] => {
+        ["reload"] | ["r"] => framework.data.state.get_mut::<Tasks>().unwrap().priority.push(Task::Reload),
+        ["reload", "config"] | ["reload", "configs"] | ["r", "config"] | ["r", "configs"] => {
             *framework.data.global.get_mut::<Message>().unwrap() =
                 match load_configs(&mut framework.split_clean().0) {
                     Ok(()) => Message::Success(String::from("Config files have been reloaded")),

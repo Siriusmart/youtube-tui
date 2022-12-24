@@ -310,7 +310,7 @@ impl Item {
             title: original.title,
             id: original.id,
             thumbnail_url: original.thumbnails[image_index].url.clone(),
-            length: secs_display_string(original.length as u32),
+            length: secs_display_string(original.length),
             views: viewcount_text(original.views),
             channel: original.author,
             channel_id: original.author_id,

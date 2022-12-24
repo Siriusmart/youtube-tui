@@ -8,17 +8,22 @@ The commands config file decides what options (that will run a certain command o
 video:
 - Play video: ${video-player} ${embed-url}
 - Play audio: ${terminal-emulator} ${video-player} ${embed-url} --no-video
+- Play audio (loop): ${terminal-emulator} ${video-player} ${embed-url} --no-video --loop-file=inf
+- View channel: :channel ${channel_id}
 - Open in browser: ${browser} ${url}
 - Download video (webm): ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${embed-url}
+- Download audio (opus): ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${embed-url} -x
 - 'Mode: ${provider}': '%switch-provider%'
-
 playlist:
 - Switch view: '%switch-view%'
 - Play all videos: ${video-player} ${all-videos}
 - Play all audio: ${terminal-emulator} ${video-player} ${all-videos} --no-video
 - Shuffle play all audio: ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle
+- Shuffle play all audio (loop): ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle --loop-playlist=inf
+- View channel: :channel ${channel_id}
 - Open in browser: ${browser} ${url}
 - Download all video (webm): ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos}
+- Download all audio (opus): ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos} -x
 - 'Mode: ${provider}': '%switch-provider%'
 ```
 
@@ -45,6 +50,8 @@ playlist:
 - Download all video (webm): konsole -e yt-dlp -o '~/Downloads/%(title)s-%(id)s.%(ext)s' 'https://youtube.com/embed/Z8oiddSsB6I' 'https://youtube.com/embed/yiS0DPekSDQ' 'https://youtube.com/embed/YhM8GYuDFps'
 - 'Mode: ${provider}': '%switch-provider%'
 ```
+
+> Global commands can also be used here. (Ones that start with an `:`).
 
 ## Item commands
 

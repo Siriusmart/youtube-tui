@@ -3,6 +3,7 @@
 - [Overview](README.md)
 - [Installation](installation.md)
 - [Basic usage](basic_usage.md)
+- [Commands](commands.md)
 
 # Customisation guide
 
@@ -16,8 +17,8 @@
 
 # Contributing
 
-- [How it works]()
-	- [Framework]()
+- [How it works](how_it_works.md)
+	- [Framework](framework.md)
 	- [Invidious API]()
 	- [Individual items]()
 

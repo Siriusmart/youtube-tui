@@ -8,3 +8,5 @@ mod run;
 pub use run::*;
 mod exit;
 pub use exit::*;
+mod eggs;
+pub use eggs::*;

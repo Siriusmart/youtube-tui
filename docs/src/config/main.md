@@ -5,6 +5,7 @@ The main config file is located in `~/.config/youtube-tui/main.yml`.
 ## Example main.yml
 
 ```yaml
+mouse_support: true
 invidious_instance: https://vid.puffyan.us
 max_watch_history: 50
 allow_unicode: false
@@ -23,6 +24,12 @@ env:
 <hr>
 
 Below are the description of each of the fields:
+
+### mouse_support
+
+Whether mouse click events are supports, if `false` then mouse will not do anything to the program.
+
+*Accept: `true`/`false`*
 
 ### invidious_instance
 

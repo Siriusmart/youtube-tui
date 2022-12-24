@@ -14,10 +14,6 @@ Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for 
 
 It is like an *app launcher*, it launches other programs to do the heavy lifting (for example, `mpv` for playing videos).
 
-> ### Mouse support
->
-> Mouse support completely implemented, currently writing docs.
-
 ## Customisable
 
 The YouTube TUI can be customised through config files, they are located in `~/.config/youtube-tui` and are in the YAML format.
@@ -58,9 +54,13 @@ The YouTube TUI allows you to browse YouTube with (almost) all of it's features,
 - Use search filters to sort and filter search results
 - Save browsing history
 
+It also includes features like:
+
+- Vim-like commands
+- Mouse support
+
 ### What it doesn't have
 
-- Vim-like commands (first priority)
 - Command line args (first priority)
 - Bootleg Vimscript? (will implement)
 - Channel search (will implement)

@@ -19,3 +19,5 @@ mod clipboard;
 pub use self::clipboard::*;
 mod type_name_of_val;
 pub use type_name_of_val::*;
+mod from_url;
+pub use from_url::*;

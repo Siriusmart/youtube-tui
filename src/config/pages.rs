@@ -187,15 +187,15 @@ impl PageItems {
     /// Converts `Self` into a `FrameworkItem` to be used in `State`
     pub fn to_framework_item(&self, _framework: &mut Framework) -> Box<dyn FrameworkItem> {
         match *self {
-            Self::SearchBar => Box::new(SearchBar::default()),
+            Self::SearchBar => Box::<SearchBar>::default(),
             Self::Popular => Box::new(PageButton::Popular),
             Self::Trending => Box::new(PageButton::Trending),
             Self::History => Box::new(PageButton::History),
-            Self::MessageBar => Box::new(MessageBar::default()),
-            Self::ItemList => Box::new(ItemList::default()),
-            Self::SearchFilters => Box::new(SearchFilter::default()),
-            Self::SingleItemInfo => Box::new(SingleItem::default()),
-            Self::ChannelDisplay => Box::new(ChannelDisplay::default()),
+            Self::MessageBar => Box::<MessageBar>::default(),
+            Self::ItemList => Box::<ItemList>::default(),
+            Self::SearchFilters => Box::<SearchFilter>::default(),
+            Self::SingleItemInfo => Box::<SingleItem>::default(),
+            Self::ChannelDisplay => Box::<ChannelDisplay>::default(),
             Self::ChannelMain => Box::new(PageButton::ChannelMain),
             Self::ChannelVideos => Box::new(PageButton::ChannelVideos),
             Self::ChannelPlaylists => Box::new(PageButton::ChannelPlaylists),

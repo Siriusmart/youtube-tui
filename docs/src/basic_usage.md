@@ -23,6 +23,8 @@ The item with the cursor hovering will have a <u>red outline</u>.
 |Previous page|Backspace / Alt + Left arrow|
 |First page history|Home|
 |Clear page history|End|
+|Paste from clipboard|`Ctrl` + `V`|
+|Enter command mode|`:`|
 |Quit|`q`|
 
 ## Selection
@@ -53,6 +55,27 @@ The playlist page allows two different view modes, the first of which is *comman
 
 The other one is *videos view*, which allows you to look at each videos in the playlist individually.
 
+## Command mode
+
+Command mode is like that of Vim, it can be started by pressing `:` when nothing is selected.
+
+More about commands in the [next chapter](commands.md).
+
 ## Buttons
 
 Buttons have no use on their own, but allows you to navigate between pages.
+
+## Mouse click control
+
+![](./images/mouse-showcase.png)
+
+Mouse click controls has been added, you can now use your mouse to navigate around the TUI. Here are the general rules:
+
+1. Clicking an item *moves the cursor* to that item, clicking again *selects* the item
+2. Clicking on buttons, or items on a list has the same effect as pressing `Enter` on them
+3. Clicking outside a popup closes the popup
+
+However, there are some downsides to not using your keyboard.
+
+1. Cannot move up or down to items not on screen in a list (you can do that with `Up` or `Down arrow`)
+2. Cannot access function keys like `Backspace` or `Q`

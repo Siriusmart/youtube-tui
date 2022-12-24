@@ -47,15 +47,12 @@ pub fn run(
 
                 *framework.data.global.get_mut::<Message>().unwrap() = Message::None;
 
+                let status = framework.data.global.get_mut::<Status>().unwrap();
+                status.command_capture = None;
+
                 // check if the search filter popup is clicked
                 let mut searchfilter_clicked = false;
-                if framework
-                    .data
-                    .global
-                    .get::<Status>()
-                    .unwrap()
-                    .search_filter_opened
-                {
+                if status.search_filter_opened {
                     let (mut frameworkclean, state) = framework.split_clean();
                     for row in state.0.iter_mut() {
                         for item in row.items.iter_mut() {

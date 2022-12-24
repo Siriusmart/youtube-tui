@@ -1,5 +1,15 @@
 # Changelogs
 
+## v0.6.0
+
+### Added
+
+- Mouse support
+- Vim-like commands
+- Pasting with `Ctrl + V` in search bar and command mode
+
+<hr>
+
 ## v0.5.3
 
 #### Fixed

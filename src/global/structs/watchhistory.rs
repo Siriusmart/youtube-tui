@@ -27,7 +27,7 @@ impl WatchHistory {
             .write(true)
             .create(true)
             .truncate(true)
-            .open(&path)?;
+            .open(path)?;
 
         file.write_all(save_string.as_bytes())?;
 

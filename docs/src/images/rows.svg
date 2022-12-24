@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="800" height="600" version="1.1" viewBox="0 0 211.67 158.75" xmlns="http://www.w3.org/2000/svg">
+ <g transform="matrix(.85817 0 0 .61208 29.598 27.242)" fill-opacity="0" stroke="#fff" stroke-width="4.7459">
+  <rect x="20.096" y="21.934" width="36.446" height="18.468" ry="9.2342"/>
+  <rect x="71.8" y="21.934" width="36.446" height="18.468" ry="9.2342"/>
+  <rect x="123.5" y="21.934" width="36.446" height="18.468" ry="9.2342"/>
+ </g>
+ <g fill-opacity="0" stroke="#fff" stroke-width="3.4396">
+  <rect x="14.26" y="12.88" width="185.19" height="16.665" ry="8.1169"/>
+  <rect x="14.26" y="128.64" width="185.19" height="16.665" ry="7.638"/>
+  <rect x="14.816" y="60.78" width="184.07" height="57.458" ry="8.996"/>
+ </g>
+ <g stroke-width="0">
+  <rect x="5.0988e-7" y="35.719" width="211.67" height="21.167" ry="0" fill="#ffca00" fill-opacity=".3"/>
+  <rect x="5e-7" y="5e-7" width="211.67" height="35.719" ry="0" fill="#f00" fill-opacity=".3"/>
+  <rect x="7.0082e-7" y="56.885" width="211.67" height="66.146" ry="0" fill="#00ff38" fill-opacity=".3"/>
+  <rect x="3.9584e-7" y="123.03" width="211.67" height="35.719" ry="0" fill="#00a1ff" fill-opacity=".3"/>
+ </g>
+</svg>

@@ -46,9 +46,13 @@ The YouTube TUI allows you to browse YouTube with (almost) all of it's features,
 - Use search filters to sort and filter search results
 - Save browsing history
 
+It also includes features like:
+
+- Vim-like commands
+- Mouse support
+
 ### What it doesn't have
 
-- Vim-like commands (first priority)
 - Command line args (first priority)
 - Bootleg Vimscript? (will implement)
 - Channel search (will implement)

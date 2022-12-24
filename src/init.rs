@@ -7,7 +7,7 @@ use crate::{
         functions::run_command,
         structs::{InvidiousClient, Message, Page, Status, Tasks, WatchHistory},
         traits::ConfigTrait,
-    },
+    }, egg,
 };
 use home::home_dir;
 use std::{error::Error, fs, io::Stdout};
@@ -95,6 +95,8 @@ pub fn load_configs(framework: &mut FrameworkClean) -> Result<(), Box<dyn Error>
         .global
         .insert::<KeyBindingsConfig>(KeyBindingsConfig::load()?);
     framework.data.state.insert::<Search>(*Search::load()?);
+
+    egg();
 
     Ok(())
 }
