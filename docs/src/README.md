@@ -53,12 +53,11 @@ It also includes features like:
 
 ### What it doesn't have
 
-- Command line args (first priority)
-- Bootleg Vimscript? (will implement)
+- Binding commands to keys (first priority)
+- Bootleg Vimscript? (first priority)
 - Channel search (will implement)
 - Channel videos sorting (will implement)
 - Subscriptions (will implement)
-- Recommendations/comments (probably will not implement)
 
 ## How to contribute
 

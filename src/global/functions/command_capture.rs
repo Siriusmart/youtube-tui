@@ -1,4 +1,4 @@
-use super::get_clipboard;
+use super::{apply_envs, get_clipboard};
 use crate::{
     config::KeyBindingsConfig,
     global::structs::{KeyAction, Message, Status, Task, Tasks},
@@ -66,7 +66,7 @@ pub fn command_capture(framework: &mut FrameworkClean, key: KeyEvent) -> bool {
                 .get_mut::<Tasks>()
                 .unwrap()
                 .priority
-                .push(Task::Command(textfield.content.clone()));
+                .push(Task::Command(apply_envs(textfield.content.clone())));
             framework
                 .data
                 .global

@@ -1,8 +1,20 @@
 # Changelogs
 
-## v0.6.0
+## v0.6.1
 
 ### Added
+
+- Rework of the env system, now using environment variables provided by the OS as opposed to implmenting own version of env
+- Ability to use envs in command mode
+- Launch commands (including `youtube-tui help`)
+
+### Fixed
+
+- Screen blinking when pressing up arrow on the first item in playlist page, videos view
+
+### v0.6.0
+
+#### Added
 
 - Mouse support
 - Vim-like commands

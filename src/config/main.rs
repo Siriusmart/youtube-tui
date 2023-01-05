@@ -80,7 +80,6 @@ impl Images {
 pub enum Provider {
     YouTube,
     Invidious,
-    // Piped,
 }
 
 impl Provider {

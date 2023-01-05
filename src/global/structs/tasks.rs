@@ -1,9 +1,9 @@
 use crate::{
-    config::{AppearanceConfig, MinDimentions},
-    global::functions::run_command,
+    config::{AppearanceConfig, MainConfig, MinDimentions},
+    global::functions::{clear_envs, run_command, set_envs},
 };
 
-use super::{message::Message, page::Page, status::Status};
+use super::{message::Message, page::Page, status::Status, StateEnvs};
 use std::{error::Error, io::Stdout, mem};
 use tui::{
     backend::CrosstermBackend, layout::Alignment, style::Style, widgets::Paragraph, Frame, Terminal,
@@ -48,7 +48,7 @@ impl Default for TaskQueue {
 }
 
 impl TaskQueue {
-    // add task to queue
+    /// add task to queue
     pub fn push(&mut self, task: Task) {
         match task {
             Task::RenderAll => self.render = RenderTask::All,
@@ -67,7 +67,6 @@ impl TaskQueue {
             Task::ClearPage => self.clear_all = true,
             Task::LazyRendered => self.lazy_rendered = true,
             Task::Command(s) => self.commands.push(s),
-            // _ => {}
         }
     }
 
@@ -75,7 +74,7 @@ impl TaskQueue {
         self == &Self::default()
     }
 
-    // runs all tasks in a task queue
+    /// runs all tasks in a task queue
     pub fn run(
         self,
         framework: &mut Framework,
@@ -109,6 +108,22 @@ impl TaskQueue {
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Message(page.load_msg(framework));
             framework.push_history();
+
+            // clear all envs modified by the previous state (keeping ones that are there when the
+            // program launches), then add the envs set in main config
+            clear_envs(&mut framework.data.state.get_mut::<StateEnvs>().unwrap().0);
+            set_envs(
+                framework
+                    .data
+                    .global
+                    .get::<MainConfig>()
+                    .unwrap()
+                    .env
+                    .clone()
+                    .into_iter(),
+                &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+            );
+            // reset cursor position
             framework.cursor = CursorState::default();
 
             let page_config = page.to_page_config(framework);
@@ -132,6 +147,20 @@ impl TaskQueue {
         }
 
         if self.reload {
+            // same as in loadpage
+            clear_envs(&mut framework.data.state.get_mut::<StateEnvs>().unwrap().0);
+            set_envs(
+                framework
+                    .data
+                    .global
+                    .get::<MainConfig>()
+                    .unwrap()
+                    .env
+                    .clone()
+                    .into_iter(),
+                &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+            );
+
             // reload simply runs `.load()` on all items
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Message(String::from("Reloading page..."));
@@ -159,7 +188,7 @@ impl TaskQueue {
         Ok(())
     }
 
-    // the render task runs this function
+    /// the render task runs this function
     pub fn render(
         framework: &mut Framework,
         terminal: &mut Terminal<CrosstermBackend<Stdout>>,
@@ -171,7 +200,7 @@ impl TaskQueue {
         Ok(())
     }
 
-    // this function force clears the terminal before rendering, removing sixels and halfblock images
+    /// this function force clears the terminal before rendering, removing sixels and halfblock images
     pub fn render_force_clear(
         framework: &mut Framework,
         terminal: &mut Terminal<CrosstermBackend<Stdout>>,
@@ -184,6 +213,7 @@ impl TaskQueue {
         Ok(())
     }
 
+    /// this function renders onto the given frame
     pub fn render_with_frame(
         framework: &mut Framework,
         frame: &mut Frame<CrosstermBackend<Stdout>>,

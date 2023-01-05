@@ -110,10 +110,6 @@ impl Default for KeyBindingsConfigSerde {
             ),
             // clipboard
             (
-                KeyCodeSerde::Char('c'),
-                HashMap::from([(2, KeyAction::Copy)]),
-            ),
-            (
                 KeyCodeSerde::Char('v'),
                 HashMap::from([(2, KeyAction::Paste)]),
             ),

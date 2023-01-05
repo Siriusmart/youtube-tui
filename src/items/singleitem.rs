@@ -2,14 +2,14 @@ use super::ItemInfo;
 use crate::{
     config::{AppearanceConfig, CommandsConfig, KeyBindingsConfig, MainConfig, Provider},
     global::{
-        functions::download_all_images,
+        functions::{apply_envs, download_all_images, set_envs},
         structs::{
-            InvidiousClient, Item, KeyAction, Message, Page, SingleItemPage, Status, Task, Tasks,
-            WatchHistory,
+            InvidiousClient, Item, KeyAction, Message, Page, SingleItemPage, StateEnvs, Status,
+            Task, Tasks, WatchHistory,
         },
     },
 };
-use std::{collections::HashMap, thread};
+use std::thread;
 use tui::{
     layout::{Constraint, Rect},
     style::Style,
@@ -126,10 +126,10 @@ impl SingleVideoItem {
     }
 
     /// creates a hashmap from `self`, containing info of the current item
-    pub fn inflate_map(&self, mainconfig: &MainConfig, item: &Item) -> HashMap<String, String> {
+    pub fn inflate(&self, mainconfig: &MainConfig, item: &Item) -> Vec<(String, String)> {
         let video_item = item.fullvideo().unwrap();
 
-        HashMap::from([
+        vec![
             (
                 String::from("url"),
                 match self.provider {
@@ -151,9 +151,9 @@ impl SingleVideoItem {
                     Provider::YouTube => format!("'https://youtube.com/embed/{}'", video_item.id),
                 },
             ),
-            (String::from("channel_id"), video_item.channel_id.clone()),
+            (String::from("channel-id"), video_item.channel_id.clone()),
             (
-                String::from("channel_url"),
+                String::from("channel-url"),
                 match self.provider {
                     Provider::YouTube => {
                         format!("https://www.youtube.com/channel/{}", video_item.channel_id)
@@ -164,18 +164,7 @@ impl SingleVideoItem {
                     ),
                 },
             ),
-        ])
-    }
-
-    /// add "env variables" from `self.inflate_map` to an existing hashmap
-    pub fn inflate(
-        &self,
-        mut env: HashMap<String, String>,
-        mainconfig: &MainConfig,
-        item: &Item,
-    ) -> HashMap<String, String> {
-        env.extend(self.inflate_map(mainconfig, item));
-        env
+        ]
     }
 }
 
@@ -288,9 +277,9 @@ impl SinglePlaylistItem {
     }
 
     /// creates a hashmap from `self`, containing info of the current item
-    pub fn inflate_map(&self, mainconfig: &MainConfig, item: &Item) -> HashMap<String, String> {
+    pub fn inflate(&self, mainconfig: &MainConfig, item: &Item) -> Vec<(String, String)> {
         let playlist_item = item.fullplaylist().unwrap();
-        HashMap::from([
+        vec![
             (
                 String::from("url"),
                 match self.provider {
@@ -329,9 +318,9 @@ impl SinglePlaylistItem {
                         .join(" "),
                 },
             ),
-            (String::from("channel_id"), playlist_item.channel_id.clone()),
+            (String::from("channel-id"), playlist_item.channel_id.clone()),
             (
-                String::from("channel_url"),
+                String::from("channel-url"),
                 match self.provider {
                     Provider::YouTube => format!(
                         "https://www.youtube.com/channel/{}",
@@ -343,18 +332,7 @@ impl SinglePlaylistItem {
                     ),
                 },
             ),
-        ])
-    }
-
-    /// add "env variables" from `self.inflate_map` to an existing hashmap
-    pub fn inflate(
-        &self,
-        mut env: HashMap<String, String>,
-        mainconfig: &MainConfig,
-        item: &Item,
-    ) -> HashMap<String, String> {
-        env.extend(self.inflate_map(mainconfig, item));
-        env
+        ]
     }
 }
 
@@ -375,6 +353,20 @@ impl SingleItemType {
                 playlistitem.update_appearance(appearance, iteminfo, grid)
             }
             Self::Video(videoitem) => videoitem.update_appearance(appearance, iteminfo),
+        }
+    }
+
+    pub fn inflate(&self, mainconfig: &MainConfig, item: &Option<Item>) -> Vec<(String, String)> {
+        let item = if let Some(item) = item.as_ref() {
+            item
+        } else {
+            return Vec::new();
+        };
+
+        match self {
+            Self::Video(singlevideoitem) => singlevideoitem.inflate(mainconfig, item),
+            Self::Playlist(singleplaylistitem) => singleplaylistitem.inflate(mainconfig, item),
+            Self::None => Vec::new(),
         }
     }
 }
@@ -448,14 +440,8 @@ impl SingleItem {
                         );
                     }
                     _ => {
-                        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
                         // joins the env from the one in mainconfig and video info
-                        let env = singlevideoitem.inflate(
-                            mainconfig.env.clone(),
-                            mainconfig,
-                            self.item.as_ref().unwrap(),
-                        );
-                        let command_string = apply_env(command_string, &env);
+                        let command_string = apply_envs(command_string);
 
                         // check if the command starts with an ':' which case should be captured
                         if &command_string[0..1] == ":" {
@@ -468,11 +454,12 @@ impl SingleItem {
                                 .push(Task::Command(command_string[1..].to_string()))
                         }
 
-                        *framework.data.global.get_mut::<Message>().unwrap() =
-                            Message::Success(command_string.clone());
-
                         // this allows creating commands from string
                         let mut command = execute::command(command_string);
+
+                        *framework.data.global.get_mut::<Message>().unwrap() = Message::Success(
+                            format!("{:?} {:?}", command.get_program(), command.get_args()),
+                        );
 
                         // run the command in a new thread so it doesn't freeze the current one
                         thread::spawn(move || {
@@ -504,13 +491,7 @@ impl SingleItem {
                     }
                     // same as before if string is not a special case then the run the command
                     _ => {
-                        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
-                        let env = singleplaylistitem.inflate(
-                            mainconfig.env.clone(),
-                            mainconfig,
-                            self.item.as_ref().unwrap(),
-                        );
-                        let command_string = apply_env(command_string, &env);
+                        let command_string = apply_envs(command_string);
 
                         // check if the command starts with an ':' which case should be captured
                         if &command_string[0..1] == ":" {
@@ -525,6 +506,7 @@ impl SingleItem {
 
                         *framework.data.global.get_mut::<Message>().unwrap() =
                             Message::Success(command_string.clone());
+
                         let mut command = execute::command(command_string);
 
                         thread::spawn(move || {
@@ -633,8 +615,8 @@ impl FrameworkItem for SingleItem {
         };
 
         let client = &framework.data.global.get::<InvidiousClient>().unwrap().0;
-        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
 
+        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
         // load items using the invidious api
         // gets the item that it needs to load from `data.state.Page`
         self.item = match r#type {
@@ -677,6 +659,10 @@ impl FrameworkItem for SingleItem {
         // need to update provider every time the item loads or else it will display `${provider}`
         // instead of the actual provider (e.g. `YouTube`)
         self.update_provider();
+        set_envs(
+            self.r#type.inflate(mainconfig, &self.item).into_iter(),
+            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+        );
 
         if let Some(item) = &self.item {
             if item.is_unknown() {
@@ -684,7 +670,12 @@ impl FrameworkItem for SingleItem {
             }
 
             let item = item.clone();
-            let max_watch_history = mainconfig.max_watch_history;
+            let max_watch_history = framework
+                .data
+                .global
+                .get::<MainConfig>()
+                .unwrap()
+                .max_watch_history;
 
             // push to watch history
             let watch_history = framework.data.global.get_mut::<WatchHistory>().unwrap();
@@ -751,14 +742,7 @@ impl FrameworkItem for SingleItem {
                         // checks if it is updated, if it is and selected is not 0 (is hovering on
                         // a video), then also need to update the iteminfo
                         KeyAction::MoveUp => {
-                            let updated = singleplaylistitem.videos_view.up().is_ok();
-                            if updated && singleplaylistitem.videos_view.selected != 0 {
-                                singleplaylistitem.hovered_video.item = Some(
-                                    self.item.as_ref().unwrap().fullplaylist()?.videos
-                                        [singleplaylistitem.videos_view.selected - 1]
-                                        .clone(),
-                                );
-                            } else {
+                            if singleplaylistitem.videos_view.selected == 1 {
                                 // going from a hovering video to not hovering will make the image
                                 // stay on the screen, therefore it needs to be removed by clearing
                                 // the screen
@@ -770,7 +754,15 @@ impl FrameworkItem for SingleItem {
                                     .priority
                                     .push(Task::ClearPage);
                             }
-                            updated
+
+                            let updated = singleplaylistitem.videos_view.up().is_ok();
+                            if singleplaylistitem.videos_view.selected != 0 {
+                                singleplaylistitem.hovered_video.item = Some(
+                                    self.item.as_ref().unwrap().fullplaylist()?.videos
+                                        [singleplaylistitem.videos_view.selected - 1]
+                                        .clone(),
+                                );
+                            }                            updated
                         }
                         KeyAction::MoveDown => {
                             let updated = singleplaylistitem.videos_view.down().is_ok();
@@ -889,6 +881,10 @@ impl FrameworkItem for SingleItem {
                 if singleplaylistitem.is_commands_view {
                     &mut singleplaylistitem.commands_view
                 } else {
+                    let y = (y - chunk.y) as usize + singleplaylistitem.videos_view.scroll;
+                    if singleplaylistitem.videos_view.selected != 0 && y == 0 {
+                        framework.data.state.get_mut::<Tasks>().unwrap().priority.push(Task::ClearPage);
+                    }
                     &mut singleplaylistitem.videos_view
                 }
             }
@@ -929,12 +925,4 @@ impl FrameworkItem for SingleItem {
 
         true
     }
-}
-
-/// apply the env hashmap to a command string
-pub fn apply_env(mut command: String, env: &HashMap<String, String>) -> String {
-    env.iter().for_each(|(key, value)| {
-        command = command.replace(&format!("${{{key}}}"), value);
-    });
-    command
 }

@@ -5,9 +5,9 @@ use crate::{
     },
     global::{
         functions::run_command,
-        structs::{InvidiousClient, Message, Page, Status, Tasks, WatchHistory},
+        structs::{InvidiousClient, Message, Page, StateEnvs, Status, Tasks, WatchHistory},
         traits::ConfigTrait,
-    }, egg,
+    },
 };
 use home::home_dir;
 use std::{error::Error, fs, io::Stdout};
@@ -22,6 +22,7 @@ use tui_additions::framework::{Framework, FrameworkClean};
 pub fn init(
     framework: &mut Framework,
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    command: &[&str],
 ) -> Result<(), Box<dyn Error>> {
     // creating files
     let home_dir = home_dir().unwrap();
@@ -52,7 +53,9 @@ pub fn init(
 
     load_configs(&mut framework.split_clean().0).ok();
 
-    run_command(&["loadpage", "popular"], framework, terminal);
+    if !run_command(command, framework, terminal) {
+        run_command(&["loadpage", "popular"], framework, terminal);
+    }
     run_command(&["flush"], framework, terminal);
     run_command(&["history", "clear"], framework, terminal);
     Ok(())
@@ -95,8 +98,10 @@ pub fn load_configs(framework: &mut FrameworkClean) -> Result<(), Box<dyn Error>
         .global
         .insert::<KeyBindingsConfig>(KeyBindingsConfig::load()?);
     framework.data.state.insert::<Search>(*Search::load()?);
-
-    egg();
+    framework
+        .data
+        .state
+        .insert::<StateEnvs>(StateEnvs::default());
 
     Ok(())
 }

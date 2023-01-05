@@ -5,7 +5,9 @@ use typemap::Key;
 /// a struct for storing different info, currently only stores one info
 #[derive(Clone)]
 pub struct Status {
+    /// is there is a popup opened
     pub popup_opened: bool,
+    /// is search filter popup opened
     pub search_filter_opened: bool,
     /// to prevent rerendering the same image
     pub render_image: bool,

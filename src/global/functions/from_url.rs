@@ -1,3 +1,4 @@
+/// gets the channel id from it's url
 pub fn from_channel_url(identifier: &str) -> Result<String, String> {
     // a youtube channel id is exactly 24 characters long, so if the identifier to 24 chars
     // long, then just assume its the channel id
@@ -27,14 +28,18 @@ pub fn from_channel_url(identifier: &str) -> Result<String, String> {
 }
 
 pub fn from_video_url(identifier: &str) -> Result<String, String> {
+    // a youtube video id is exactly 11 characters long, so if the identifier to 11 chars
+    // long, then just assume its the video id
     if identifier.len() == 11 {
         Ok(identifier.to_string())
     } else {
+        // the id can come after "?v=" in an url
         let index = if let Some(index) = identifier.find("?v=") {
             if identifier.len() < index + 15 {
                 return Err(format!("Cannot find video id from string `{}`", identifier));
             }
             index + 3
+        // and also "youtu.be/"
         } else if let Some(index) = identifier.find("youtu.be/") {
             if identifier.len() < index + 21 {
                 return Err(format!("Cannot find video id from string `{}`", identifier));
@@ -49,17 +54,20 @@ pub fn from_video_url(identifier: &str) -> Result<String, String> {
 }
 
 pub fn from_playlist_url(identifier: &str) -> Result<String, String> {
+    // a youtube playlist id is exactly 34 characters long, so if the identifier to 34 chars
+    // long, then just assume its the playlist id
     if identifier.len() == 34 {
         Ok(identifier.to_string())
     } else {
-        let index = if let Some(index) = identifier.find("playlist?list=") {
-            if identifier.len() < index + 48 {
+        // the id can come after "list=" in urls
+        let index = if let Some(index) = identifier.find("list=") {
+            if identifier.len() < index + 39 {
                 return Err(format!(
                     "Cannot find plalyist id from string `{}`",
                     identifier
                 ));
             }
-            index + 14
+            index + 5
         } else {
             return Err(format!(
                 "Cannot find playlist id from string `{}`",

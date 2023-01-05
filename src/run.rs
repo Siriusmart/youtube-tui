@@ -9,8 +9,8 @@ use tui_additions::{
 use crate::{
     config::{KeyBindingsConfig, MainConfig},
     global::{
-        functions::command_capture,
-        structs::{KeyAction, Message, Status, Task, Tasks},
+        functions::{clear_envs, command_capture, set_envs},
+        structs::{KeyAction, Message, StateEnvs, Status, Task, Tasks},
     },
 };
 
@@ -183,6 +183,11 @@ pub fn run(
                             .priority
                             .push(Task::Reload),
                         KeyAction::Back => {
+                            if !framework.history.is_empty() {
+                                clear_envs(
+                                    &mut framework.data.state.get::<StateEnvs>().unwrap().0.clone(),
+                                );
+                            }
                             if framework.revert_last_history().is_err() {
                                 *framework.data.global.get_mut::<Message>().unwrap() =
                                     Message::Error(String::from(
@@ -202,6 +207,9 @@ pub fn run(
                                     .unwrap()
                                     .priority
                                     .push(Task::ClearPage);
+                                let state_envs =
+                                    framework.data.state.get_mut::<StateEnvs>().unwrap();
+                                set_envs(state_envs.clone().0.into_iter(), &mut state_envs.0);
                             }
                         }
                         KeyAction::FirstHistory => {

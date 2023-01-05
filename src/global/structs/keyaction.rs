@@ -28,8 +28,6 @@ pub enum KeyAction {
     Reload,
     /// start command capture
     StartCommandCapture,
-    /// copy text
-    r#Copy,
     /// paste text
     Paste,
 }

@@ -9,7 +9,7 @@ video:
 - Play video: ${video-player} ${embed-url}
 - Play audio: ${terminal-emulator} ${video-player} ${embed-url} --no-video
 - Play audio (loop): ${terminal-emulator} ${video-player} ${embed-url} --no-video --loop-file=inf
-- View channel: :channel ${channel_id}
+- View channel: :channel ${channel-id}
 - Open in browser: ${browser} ${url}
 - Download video (webm): ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${embed-url}
 - Download audio (opus): ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${embed-url} -x
@@ -20,7 +20,7 @@ playlist:
 - Play all audio: ${terminal-emulator} ${video-player} ${all-videos} --no-video
 - Shuffle play all audio: ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle
 - Shuffle play all audio (loop): ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle --loop-playlist=inf
-- View channel: :channel ${channel_id}
+- View channel: :channel ${channel-id}
 - Open in browser: ${browser} ${url}
 - Download all video (webm): ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos}
 - Download all audio (opus): ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos} -x
@@ -84,6 +84,8 @@ Does not include custom env set in `main.yml`.
 |Name|Page|Value|
 |---|---|---|
 |`url`|video & playlist|String url to the web page|
+|`id`|video & playlist|String id of the video or playlist|
+|`channel-id`|video & playlist|String id of the channel|
 |`embed-url`|video|String url to the embed video (required to play video using mpv from Invidious)|
 |`all-videos`|playlist|String url***s*** separated by space to all embed videos in a playlist|
 |`provider`|video & playlist|To display the current provider, is the only env that can be displayed in the label, and can only be used when `%switch-provider%` is the command|

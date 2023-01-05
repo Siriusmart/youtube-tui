@@ -69,6 +69,7 @@ impl ItemList {
         }
     }
 
+    /// handles select (enter)
     fn select_at_cursor(&self, framework: &mut FrameworkClean) {
         let page_to_load = match &self.items[self.textlist.selected] {
             Item::MiniVideo(MiniVideoItem { id, .. })

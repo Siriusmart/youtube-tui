@@ -3,10 +3,10 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use std::{error::Error, io};
+use std::{env, error::Error, io};
 use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::framework::{Framework, State};
-use youtube_tui::{exit, init, run};
+use youtube_tui::{exit, global::functions::text_command, init, run};
 
 // stuff happening:
 //  1. setup the terminal
@@ -14,6 +14,14 @@ use youtube_tui::{exit, init, run};
 //  3. restore the terminal
 //  4. unwrap errors
 fn main() -> Result<(), Box<dyn Error>> {
+    let args = env::args().skip(1).collect::<Vec<_>>();
+    let args_strs = args.iter().map(|s| s.as_str()).collect::<Vec<_>>();
+
+    if let Some(s) = text_command(&args_strs) {
+        println!("{s}");
+        return Ok(());
+    }
+
     let state = State(Vec::new());
     let mut framework = Framework::new(state);
 
@@ -24,7 +32,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
 
     let res = (|| -> Result<(), Box<dyn Error>> {
-        init(&mut framework, &mut terminal)?;
+        init(&mut framework, &mut terminal, &args_strs)?;
         run(&mut terminal, &mut framework)?;
         Ok(())
     })();

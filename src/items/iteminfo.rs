@@ -74,7 +74,6 @@ impl FrameworkItem for ItemInfo {
                         } as u32),
                         x: area.x,
                         y: area.y as i16,
-                        #[cfg(feature = "sixel")]
                         use_sixel: main_config.images.use_sixels(),
                         ..Default::default()
                     };

@@ -25,12 +25,10 @@ The YouTube TUI is avaliable in the AUR <a href="https://aur.archlinux.org/packa
 Use an <a href="https://aur.archlinux.org" target=_blank>AUR</a> helper like <a href="https://aur.archlinux.org/packages/yay" target=_blank>`yay`</a> to install.
 
 ```sh
-yay -S youtube-tui # replace `yay` with your AUR helper
+yay -S youtube-tui-git # replace `yay` with your AUR helper
+yay -S youtube-tui-full-bin # requires libsixel
+yay -S youtube-tui-nodefaults-bin
 ```
-
-## Download a compiled binary
-
-Download the compiled binary for your system from <a href="https://github.com/Siriusmart/youtube-tui/releases" target=_blank>*GitHub releases*</a> and manually place it in *a folder* (e.g. `~/.cargo/bin/` or `/bin/`)
 
 ## Build from source
 

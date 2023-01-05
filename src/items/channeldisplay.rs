@@ -22,17 +22,21 @@ use tui_additions::{
 /// the 4 pages that a channel has (including the default "blank" page when loading)
 #[derive(Clone)]
 pub enum ChannelDisplay {
+    /// a blank item, will turn into one of the other variants when `.load()` depending on the page
     None,
+    /// main channel display page
     Main {
         channel: Item,
         iteminfo: ItemInfo,
     },
+    /// latest videos
     Videos {
         videos: Vec<Item>,
         textlist: TextList,
         iteminfo: ItemInfo,
         grid: Grid,
     },
+    /// created playlists
     Playlists {
         playlists: Vec<Item>,
         textlist: TextList,
@@ -48,6 +52,7 @@ impl Default for ChannelDisplay {
 }
 
 impl ChannelDisplay {
+    /// update the style of the item (colours, etc), ran on ever render
     fn update_appearance(
         &mut self,
         info: &tui_additions::framework::ItemInfo,
@@ -95,6 +100,8 @@ impl ChannelDisplay {
         }
     }
 
+    /// handles when select (enter) is pressed, generally loads the hovered item in a
+    /// `SingleItemPage`
     fn select_at_cursor(&self, framework: &mut FrameworkClean) {
         match self {
             Self::None | Self::Main { .. } => {}
@@ -144,6 +151,7 @@ impl ChannelDisplay {
         }
     }
 
+    /// updates the video/playlist preview
     fn update(&mut self) {
         match self {
             Self::Videos {
@@ -168,6 +176,7 @@ impl ChannelDisplay {
         }
     }
 
+    /// check if self should be able to be selected
     pub fn selectable(&self) -> bool {
         !(matches!(self, Self::Main { .. }) || matches!(self, Self::None))
     }

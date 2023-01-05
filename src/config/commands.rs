@@ -77,7 +77,7 @@ fn video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("View channel"),
-            String::from(":channel ${channel_id}"),
+            String::from(":channel ${channel-id}"),
         )]),
         HashMap::from([(
             String::from("Open in browser"),
@@ -123,7 +123,7 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("View channel"),
-            String::from(":channel ${channel_id}"),
+            String::from(":channel ${channel-id}"),
         )]),
         HashMap::from([(
             String::from("Open in browser"),

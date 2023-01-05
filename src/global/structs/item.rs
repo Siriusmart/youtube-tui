@@ -28,6 +28,7 @@ pub enum Item {
     Unknown(SearchItemTransition),
 }
 
+/// stores information of a previewed video
 #[derive(Clone, Serialize, Deserialize)]
 pub struct MiniVideoItem {
     pub title: String,
@@ -41,6 +42,7 @@ pub struct MiniVideoItem {
     pub description: Option<String>,
 }
 
+/// stores information of a previewed playlist
 #[derive(Clone, Serialize, Deserialize)]
 pub struct MiniPlaylistItem {
     pub title: String,
@@ -51,6 +53,7 @@ pub struct MiniPlaylistItem {
     pub thumbnail_url: String,
 }
 
+/// stores information of a previewed channel
 #[derive(Clone, Serialize, Deserialize)]
 pub struct MiniChannelItem {
     pub name: String,
@@ -62,6 +65,7 @@ pub struct MiniChannelItem {
     pub description: String,
 }
 
+/// stores information of a viewed video
 #[derive(Clone, Serialize, Deserialize)]
 pub struct FullVideoItem {
     pub title: String,
@@ -79,6 +83,7 @@ pub struct FullVideoItem {
     pub genre: String,
 }
 
+/// stores information of a viewed playlist
 #[derive(Clone, Serialize, Deserialize)]
 pub struct FullPlaylistItem {
     pub title: String,
@@ -92,6 +97,7 @@ pub struct FullPlaylistItem {
     pub videos: Vec<Item>,
 }
 
+/// stores information of a viewed channel
 #[derive(Clone, Serialize, Deserialize)]
 pub struct FullChannelItem {
     pub name: String,
@@ -127,6 +133,7 @@ impl Display for Item {
 }
 
 impl Item {
+    /// returns the id of an item, `None` is self is Unknown
     pub fn id(&self) -> Option<&str> {
         match self {
             Self::MiniVideo(MiniVideoItem { id, .. })
@@ -135,16 +142,18 @@ impl Item {
             | Self::FullVideo(FullVideoItem { id, .. })
             | Self::FullChannel(FullChannelItem { id, .. })
             | Self::FullPlaylist(FullPlaylistItem { id, .. }) => Some(id),
-            _ => None,
+            Self::Unknown(_) | Self::Page(_) => None,
         }
     }
 
+    /// check if self is Self::Unknown
     pub fn is_unknown(&self) -> bool {
         matches!(self, Self::Unknown(_))
     }
 }
 
 impl Item {
+    /// stript self into a FullVideoItem
     pub fn fullvideo(&self) -> Result<&FullVideoItem, Errors> {
         match self {
             Self::FullVideo(fullvideo) => Ok(fullvideo),
@@ -152,6 +161,7 @@ impl Item {
         }
     }
 
+    /// stript self into a MiniVideoItem
     pub fn minivideo(&self) -> Result<&MiniVideoItem, Errors> {
         match self {
             Self::MiniVideo(minivideo) => Ok(minivideo),
@@ -159,6 +169,7 @@ impl Item {
         }
     }
 
+    /// stript self into a MiniPlaylistItem
     pub fn miniplaylist(&self) -> Result<&MiniPlaylistItem, Errors> {
         match self {
             Self::MiniPlaylist(miniplaylist) => Ok(miniplaylist),
@@ -166,6 +177,7 @@ impl Item {
         }
     }
 
+    /// stript self into a FullPlaylistItem
     pub fn fullplaylist(&self) -> Result<&FullPlaylistItem, Errors> {
         match self {
             Self::FullPlaylist(fullplaylist) => Ok(fullplaylist),
@@ -173,6 +185,7 @@ impl Item {
         }
     }
 
+    /// stript self into a MiniChannelItem
     pub fn minichannel(&self) -> Result<&MiniChannelItem, Errors> {
         match self {
             Self::MiniChannel(minichannel) => Ok(minichannel),
@@ -182,7 +195,8 @@ impl Item {
 }
 
 impl Item {
-    // the file save path for thumbnails (which is by their id)
+    /// returns the file save path for thumbnails (which is by their id)
+    /// returns `invalid` if the item does not have a thumbnail
     pub fn thumbnail_id(&self) -> &str {
         match self {
             Self::MiniVideo(video) => &video.id,
@@ -195,7 +209,7 @@ impl Item {
         }
     }
 
-    // cannot impl From<T> because it also need `image_index`
+    /// parse `TrendingVideo` into `Self`
     pub fn from_trending_video(original: TrendingVideo, image_index: usize) -> Self {
         Self::MiniVideo(MiniVideoItem {
             title: original.title,
@@ -214,6 +228,7 @@ impl Item {
         })
     }
 
+    /// parse `PopularItem` into `Self`
     pub fn from_popular_item(original: PopularItem, image_index: usize) -> Self {
         Self::MiniVideo(MiniVideoItem {
             title: original.title,
@@ -232,6 +247,7 @@ impl Item {
         })
     }
 
+    /// parse `Playlist` into `Self`
     pub fn from_mini_playlist(original: Playlist) -> Self {
         Self::MiniPlaylist(MiniPlaylistItem {
             title: original.title,
@@ -243,6 +259,7 @@ impl Item {
         })
     }
 
+    /// parse `SearchItem` into `Self`
     pub fn from_search_item(original: SearchItem, image_index: usize) -> Self {
         match original {
             SearchItem::Video {
@@ -305,6 +322,7 @@ impl Item {
         }
     }
 
+    /// parse `Video` into `Self`
     pub fn from_full_video(original: Video, image_index: usize) -> Self {
         Self::FullVideo(FullVideoItem {
             title: original.title,
@@ -326,6 +344,7 @@ impl Item {
         })
     }
 
+    /// parse `FullPlaylist` into `Self`
     pub fn from_full_playlist(original: FullPlaylist, image_index: usize) -> Self {
         Self::FullPlaylist(FullPlaylistItem {
             title: original.title,
@@ -344,6 +363,7 @@ impl Item {
         })
     }
 
+    /// parse `PlaylistItem` into `Self`
     pub fn from_playlist_item(original: PlaylistItem, image_index: usize) -> Self {
         Self::MiniVideo(MiniVideoItem {
             title: original.title,
@@ -358,6 +378,7 @@ impl Item {
         })
     }
 
+    /// parse `Channel` into `Self`
     pub fn from_full_channel(original: Channel, image_index: usize) -> Self {
         Self::FullChannel(FullChannelItem {
             name: original.name,
@@ -372,6 +393,7 @@ impl Item {
         })
     }
 
+    /// parse `ChannelVideo` into `Self`
     pub fn from_channel_video(original: ChannelVideo, image_index: usize) -> Self {
         Self::MiniVideo(MiniVideoItem {
             title: original.title,
@@ -390,6 +412,7 @@ impl Item {
         })
     }
 
+    /// parse `Playlist` into `Self`
     pub fn from_channel_playlist(original: Playlist) -> Self {
         Self::MiniPlaylist(MiniPlaylistItem {
             title: original.title,
