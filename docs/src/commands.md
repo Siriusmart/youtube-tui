@@ -38,6 +38,7 @@ reload (alt `r`)
 reload configs (alt `reload/r config/configs`)
 flush
 quit (alt `q`, `exit`, `x`)
+run [command]
 ```
 
 > The `flush` command is used to run all tasks in queue immediately, this is usually done automatically.

@@ -9,7 +9,6 @@ use crate::{
         },
     },
 };
-use std::thread;
 use tui::{
     layout::{Constraint, Rect},
     style::Style,
@@ -337,10 +336,12 @@ impl SinglePlaylistItem {
 }
 
 impl SingleItemType {
+    /// self is none
     pub fn is_none(&self) -> bool {
         matches!(self, Self::None)
     }
 
+    /// update colours every render
     pub fn update_appearance(
         &mut self,
         appearance: &AppearanceConfig,
@@ -372,6 +373,7 @@ impl SingleItemType {
 }
 
 impl SingleItem {
+    /// update colours and layout every render
     fn update_appearance(
         &mut self,
         appearance: &AppearanceConfig,
@@ -394,6 +396,7 @@ impl SingleItem {
             .update_appearance(appearance, iteminfo, &mut self.grid);
     }
 
+    /// update hover item preview
     fn update(&mut self) {
         if let SingleItemType::Playlist(singleplaylistitem) = &mut self.r#type {
             let SinglePlaylistItem {
@@ -418,6 +421,7 @@ impl SingleItem {
         }
     }
 
+    /// handle enter presses
     fn select_at_cursor(
         &mut self,
         framework: &mut FrameworkClean,
@@ -440,31 +444,14 @@ impl SingleItem {
                         );
                     }
                     _ => {
-                        // joins the env from the one in mainconfig and video info
-                        let command_string = apply_envs(command_string);
-
                         // check if the command starts with an ':' which case should be captured
-                        if &command_string[0..1] == ":" {
-                            framework
-                                .data
-                                .state
-                                .get_mut::<Tasks>()
-                                .unwrap()
-                                .priority
-                                .push(Task::Command(command_string[1..].to_string()))
-                        }
-
-                        // this allows creating commands from string
-                        let mut command = execute::command(command_string);
-
-                        *framework.data.global.get_mut::<Message>().unwrap() = Message::Success(
-                            format!("{:?} {:?}", command.get_program(), command.get_args()),
-                        );
-
-                        // run the command in a new thread so it doesn't freeze the current one
-                        thread::spawn(move || {
-                            let _ = command.output();
-                        });
+                        framework
+                            .data
+                            .state
+                            .get_mut::<Tasks>()
+                            .unwrap()
+                            .priority
+                            .push(Task::Command(apply_envs(command_string)));
                     }
                 }
             }
@@ -491,27 +478,14 @@ impl SingleItem {
                     }
                     // same as before if string is not a special case then the run the command
                     _ => {
-                        let command_string = apply_envs(command_string);
-
                         // check if the command starts with an ':' which case should be captured
-                        if &command_string[0..1] == ":" {
-                            framework
-                                .data
-                                .state
-                                .get_mut::<Tasks>()
-                                .unwrap()
-                                .priority
-                                .push(Task::Command(command_string[1..].to_string()))
-                        }
-
-                        *framework.data.global.get_mut::<Message>().unwrap() =
-                            Message::Success(command_string.clone());
-
-                        let mut command = execute::command(command_string);
-
-                        thread::spawn(move || {
-                            let _ = command.output();
-                        });
+                        framework
+                            .data
+                            .state
+                            .get_mut::<Tasks>()
+                            .unwrap()
+                            .priority
+                            .push(Task::Command(apply_envs(command_string)));
                     }
                 };
             }
@@ -762,7 +736,8 @@ impl FrameworkItem for SingleItem {
                                         [singleplaylistitem.videos_view.selected - 1]
                                         .clone(),
                                 );
-                            }                            updated
+                            }
+                            updated
                         }
                         KeyAction::MoveDown => {
                             let updated = singleplaylistitem.videos_view.down().is_ok();
@@ -883,7 +858,13 @@ impl FrameworkItem for SingleItem {
                 } else {
                     let y = (y - chunk.y) as usize + singleplaylistitem.videos_view.scroll;
                     if singleplaylistitem.videos_view.selected != 0 && y == 0 {
-                        framework.data.state.get_mut::<Tasks>().unwrap().priority.push(Task::ClearPage);
+                        framework
+                            .data
+                            .state
+                            .get_mut::<Tasks>()
+                            .unwrap()
+                            .priority
+                            .push(Task::ClearPage);
                     }
                     &mut singleplaylistitem.videos_view
                 }

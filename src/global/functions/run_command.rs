@@ -237,8 +237,16 @@ pub fn run_command(
             ));
             false
         }
+        ["run"] => {
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Message(String::from("Usage: run [command]"));
+            false
+        }
         ["run", ..] => {
-            let mut command = execute::command(&command[1..].join(" "));
+            let command = &command[1..].join(" ");
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Success(command.clone());
+            let mut command = execute::command(command);
             thread::spawn(move || {
                 let _ = command.output();
             });
@@ -313,6 +321,7 @@ const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
     \x1b[33mreload configs\x1b[0m                  Reload all config files
     \x1b[33mflush\x1b[0m                           Run all tasks in queue immediately
     \x1b[33mquit\x1b[0m                            Immediately exit
+    \x1b[33mrun [command]\x1b[0m                   Runs a system command (e.g. `run firefox example.com`)
 
 \x1b[91mALT:\x1b[0m
 \x1b[37malts links back to the original command\x1b[30m

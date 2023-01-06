@@ -63,36 +63,36 @@ fn video_default() -> Vec<HashMap<String, String>> {
     vec![
         HashMap::from([(
             String::from("Play video"),
-            String::from("${video-player} ${embed-url}"),
+            String::from("run ${video-player} ${embed-url}"),
         )]),
         HashMap::from([(
             String::from("Play audio"),
-            String::from("${terminal-emulator} ${video-player} ${embed-url} --no-video"),
+            String::from("run ${terminal-emulator} ${video-player} ${embed-url} --no-video"),
         )]),
         HashMap::from([(
             String::from("Play audio (loop)"),
             String::from(
-                "${terminal-emulator} ${video-player} ${embed-url} --no-video --loop-file=inf",
+                "run ${terminal-emulator} ${video-player} ${embed-url} --no-video --loop-file=inf",
             ),
         )]),
         HashMap::from([(
             String::from("View channel"),
-            String::from(":channel ${channel-id}"),
+            String::from("channel ${channel-id}"),
         )]),
         HashMap::from([(
             String::from("Open in browser"),
-            String::from("${browser} ${url}"),
+            String::from("run ${browser} ${url}"),
         )]),
         HashMap::from([(
             String::from("Download video (webm)"),
             String::from(
-                "${terminal-emulator} ${youtube-downloader} -o ${download-path} ${embed-url}",
+                "run ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${embed-url}",
             ),
         )]),
         HashMap::from([(
             String::from("Download audio (opus)"),
             String::from(
-                "${terminal-emulator} ${youtube-downloader} -o ${download-path} ${embed-url} -x",
+                "run ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${embed-url} -x",
             ),
         )]),
         HashMap::from([(
@@ -107,35 +107,35 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
         HashMap::from([(String::from("Switch view"), String::from("%switch-view%"))]),
         HashMap::from([(
             String::from("Play all videos"),
-            String::from("${video-player} ${all-videos}"),
+            String::from("run ${video-player} ${all-videos}"),
         )]),
         HashMap::from([(
             String::from("Play all audio"),
-            String::from("${terminal-emulator} ${video-player} ${all-videos} --no-video"),
+            String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video"),
         )]),
         HashMap::from([(
             String::from("Shuffle play all audio"),
-            String::from("${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle"),
+            String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle"),
         )]),
         HashMap::from([(
             String::from("Shuffle play all audio (loop)"),
-            String::from("${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle --loop-playlist=inf"),
+            String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle --loop-playlist=inf"),
         )]),
         HashMap::from([(
             String::from("View channel"),
-            String::from(":channel ${channel-id}"),
+            String::from("channel ${channel-id}"),
         )]),
         HashMap::from([(
             String::from("Open in browser"),
-            String::from("${browser} ${url}"),
+            String::from("run ${browser} ${url}"),
         )]),
         HashMap::from([(
             String::from("Download all video (webm)"),
-            String::from("${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos}")
+            String::from("run ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos}")
         )]),
         HashMap::from([(
             String::from("Download all audio (opus)"),
-            String::from("${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos} -x")
+            String::from("run ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos} -x")
         )]),
         HashMap::from([(
             String::from("Mode: ${provider}"),

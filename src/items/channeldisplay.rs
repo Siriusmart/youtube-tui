@@ -25,10 +25,7 @@ pub enum ChannelDisplay {
     /// a blank item, will turn into one of the other variants when `.load()` depending on the page
     None,
     /// main channel display page
-    Main {
-        channel: Item,
-        iteminfo: ItemInfo,
-    },
+    Main { channel: Item, iteminfo: ItemInfo },
     /// latest videos
     Videos {
         videos: Vec<Item>,
