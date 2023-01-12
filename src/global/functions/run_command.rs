@@ -6,11 +6,16 @@ use crate::{
     },
     load_configs,
 };
-use std::{io::Stdout, thread};
+use std::{
+    io::Stdout,
+    env,
+    thread,
+};
+use run_script::ScriptOptions;
 use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::framework::Framework;
 
-use super::{fake_rand_range, from_channel_url, from_playlist_url, from_video_url};
+use super::{fake_rand_range, from_channel_url, from_playlist_url, from_video_url, set_clipboard};
 
 /// runs text command - command from the command line (not TUI) which response is just a string
 pub fn text_command(command: &[&str]) -> Option<String> {
@@ -243,13 +248,23 @@ pub fn run_command(
             false
         }
         ["run", ..] => {
-            let command = &command[1..].join(" ");
+            let command = command[1..].join(" ");
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Success(command.clone());
-            let mut command = execute::command(command);
             thread::spawn(move || {
-                let _ = command.output();
+                run_script::run(&command, &Vec::new(), &ScriptOptions::new()).unwrap();
             });
+            false
+        }
+        ["copy"] | ["cp"] => {
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Message(String::from("Usage: copy [text]"));
+            false
+        }
+        ["copy", ..] | ["cp", ..] => {
+            set_clipboard(command[1..].join(" "));
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Success(String::from("Copied to clipboad"));
             false
         }
         _ => {
@@ -322,14 +337,15 @@ const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
     \x1b[33mflush\x1b[0m                           Run all tasks in queue immediately
     \x1b[33mquit\x1b[0m                            Immediately exit
     \x1b[33mrun [command]\x1b[0m                   Runs a system command (e.g. `run firefox example.com`)
+    \x1b[33mcopy [text]\x1b[0m                     Copies text to clipboard
 
 \x1b[91mALT:\x1b[0m
 \x1b[37malts links back to the original command\x1b[30m
-
     \x1b[33m[page] (additional options)\x1b[0m     `loadpage [page]`
     \x1b[33mback\x1b[0m                            `history back`
     \x1b[33mr\x1b[0m                               `reload`
     \x1b[33mreload/r config/configs\x1b[0m         `reload configs`
     \x1b[33mq, exit, x\x1b[0m                      `quit`
+    \x1b[33mcp [text]\x1b[0m                       `copy [text]`
 
-\x1b[37mOnly load page commands and informational commands can be used from command line, the rest can only be used in (`:`) command mode inside the TUI.\x1b[0m";
+\x1b[37mOnly load page and informational commands can be used from command line, the rest can only be used in (`:`) command mode inside the TUI.\x1b[0m";

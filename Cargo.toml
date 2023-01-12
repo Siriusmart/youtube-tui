@@ -36,7 +36,7 @@ tokio = {version = "1.21", default-features = false}
 futures = {version = "0.3", default-features = false}
 reqwest = {version = "0.11", default-features = false}
 serde_json = {version = "1.0", default-features = false}
-execute = {version = "0.2", default-features = false}
+run_script = { version = "0.10", default-features = false}
 clipboard = {version = "0.5"}
 
 # tui-additions = {path = "../../Rust/Packages/tui-additions", default-features = false, features = ["framework", "widgets"]}
