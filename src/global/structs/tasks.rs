@@ -83,11 +83,7 @@ impl TaskQueue {
         // if there is any commands, run them first as they may modify data, which is rendered
         // later in this function
         for command in self.commands.iter() {
-            run_command(
-                &command.split_whitespace().collect::<Vec<_>>(),
-                framework,
-                terminal,
-            );
+            run_command(command, framework, terminal);
         }
 
         if self.clear_all {

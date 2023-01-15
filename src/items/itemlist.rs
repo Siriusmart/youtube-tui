@@ -11,14 +11,14 @@ use tui_additions::{
 
 use super::ItemInfo;
 use crate::{
-    config::{AppearanceConfig, KeyBindingsConfig, MainConfig, Search},
+    config::{AppearanceConfig, KeyBindingsConfig, MainConfig, Provider, Search},
     global::{
-        functions::download_all_images,
+        functions::{download_all_images, set_envs},
         structs::{
             ChannelDisplayPage, ChannelDisplayPageType, FullChannelItem, FullPlaylistItem,
             FullVideoItem, InvidiousClient, Item, KeyAction, MainMenuPage, Message,
-            MiniChannelItem, MiniPlaylistItem, MiniVideoItem, Page, SingleItemPage, Status, Task,
-            Tasks, WatchHistory,
+            MiniChannelItem, MiniPlaylistItem, MiniVideoItem, Page, SingleItemPage, StateEnvs,
+            Status, Task, Tasks, WatchHistory,
         },
     },
 };
@@ -34,7 +34,48 @@ pub struct ItemList {
 }
 
 impl ItemList {
-    /// updates the styles of different things that may be updated by deselect/selects
+    pub fn inflate_provider_update(
+        &self,
+        page: &Page,
+        mainconfig: &MainConfig,
+        status: &Status,
+    ) -> Vec<(String, String)> {
+        match page {
+            Page::Search(search) => vec![(
+                String::from("url"),
+                match status.provider {
+                    Provider::YouTube => {
+                        format!("'https://youtube.com/results?{}'", search.to_string())
+                    }
+                    Provider::Invidious => format!(
+                        "'{}/search?{}'",
+                        mainconfig.invidious_instance,
+                        search.to_string()
+                    ),
+                },
+            )],
+            Page::MainMenu(MainMenuPage::Popular) => vec![(
+                String::from("url"),
+                match status.provider {
+                    Provider::YouTube => String::from("'https://youtube.com'"),
+                    Provider::Invidious => {
+                        format!("'{}/feed/popular'", mainconfig.invidious_instance)
+                    }
+                },
+            )],
+            Page::MainMenu(MainMenuPage::Trending) => vec![(
+                String::from("url"),
+                match status.provider {
+                    Provider::YouTube => String::from("'https://www.youtube.com/feed/trending'"),
+                    Provider::Invidious => {
+                        format!("{}/feed/trending'", mainconfig.invidious_instance)
+                    }
+                },
+            )],
+            _ => Vec::new(),
+        }
+    }
+
     fn update_appearance(
         &mut self,
         appearance: &AppearanceConfig,
@@ -148,6 +189,20 @@ impl FrameworkItem for ItemList {
             return;
         }
 
+        let status = framework.data.global.get::<Status>().unwrap();
+
+        if status.provider_updated {
+            set_envs(
+                self.inflate_provider_update(
+                    framework.data.state.get::<Page>().unwrap(),
+                    framework.data.global.get::<MainConfig>().unwrap(),
+                    status,
+                )
+                .into_iter(),
+                &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+            );
+        }
+
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
         let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
         self.update_appearance(appearance, mainconfig, &info);
@@ -259,6 +314,16 @@ impl FrameworkItem for ItemList {
         // update the items in text list
         self.textlist.set_items(&self.items).unwrap();
         self.update();
+
+        set_envs(
+            self.inflate_provider_update(
+                framework.data.state.get::<Page>().unwrap(),
+                framework.data.global.get::<MainConfig>().unwrap(),
+                framework.data.global.get::<Status>().unwrap(),
+            )
+            .into_iter(),
+            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+        );
 
         Ok(())
     }

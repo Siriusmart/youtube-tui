@@ -14,10 +14,9 @@ use youtube_tui::{exit, global::functions::text_command, init, run};
 //  3. restore the terminal
 //  4. unwrap errors
 fn main() -> Result<(), Box<dyn Error>> {
-    let args = env::args().skip(1).collect::<Vec<_>>();
-    let args_strs = args.iter().map(|s| s.as_str()).collect::<Vec<_>>();
+    let args = env::args().skip(1).collect::<Vec<_>>().join(" ");
 
-    if let Some(s) = text_command(&args_strs) {
+    if let Some(s) = text_command(&args) {
         println!("{s}");
         return Ok(());
     }
@@ -32,7 +31,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
 
     let res = (|| -> Result<(), Box<dyn Error>> {
-        init(&mut framework, &mut terminal, &args_strs)?;
+        init(
+            &mut framework,
+            &mut terminal,
+            if args.is_empty() { None } else { Some(&args) },
+        )?;
         run(&mut terminal, &mut framework)?;
         Ok(())
     })();

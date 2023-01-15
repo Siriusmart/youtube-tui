@@ -6,20 +6,20 @@ use crate::{
     },
     load_configs,
 };
-use std::{
-    io::Stdout,
-    env,
-    thread,
-};
 use run_script::ScriptOptions;
+use std::{env, io::Stdout, thread};
 use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::framework::Framework;
 
 use super::{fake_rand_range, from_channel_url, from_playlist_url, from_video_url, set_clipboard};
 
 /// runs text command - command from the command line (not TUI) which response is just a string
-pub fn text_command(command: &[&str]) -> Option<String> {
-    match command {
+pub fn text_command(command: &str) -> Option<String> {
+    match command
+        .split_ascii_whitespace()
+        .collect::<Vec<_>>()
+        .as_slice()
+    {
         ["help"] => Some(String::from(HELP_MSG)),
         ["version"] => Some(format!(
             "{} {}",
@@ -30,25 +30,48 @@ pub fn text_command(command: &[&str]) -> Option<String> {
     }
 }
 
-/// runs a command in the TUI, returns true if its a loadpage command, false if not
 pub fn run_command(
+    command: &str,
+    framework: &mut Framework,
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+) {
+    command.split(";;").into_iter().for_each(|single_command| {
+        run_single_command(
+            &single_command
+                .trim()
+                .split_ascii_whitespace()
+                .collect::<Vec<_>>(),
+            framework,
+            terminal,
+        )
+    });
+}
+
+/// runs a command in the TUI, returns true if its a loadpage command, false if not
+pub fn run_single_command(
     command: &[&str],
     framework: &mut Framework,
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
-) -> bool {
+) {
     // match a command splitted by space to a bunch of avaliable commands
     match command {
-        [] => false,
+        [] => {}
         ["help"] | ["h"] => {
             *framework.data.global.get_mut::<Message>().unwrap() = Message::Message(String::from(
                 "Avaliable commands can be viewed by running `youtube-tui help` in terminal",
             ));
-            false
+        }
+        ["switchprovider"] => {
+            let status = framework.data.global.get_mut::<Status>().unwrap();
+
+            status.provider.rotate();
+            status.provider_updated = true;
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Success(format!("Provider updated to {}", status.provider.as_str()))
         }
         ["loadpage"] => {
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Message(String::from("Usage: `loadpage {page}`"));
-            false
         }
         // loads a given page
         ["loadpage", page, ..] => {
@@ -60,7 +83,7 @@ pub fn run_command(
                     if command.len() == 2 {
                         *framework.data.global.get_mut::<Message>().unwrap() =
                             Message::Message(String::from("Usage: `loadpage channel {id/url}`"));
-                        return false;
+                        return;
                     }
 
                     match from_channel_url(command[2]) {
@@ -71,7 +94,7 @@ pub fn run_command(
                         Err(e) => {
                             *framework.data.global.get_mut::<Message>().unwrap() =
                                 Message::Error(e);
-                            return false;
+                            return;
                         }
                     }
                 }
@@ -79,7 +102,7 @@ pub fn run_command(
                     if command.len() == 2 {
                         *framework.data.global.get_mut::<Message>().unwrap() =
                             Message::Message(String::from("Usage: `loadpage video {id/url}`"));
-                        return false;
+                        return;
                     }
 
                     match from_video_url(command[2]) {
@@ -87,7 +110,7 @@ pub fn run_command(
                         Err(e) => {
                             *framework.data.global.get_mut::<Message>().unwrap() =
                                 Message::Error(e);
-                            return false;
+                            return;
                         }
                     }
                 }
@@ -95,7 +118,7 @@ pub fn run_command(
                     if command.len() == 2 {
                         *framework.data.global.get_mut::<Message>().unwrap() =
                             Message::Message(String::from("Usage: `loadpage playlist {id/url}`"));
-                        return false;
+                        return;
                     }
 
                     match from_playlist_url(command[2]) {
@@ -103,7 +126,7 @@ pub fn run_command(
                         Err(e) => {
                             *framework.data.global.get_mut::<Message>().unwrap() =
                                 Message::Error(e);
-                            return false;
+                            return;
                         }
                     }
                 }
@@ -111,7 +134,7 @@ pub fn run_command(
                     if command.len() == 2 {
                         *framework.data.global.get_mut::<Message>().unwrap() =
                             Message::Message(String::from("Usage: `search {query}`"));
-                        return true;
+                        return;
                     }
 
                     // search for a query, although the command is matched as an array, the original query can
@@ -137,37 +160,34 @@ pub fn run_command(
                     .priority
                     .push(Task::LoadPage(page))
             }
-
-            true
         }
         // redirects to the relevant `loadpage` command
-        ["popular"] => run_command(&["loadpage", "popular"], framework, terminal),
-        ["trending"] => run_command(&["loadpage", "trending"], framework, terminal),
-        ["watchhistory"] => run_command(&["loadpage", "watchhistory"], framework, terminal),
-        ["search"] => run_command(&["loadpage", "search"], framework, terminal),
-        ["search", ..] => run_command(
+        ["popular"] => run_single_command(&["loadpage", "popular"], framework, terminal),
+        ["trending"] => run_single_command(&["loadpage", "trending"], framework, terminal),
+        ["watchhistory"] => run_single_command(&["loadpage", "watchhistory"], framework, terminal),
+        ["search"] => run_single_command(&["loadpage", "search"], framework, terminal),
+        ["search", ..] => run_single_command(
             &format!("loadpage search {}", command[1..].join(" "))
                 .split(' ')
                 .collect::<Vec<&str>>(),
             framework,
             terminal,
         ),
-        ["channel"] => run_command(&["loadpage", "channel"], framework, terminal),
+        ["channel"] => run_single_command(&["loadpage", "channel"], framework, terminal),
         ["channel", identifier] => {
-            run_command(&["loadpage", "channel", *identifier], framework, terminal)
+            run_single_command(&["loadpage", "channel", *identifier], framework, terminal)
         }
-        ["video"] => run_command(&["loadpage", "video"], framework, terminal),
+        ["video"] => run_single_command(&["loadpage", "video"], framework, terminal),
         ["video", identifier] => {
-            run_command(&["loadpage", "video", *identifier], framework, terminal)
+            run_single_command(&["loadpage", "video", *identifier], framework, terminal)
         }
-        ["playlist"] => run_command(&["loadpage", "playlist"], framework, terminal),
+        ["playlist"] => run_single_command(&["loadpage", "playlist"], framework, terminal),
         ["playlist", identifier] => {
-            run_command(&["loadpage", "playlist", *identifier], framework, terminal)
+            run_single_command(&["loadpage", "playlist", *identifier], framework, terminal)
         }
         ["history"] => {
             *framework.data.global.get_mut::<Message>().unwrap() =
-                Message::Message(String::from("Usage: `history [back/clear]`"));
-            false
+                Message::Message(String::from("Usage: `history [back/clear]`"))
         }
         ["history", "back"] | ["back"] => {
             let _ = framework.revert_last_history();
@@ -185,18 +205,16 @@ pub fn run_command(
                 .unwrap()
                 .priority
                 .push(Task::RenderAll);
-            run_command(&["flush"], framework, terminal);
+            run_single_command(&["flush"], framework, terminal);
             framework
                 .data
                 .global
                 .get_mut::<Status>()
                 .unwrap()
                 .render_image = true;
-            false
         }
         ["history", "clear"] => {
             framework.clear_history();
-            false
         }
         ["flush"] => loop {
             // runs all stacked actions
@@ -204,7 +222,7 @@ pub fn run_command(
                 let _res = tasks.run(framework, terminal);
                 continue;
             }
-            break false;
+            break;
         },
         ["reload"] | ["r"] => {
             framework
@@ -214,7 +232,6 @@ pub fn run_command(
                 .unwrap()
                 .priority
                 .push(Task::Reload);
-            false
         }
         ["reload", "config"] | ["reload", "configs"] | ["r", "config"] | ["r", "configs"] => {
             *framework.data.global.get_mut::<Message>().unwrap() =
@@ -222,17 +239,14 @@ pub fn run_command(
                     Ok(()) => Message::Success(String::from("Config files have been reloaded")),
                     Err(e) => Message::Error(e.to_string()),
                 };
-            false
         }
         ["q"] | ["quit"] | ["x"] | ["exit"] => {
             framework.data.global.get_mut::<Status>().unwrap().exit = true;
-            false
         }
         ["hello", "world"] => {
             let index = fake_rand_range(0, HELLO_WORLDS.len() as i64) as usize;
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Message(format!("Line #{index}: {}", HELLO_WORLDS[index]));
-            false
         }
         ["version"] | ["v"] => {
             *framework.data.global.get_mut::<Message>().unwrap() = Message::Message(format!(
@@ -240,12 +254,10 @@ pub fn run_command(
                 env!("CARGO_PKG_NAME"),
                 env!("CARGO_PKG_VERSION")
             ));
-            false
         }
         ["run"] => {
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Message(String::from("Usage: run [command]"));
-            false
         }
         ["run", ..] => {
             let command = command[1..].join(" ");
@@ -254,23 +266,19 @@ pub fn run_command(
             thread::spawn(move || {
                 run_script::run(&command, &Vec::new(), &ScriptOptions::new()).unwrap();
             });
-            false
         }
         ["copy"] | ["cp"] => {
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Message(String::from("Usage: copy [text]"));
-            false
         }
         ["copy", ..] | ["cp", ..] => {
             set_clipboard(command[1..].join(" "));
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Success(String::from("Copied to clipboad"));
-            false
         }
         _ => {
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Error(format!("Unknown command: `{}`", command.join(" ")));
-            false
         }
     }
 }

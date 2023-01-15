@@ -11,5 +11,7 @@ mod keybindings;
 pub use keybindings::*;
 mod commands;
 pub use commands::*;
+mod commandbindings;
+pub use commandbindings::*;
 
 pub mod serde;

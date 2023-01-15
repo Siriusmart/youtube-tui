@@ -8,6 +8,7 @@ use crate::global::traits::ConfigTrait;
 /// Stores combinations of label and commands
 #[derive(Clone)]
 pub struct CommandsConfig {
+    pub launch_command: String,
     pub video: Vec<(String, String)>,
     pub playlist: Vec<(String, String)>,
 }
@@ -19,6 +20,7 @@ impl Key for CommandsConfig {
 impl From<CommandsConfigSerde> for CommandsConfig {
     fn from(original: CommandsConfigSerde) -> Self {
         Self {
+            launch_command: original.launch_command,
             video: original
                 .video
                 .into_iter()
@@ -37,6 +39,8 @@ impl From<CommandsConfigSerde> for CommandsConfig {
 // uses vector to keep the ordering of the commands, and hashmap to have that key - value pair look
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CommandsConfigSerde {
+    #[serde(default = "launch_command_default")]
+    pub launch_command: String,
     #[serde(default = "video_default")]
     pub video: Vec<HashMap<String, String>>,
     #[serde(default = "playlist_default")]
@@ -50,6 +54,7 @@ impl ConfigTrait for CommandsConfigSerde {
 impl Default for CommandsConfigSerde {
     fn default() -> Self {
         Self {
+            launch_command: launch_command_default(),
             video: video_default(),
             playlist: playlist_default(),
         }
@@ -58,6 +63,10 @@ impl Default for CommandsConfigSerde {
 
 // `${label}` will be replaced by the values set in `main.yml` in `env`
 // Different pages may contain different `env`s (for example `url` is different in each page)
+
+fn launch_command_default() -> String {
+    String::from("loadpage popular ;; flush ;; history clear")
+}
 
 fn video_default() -> Vec<HashMap<String, String>> {
     vec![
@@ -97,7 +106,7 @@ fn video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Mode: ${provider}"),
-            String::from("%switch-provider%"),
+            String::from("switchprovider"),
         )]),
     ]
 }
@@ -139,7 +148,7 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Mode: ${provider}"),
-            String::from("%switch-provider%"),
+            String::from("switchprovider"),
         )]),
     ]
 }

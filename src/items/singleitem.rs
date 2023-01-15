@@ -54,7 +54,6 @@ pub enum SingleItemType {
 pub struct SingleVideoItem {
     pub textlist: TextList,
     pub commands: Vec<(String, String)>,
-    pub provider: Provider,
 }
 
 #[derive(Clone)]
@@ -64,11 +63,10 @@ pub struct SinglePlaylistItem {
     pub commands: Vec<(String, String)>,
     pub is_commands_view: bool,
     pub hovered_video: ItemInfo,
-    pub provider: Provider,
 }
 
 impl SingleVideoItem {
-    pub fn new(commands: &CommandsConfig, mainconfig: &MainConfig) -> Self {
+    pub fn new(commands: &CommandsConfig) -> Self {
         Self {
             textlist: TextList::default()
                 .items(
@@ -85,21 +83,17 @@ impl SingleVideoItem {
                 .into_iter()
                 .map(|(display, command)| (display, command))
                 .collect(),
-            provider: mainconfig.provider,
         }
     }
 
-    /// updates the %switch-provider% command in the list
-    pub fn update_provider(&mut self) {
+    /// find all occurances of ${provider}
+    pub fn update_provider(&mut self) -> Vec<usize> {
         self.commands
             .iter()
             .enumerate()
-            .for_each(|(index, (display, command))| {
-                if command.as_str() == "%switch-provider%" {
-                    self.textlist.items[index] =
-                        display.replace("${provider}", self.provider.as_str());
-                }
-            })
+            .filter(|(_index, (display, _command))| display.contains("${provider}"))
+            .map(|(index, _)| index)
+            .collect()
     }
 
     pub fn update_appearance(
@@ -125,13 +119,18 @@ impl SingleVideoItem {
     }
 
     /// creates a hashmap from `self`, containing info of the current item
-    pub fn inflate(&self, mainconfig: &MainConfig, item: &Item) -> Vec<(String, String)> {
+    pub fn inflate_load(
+        &self,
+        mainconfig: &MainConfig,
+        status: &Status,
+        item: &Item,
+    ) -> Vec<(String, String)> {
         let video_item = item.fullvideo().unwrap();
 
         vec![
             (
                 String::from("url"),
-                match self.provider {
+                match status.provider {
                     Provider::Invidious => format!(
                         "'{}/watch?v={}'",
                         mainconfig.invidious_instance, video_item.id
@@ -142,7 +141,7 @@ impl SingleVideoItem {
             (String::from("id"), video_item.id.clone()),
             (
                 String::from("embed-url"),
-                match self.provider {
+                match status.provider {
                     Provider::Invidious => format!(
                         "'{}/embed/{}'",
                         mainconfig.invidious_instance, video_item.id
@@ -153,7 +152,52 @@ impl SingleVideoItem {
             (String::from("channel-id"), video_item.channel_id.clone()),
             (
                 String::from("channel-url"),
-                match self.provider {
+                match status.provider {
+                    Provider::YouTube => {
+                        format!("https://www.youtube.com/channel/{}", video_item.channel_id)
+                    }
+                    Provider::Invidious => format!(
+                        "{}/channel/{}",
+                        mainconfig.invidious_instance, video_item.channel_id
+                    ),
+                },
+            ),
+        ]
+    }
+
+    pub fn inflate_provider_update(
+        &self,
+        mainconfig: &MainConfig,
+        status: &Status,
+        item: &Item,
+    ) -> Vec<(String, String)> {
+        let video_item = item.fullvideo().unwrap();
+
+        vec![
+            (
+                String::from("url"),
+                match status.provider {
+                    Provider::Invidious => format!(
+                        "'{}/watch?v={}'",
+                        mainconfig.invidious_instance, video_item.id
+                    ),
+                    Provider::YouTube => format!("'https://youtu.be/{}'", video_item.id),
+                },
+            ),
+            (
+                String::from("embed-url"),
+                match status.provider {
+                    Provider::Invidious => format!(
+                        "'{}/embed/{}'",
+                        mainconfig.invidious_instance, video_item.id
+                    ),
+                    Provider::YouTube => format!("'https://youtube.com/embed/{}'", video_item.id),
+                },
+            ),
+            (String::from("channel-id"), video_item.channel_id.clone()),
+            (
+                String::from("channel-url"),
+                match status.provider {
                     Provider::YouTube => {
                         format!("https://www.youtube.com/channel/{}", video_item.channel_id)
                     }
@@ -168,11 +212,7 @@ impl SingleVideoItem {
 }
 
 impl SinglePlaylistItem {
-    pub fn new(
-        commands: &CommandsConfig,
-        mainconfig: &MainConfig,
-        playlist_items: &[Item],
-    ) -> Self {
+    pub fn new(commands: &CommandsConfig, playlist_items: &[Item]) -> Self {
         let hovered_video = ItemInfo::new(if playlist_items.is_empty() {
             None
         } else {
@@ -207,7 +247,6 @@ impl SinglePlaylistItem {
                 .collect(),
             hovered_video,
             is_commands_view: true,
-            provider: mainconfig.provider,
         }
     }
 
@@ -262,26 +301,38 @@ impl SinglePlaylistItem {
         }
     }
 
-    /// updates the %switch-provider% command in the list
-    pub fn update_provider(&mut self) {
+    /// find all occurances of ${provider}
+    pub fn update_provider(&mut self) -> Vec<usize> {
         self.commands
             .iter()
             .enumerate()
-            .for_each(|(index, (display, command))| {
-                if command.as_str() == "%switch-provider%" {
-                    self.commands_view.items[index] =
-                        display.replace("${provider}", self.provider.as_str());
-                }
-            })
+            .filter(|(_index, (display, _command))| display.contains("${provider}"))
+            .map(|(index, _)| index)
+            .collect()
     }
 
     /// creates a hashmap from `self`, containing info of the current item
-    pub fn inflate(&self, mainconfig: &MainConfig, item: &Item) -> Vec<(String, String)> {
+    pub fn inflate_load(&self, item: &Item) -> Vec<(String, String)> {
         let playlist_item = item.fullplaylist().unwrap();
+
+        vec![
+            (String::from("id"), playlist_item.id.clone()),
+            (String::from("channel-id"), playlist_item.channel_id.clone()),
+        ]
+    }
+
+    pub fn inflate_provider_update(
+        &self,
+        mainconfig: &MainConfig,
+        status: &Status,
+        item: &Item,
+    ) -> Vec<(String, String)> {
+        let playlist_item = item.fullplaylist().unwrap();
+
         vec![
             (
                 String::from("url"),
-                match self.provider {
+                match status.provider {
                     Provider::YouTube => {
                         format!("https://www.youtube.com/playlist?list={}", playlist_item.id)
                     }
@@ -291,10 +342,9 @@ impl SinglePlaylistItem {
                     ),
                 },
             ),
-            (String::from("id"), playlist_item.id.clone()),
             (
                 String::from("all-videos"),
-                match self.provider {
+                match status.provider {
                     Provider::YouTube => playlist_item
                         .videos
                         .iter()
@@ -317,10 +367,9 @@ impl SinglePlaylistItem {
                         .join(" "),
                 },
             ),
-            (String::from("channel-id"), playlist_item.channel_id.clone()),
             (
                 String::from("channel-url"),
-                match self.provider {
+                match status.provider {
                     Provider::YouTube => format!(
                         "https://www.youtube.com/channel/{}",
                         playlist_item.channel_id
@@ -357,7 +406,12 @@ impl SingleItemType {
         }
     }
 
-    pub fn inflate(&self, mainconfig: &MainConfig, item: &Option<Item>) -> Vec<(String, String)> {
+    pub fn inflate_load(
+        &self,
+        mainconfig: &MainConfig,
+        status: &Status,
+        item: &Option<Item>,
+    ) -> Vec<(String, String)> {
         let item = if let Some(item) = item.as_ref() {
             item
         } else {
@@ -365,8 +419,31 @@ impl SingleItemType {
         };
 
         match self {
-            Self::Video(singlevideoitem) => singlevideoitem.inflate(mainconfig, item),
-            Self::Playlist(singleplaylistitem) => singleplaylistitem.inflate(mainconfig, item),
+            Self::Video(singlevideoitem) => singlevideoitem.inflate_load(mainconfig, status, item),
+            Self::Playlist(singleplaylistitem) => singleplaylistitem.inflate_load(item),
+            Self::None => Vec::new(),
+        }
+    }
+
+    pub fn inflate_provider_update(
+        &self,
+        mainconfig: &MainConfig,
+        status: &Status,
+        item: &Option<Item>,
+    ) -> Vec<(String, String)> {
+        let item = if let Some(item) = item.as_ref() {
+            item
+        } else {
+            return Vec::new();
+        };
+
+        match self {
+            Self::Video(singlevideoitem) => {
+                singlevideoitem.inflate_provider_update(mainconfig, status, item)
+            }
+            Self::Playlist(singleplaylistitem) => {
+                singleplaylistitem.inflate_provider_update(mainconfig, status, item)
+            }
             Self::None => Vec::new(),
         }
     }
@@ -404,17 +481,20 @@ impl SingleItem {
                 videos_view,
                 ..
             } = &mut **singleplaylistitem;
-            if videos_view.items.is_empty() {
+            if videos_view.items.is_empty() || videos_view.selected == 0 {
                 hovered_video.item = None;
                 return;
             }
 
-            if self.item.as_ref().unwrap().fullplaylist().unwrap().videos[videos_view.selected].id()
-                != hovered_video.item.as_ref().unwrap().id()
+            if hovered_video.item.is_none()
+                || self.item.as_ref().unwrap().fullplaylist().unwrap().videos
+                    [videos_view.selected - 1]
+                    .id()
+                    != hovered_video.item.as_ref().unwrap().id()
             {
                 hovered_video.item = Some(
                     self.item.as_ref().unwrap().fullplaylist().unwrap().videos
-                        [videos_view.selected]
+                        [videos_view.selected - 1]
                         .clone(),
                 );
             }
@@ -433,27 +513,14 @@ impl SingleItem {
                     .1
                     .clone();
 
-                match command_string.as_str() {
-                    // checks for special cases that the items should consume the command
-                    // instead of running it
-                    "%switch-provider%" => {
-                        singlevideoitem.provider.rotate();
-                        singlevideoitem.update_provider();
-                        *framework.data.global.get_mut::<Message>().unwrap() = Message::Success(
-                            format!("Switched provider to {}", singlevideoitem.provider.as_str()),
-                        );
-                    }
-                    _ => {
-                        // check if the command starts with an ':' which case should be captured
-                        framework
-                            .data
-                            .state
-                            .get_mut::<Tasks>()
-                            .unwrap()
-                            .priority
-                            .push(Task::Command(apply_envs(command_string)));
-                    }
-                }
+                // check if the command starts with an ':' which case should be captured
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::Command(apply_envs(command_string)));
             }
             SingleItemType::Playlist(singleplaylistitem) => {
                 let command_string = singleplaylistitem.commands
@@ -472,11 +539,6 @@ impl SingleItem {
                         *framework.data.global.get_mut::<Message>().unwrap() =
                             Message::Success(String::from("Switched view"));
                     }
-                    "%switch-provider%" => {
-                        singleplaylistitem.provider.rotate();
-                        singleplaylistitem.update_provider();
-                    }
-                    // same as before if string is not a special case then the run the command
                     _ => {
                         // check if the command starts with an ':' which case should be captured
                         framework
@@ -500,14 +562,6 @@ impl SingleItem {
             .priority
             .push(Task::RenderAll);
     }
-
-    pub fn update_provider(&mut self) {
-        match &mut self.r#type {
-            SingleItemType::Video(singlevideoitem) => singlevideoitem.update_provider(),
-            SingleItemType::Playlist(singleplaylistitem) => singleplaylistitem.update_provider(),
-            SingleItemType::None => {}
-        }
-    }
 }
 
 impl FrameworkItem for SingleItem {
@@ -521,6 +575,25 @@ impl FrameworkItem for SingleItem {
     ) {
         if popup_render {
             return;
+        }
+
+        if framework
+            .data
+            .global
+            .get::<Status>()
+            .unwrap()
+            .provider_updated
+        {
+            set_envs(
+                self.r#type
+                    .inflate_provider_update(
+                        framework.data.global.get::<MainConfig>().unwrap(),
+                        framework.data.global.get::<Status>().unwrap(),
+                        &self.item,
+                    )
+                    .into_iter(),
+                &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+            );
         }
 
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
@@ -538,6 +611,18 @@ impl FrameworkItem for SingleItem {
         match &mut self.r#type {
             SingleItemType::Video(typeinfo) => {
                 // 2 by 1 grid, item info in the first cell and textlist at the second
+                typeinfo.update_provider().into_iter().for_each(|index| {
+                    typeinfo.textlist.items[index] = typeinfo.commands[index].0.clone().replace(
+                        "${provider}",
+                        framework
+                            .data
+                            .global
+                            .get::<Status>()
+                            .unwrap()
+                            .provider
+                            .as_str(),
+                    )
+                });
                 self.iteminfo
                     .render(frame, framework, chunks[0], popup_render, info);
                 typeinfo.textlist.set_height(chunks[1].height);
@@ -552,6 +637,19 @@ impl FrameworkItem for SingleItem {
                 self.iteminfo
                     .render(frame, framework, chunks[0], popup_render, info);
                 if typeinfo.is_commands_view {
+                    typeinfo.update_provider().into_iter().for_each(|index| {
+                        typeinfo.commands_view.items[index] =
+                            typeinfo.commands[index].0.clone().replace(
+                                "${provider}",
+                                framework
+                                    .data
+                                    .global
+                                    .get::<Status>()
+                                    .unwrap()
+                                    .provider
+                                    .as_str(),
+                            )
+                    });
                     typeinfo.commands_view.set_height(chunks[1].height);
                     frame.render_widget(typeinfo.commands_view.clone(), chunks[1]);
                 } else {
@@ -597,7 +695,6 @@ impl FrameworkItem for SingleItem {
             SingleItemPage::Video(id) => {
                 self.r#type = SingleItemType::Video(SingleVideoItem::new(
                     framework.data.global.get::<CommandsConfig>().unwrap(),
-                    framework.data.global.get::<MainConfig>().unwrap(),
                 ));
                 let video = Item::from_full_video(client.video(id, None)?, mainconfig.image_index);
                 if mainconfig.images.display() {
@@ -612,7 +709,6 @@ impl FrameworkItem for SingleItem {
                 self.r#type = SingleItemType::Playlist(
                     SinglePlaylistItem::new(
                         framework.data.global.get::<CommandsConfig>().unwrap(),
-                        framework.data.global.get::<MainConfig>().unwrap(),
                         videos,
                     )
                     .into(),
@@ -632,9 +728,24 @@ impl FrameworkItem for SingleItem {
         self.iteminfo.item = self.item.clone();
         // need to update provider every time the item loads or else it will display `${provider}`
         // instead of the actual provider (e.g. `YouTube`)
-        self.update_provider();
         set_envs(
-            self.r#type.inflate(mainconfig, &self.item).into_iter(),
+            self.r#type
+                .inflate_load(
+                    mainconfig,
+                    framework.data.global.get::<Status>().unwrap(),
+                    &self.item,
+                )
+                .into_iter(),
+            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+        );
+        set_envs(
+            self.r#type
+                .inflate_provider_update(
+                    mainconfig,
+                    framework.data.global.get::<Status>().unwrap(),
+                    &self.item,
+                )
+                .into_iter(),
             &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
         );
 

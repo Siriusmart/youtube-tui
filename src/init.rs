@@ -1,7 +1,7 @@
 use crate::{
     config::{
-        AppearanceConfig, CommandsConfig, CommandsConfigSerde, KeyBindingsConfig, MainConfig,
-        MinDimentions, PagesConfig, Search,
+        AppearanceConfig, CommandBindings, CommandBindingsSerde, CommandsConfig,
+        CommandsConfigSerde, KeyBindingsConfig, MainConfig, MinDimentions, PagesConfig, Search,
     },
     global::{
         functions::run_command,
@@ -22,7 +22,7 @@ use tui_additions::framework::{Framework, FrameworkClean};
 pub fn init(
     framework: &mut Framework,
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
-    command: &[&str],
+    command: Option<&str>,
 ) -> Result<(), Box<dyn Error>> {
     // creating files
     let home_dir = home_dir().unwrap();
@@ -41,8 +41,13 @@ pub fn init(
     // watch history init
     WatchHistory::init_move();
 
+    load_configs(&mut framework.split_clean().0).ok();
+
     framework.data.global.insert::<Message>(Message::None);
-    framework.data.global.insert::<Status>(Status::default());
+    framework.data.global.insert::<Status>(Status {
+        provider: framework.data.global.get::<MainConfig>().unwrap().provider,
+        ..Status::default()
+    });
 
     framework.data.state.insert::<Tasks>(Tasks::default());
     framework.data.state.insert::<Page>(Page::default());
@@ -50,14 +55,24 @@ pub fn init(
         .data
         .state
         .insert::<MinDimentions>(MinDimentions::default());
+    framework
+        .data
+        .state
+        .insert::<StateEnvs>(StateEnvs::default());
 
-    load_configs(&mut framework.split_clean().0).ok();
-
-    if !run_command(command, framework, terminal) {
-        run_command(&["loadpage", "popular"], framework, terminal);
-    }
-    run_command(&["flush"], framework, terminal);
-    run_command(&["history", "clear"], framework, terminal);
+    run_command(
+        command.unwrap_or(
+            &framework
+                .data
+                .global
+                .get::<CommandsConfig>()
+                .unwrap()
+                .launch_command
+                .clone(),
+        ),
+        framework,
+        terminal,
+    );
     Ok(())
 }
 
@@ -97,11 +112,11 @@ pub fn load_configs(framework: &mut FrameworkClean) -> Result<(), Box<dyn Error>
         .data
         .global
         .insert::<KeyBindingsConfig>(KeyBindingsConfig::load()?);
-    framework.data.state.insert::<Search>(*Search::load()?);
     framework
         .data
-        .state
-        .insert::<StateEnvs>(StateEnvs::default());
+        .global
+        .insert::<CommandBindings>((*CommandBindingsSerde::load()?).into().unwrap());
+    framework.data.state.insert::<Search>(*Search::load()?);
 
     Ok(())
 }

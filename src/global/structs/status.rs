@@ -2,6 +2,8 @@ use tui::layout::Rect;
 use tui_additions::widgets::TextField;
 use typemap::Key;
 
+use crate::config::Provider;
+
 /// a struct for storing different info, currently only stores one info
 #[derive(Clone)]
 pub struct Status {
@@ -17,6 +19,10 @@ pub struct Status {
     pub exit: bool,
     /// stores the area of the previously rendered frame
     pub prev_frame: Option<Rect>,
+    /// stores global provider (yt/inv)
+    pub provider: Provider,
+    /// if provider is updated, lasts for 1 event loop
+    pub provider_updated: bool,
 }
 
 impl Key for Status {
@@ -32,6 +38,8 @@ impl Default for Status {
             command_capture: None,
             exit: false,
             prev_frame: None,
+            provider: Provider::YouTube,
+            provider_updated: false,
         }
     }
 }
