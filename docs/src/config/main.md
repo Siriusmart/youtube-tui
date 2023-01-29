@@ -91,7 +91,7 @@ Usually you don't want to use the max resolution as it will create a large gap b
 
 ### Provider
 
-This changes the `${url}` and `${embed_url}` of videos, allowing you to watch videos from Invidious if it is restricted on YouTube.
+This changes the `${url}` and `${embed-url}` of videos, allowing you to watch videos from Invidious if it is restricted on YouTube.
 
 (Don't always use Invidious if YouTube is working, because first of all the load time if gonna be much slower, and secondly you will be DDoSing Invidious)
 

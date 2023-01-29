@@ -58,7 +58,9 @@ impl CommandBindings {
         };
 
         if let Some(command) = command {
-            out.push_str("&&");
+            if !out.is_empty() {
+                out.push_str("&&");
+            }
             out.push_str(command);
         }
 
@@ -151,14 +153,24 @@ fn get_command<'a>(
 // default functions
 
 fn global_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
-    HashMap::default()
+    HashMap::from([
+        (
+            KeyCodeSerde::Char('f'),
+            HashMap::from([(2, String::from("run ${browser} '${url}'"))]),
+        ),
+        (
+            KeyCodeSerde::Char('c'),
+            HashMap::from([(2, String::from("cp ${url}"))]),
+        ),
+    ])
 }
 
 fn search_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
-    HashMap::from([(
-        KeyCodeSerde::Char('f'),
-        HashMap::from([(2, String::from("run ${browser} ${url}"))]),
-    )])
+    HashMap::from([
+        (KeyCodeSerde::Char('a'), HashMap::from([(2, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video"))])),
+        (KeyCodeSerde::Char('A'), HashMap::from([(1, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video --loop-playlist=inf --shuffle"))])),
+        (KeyCodeSerde::Char('p'), HashMap::from([(2, String::from("run mpv '${hover-url}'"))])),
+    ])
 }
 
 fn channel_main_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
@@ -166,23 +178,43 @@ fn channel_main_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
 }
 
 fn channel_playlists_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
-    HashMap::default()
+    HashMap::from([
+        (KeyCodeSerde::Char('a'), HashMap::from([(2, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video"))])),
+        (KeyCodeSerde::Char('A'), HashMap::from([(1, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video --loop-playlist=inf --shuffle"))])),
+        (KeyCodeSerde::Char('p'), HashMap::from([(2, String::from("run mpv '${hover-url}'"))])),
+    ])
 }
 
 fn channel_videos_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
-    HashMap::default()
+    HashMap::from([
+        (KeyCodeSerde::Char('a'), HashMap::from([(2, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video"))])),
+        (KeyCodeSerde::Char('A'), HashMap::from([(1, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video --loop-playlist=inf --shuffle"))])),
+        (KeyCodeSerde::Char('p'), HashMap::from([(2, String::from("run mpv '${hover-url}'"))])),
+    ])
 }
 
 fn playlist_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
-    HashMap::default()
+    HashMap::from([
+        (KeyCodeSerde::Char('a'), HashMap::from([(2, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video"))])),
+        (KeyCodeSerde::Char('A'), HashMap::from([(1, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video --loop-playlist=inf --shuffle"))])),
+        (KeyCodeSerde::Char('p'), HashMap::from([(2, String::from("run mpv '${hover-url}'"))])),
+    ])
 }
 
 fn popular_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
-    HashMap::default()
+    HashMap::from([
+        (KeyCodeSerde::Char('a'), HashMap::from([(2, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video"))])),
+        (KeyCodeSerde::Char('A'), HashMap::from([(1, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video --loop-playlist=inf --shuffle"))])),
+        (KeyCodeSerde::Char('p'), HashMap::from([(2, String::from("run mpv '${hover-url}'"))])),
+    ])
 }
 
 fn trending_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
-    HashMap::default()
+    HashMap::from([
+        (KeyCodeSerde::Char('a'), HashMap::from([(2, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video"))])),
+        (KeyCodeSerde::Char('A'), HashMap::from([(1, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video --loop-playlist=inf --shuffle"))])),
+        (KeyCodeSerde::Char('p'), HashMap::from([(2, String::from("run mpv '${hover-url}'"))])),
+    ])
 }
 
 fn video_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
@@ -190,5 +222,9 @@ fn video_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
 }
 
 fn watchhistory_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
-    HashMap::default()
+    HashMap::from([
+        (KeyCodeSerde::Char('a'), HashMap::from([(2, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video"))])),
+        (KeyCodeSerde::Char('A'), HashMap::from([(1, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video --loop-playlist=inf --shuffle"))])),
+        (KeyCodeSerde::Char('p'), HashMap::from([(2, String::from("run mpv '${hover-url}'"))]))
+    ])
 }

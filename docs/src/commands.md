@@ -6,6 +6,8 @@ Commands can be entered to the TUI by pressing the `:` key, the same as in Vim. 
 
 **Loadpage commands** can also be used when launching, for example `youtube-tui loadpage popular` or `youtube-tui popular`.
 
+> Commands can be joined together using `;;`.
+
 Below are the avaliable commands:
 
 ## Loadpage
@@ -53,3 +55,15 @@ Text commands generates a *text only response* without launching the TUI.
 help
 version
 ```
+
+## Command bindings
+
+Commands can be binded to keys just like normal key bindings, bindings can be edited in `commandbindings.yml`. Below are the default bindings:
+
+|Key|Description|
+|---|---|
+|`Ctrl + F`|Open page in browser|
+|`Ctrl + C`|Copy page url|
+|`Ctrl + P`|Play hovered video|
+|`Ctrl + A`|Play hovered audio|
+|`Shift + A`|Play hovered audio on repeat (shuffled if hovering a playlist)|

@@ -1,6 +1,6 @@
 use crate::{
     config::{AppearanceConfig, MainConfig, MinDimentions},
-    global::functions::{clear_envs, run_command, set_envs},
+    global::functions::{clear_envs, run_command, set_envs, update_provider},
 };
 
 use super::{message::Message, page::Page, status::Status, StateEnvs};
@@ -139,6 +139,7 @@ impl TaskQueue {
             } else {
                 Message::None
             };
+            update_provider(&mut framework.data);
             Self::render(framework, terminal)?;
         }
 
@@ -167,6 +168,7 @@ impl TaskQueue {
             } else {
                 Message::None
             };
+            update_provider(&mut framework.data);
             Self::render(framework, terminal)?;
         }
 

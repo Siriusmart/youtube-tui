@@ -9,7 +9,9 @@ use tui_additions::{
 use crate::{
     config::{CommandBindings, KeyBindingsConfig, MainConfig},
     global::{
-        functions::{apply_envs, clear_envs, command_capture, run_command, set_envs},
+        functions::{
+            apply_envs, clear_envs, command_capture, run_command, set_envs, update_provider,
+        },
         structs::{KeyAction, Message, Page, StateEnvs, Status, Task, Tasks},
     },
 };
@@ -96,16 +98,15 @@ pub fn run(
                 }
             }
             Event::Key(key) => {
-                let command_to_run = apply_envs(
-                    framework
-                        .data
-                        .global
-                        .get::<CommandBindings>()
-                        .unwrap()
-                        .get_command(&key, framework.data.state.get::<Page>().unwrap()),
-                );
+                // check if key binds to any commands
+                let command_to_run = framework
+                    .data
+                    .global
+                    .get::<CommandBindings>()
+                    .unwrap()
+                    .get_command(&key, framework.data.state.get::<Page>().unwrap());
                 if !command_to_run.is_empty() {
-                    run_command(&command_to_run, framework, terminal);
+                    run_command(&apply_envs(command_to_run), framework, terminal);
                     framework
                         .data
                         .state
@@ -215,7 +216,8 @@ pub fn run(
                             } else {
                                 let status = framework.data.global.get_mut::<Status>().unwrap();
                                 status.render_image = true;
-                                status.provider_updated = true;
+
+                                update_provider(&mut framework.data);
                                 framework
                                     .data
                                     .state
@@ -237,7 +239,8 @@ pub fn run(
                             } else {
                                 let status = framework.data.global.get_mut::<Status>().unwrap();
                                 status.render_image = true;
-                                status.provider_updated = true;
+
+                                update_provider(&mut framework.data);
                                 framework
                                     .data
                                     .state

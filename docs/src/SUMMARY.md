@@ -11,6 +11,7 @@
 	- [main](config/main.md)
 	- [commands](config/commands.md)
 	- [keybindings](config/keybindings.md)
+	- [commandbindings](config/commandbindings.md)
 	- [pages](config/pages.md)
 	- [appearance](config/appearance.md)
 	- [search](config/search.md)

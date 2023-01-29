@@ -11,7 +11,10 @@ use std::{env, io::Stdout, thread};
 use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::framework::Framework;
 
-use super::{fake_rand_range, from_channel_url, from_playlist_url, from_video_url, set_clipboard};
+use super::{
+    fake_rand_range, from_channel_url, from_playlist_url, from_video_url, set_clipboard,
+    update_provider,
+};
 
 /// runs text command - command from the command line (not TUI) which response is just a string
 pub fn text_command(command: &str) -> Option<String> {
@@ -67,7 +70,8 @@ pub fn run_single_command(
             status.provider.rotate();
             status.provider_updated = true;
             *framework.data.global.get_mut::<Message>().unwrap() =
-                Message::Success(format!("Provider updated to {}", status.provider.as_str()))
+                Message::Success(format!("Provider updated to {}", status.provider.as_str()));
+            update_provider(&mut framework.data);
         }
         ["loadpage"] => {
             *framework.data.global.get_mut::<Message>().unwrap() =

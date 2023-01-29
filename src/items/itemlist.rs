@@ -13,7 +13,7 @@ use super::ItemInfo;
 use crate::{
     config::{AppearanceConfig, KeyBindingsConfig, MainConfig, Provider, Search},
     global::{
-        functions::{download_all_images, set_envs},
+        functions::{download_all_images, set_envs, update_provider},
         structs::{
             ChannelDisplayPage, ChannelDisplayPageType, FullChannelItem, FullPlaylistItem,
             FullVideoItem, InvidiousClient, Item, KeyAction, MainMenuPage, Message,
@@ -34,45 +34,54 @@ pub struct ItemList {
 }
 
 impl ItemList {
-    pub fn inflate_provider_update(
+    pub fn infalte_item_update(
         &self,
-        page: &Page,
         mainconfig: &MainConfig,
         status: &Status,
     ) -> Vec<(String, String)> {
-        match page {
-            Page::Search(search) => vec![(
-                String::from("url"),
-                match status.provider {
-                    Provider::YouTube => {
-                        format!("'https://youtube.com/results?{}'", search.to_string())
-                    }
-                    Provider::Invidious => format!(
-                        "'{}/search?{}'",
-                        mainconfig.invidious_instance,
-                        search.to_string()
+        match &self.items[self.textlist.selected] {
+            Item::MiniVideo(MiniVideoItem { id, .. })
+            | Item::FullVideo(FullVideoItem { id, .. }) => {
+                vec![(
+                    String::from("hover-url"),
+                    format!(
+                        "{}/watch?v={id}",
+                        match status.provider {
+                            Provider::YouTube => "https://youtube.com",
+                            Provider::Invidious => &mainconfig.invidious_instance,
+                        }
                     ),
-                },
-            )],
-            Page::MainMenu(MainMenuPage::Popular) => vec![(
-                String::from("url"),
-                match status.provider {
-                    Provider::YouTube => String::from("'https://youtube.com'"),
-                    Provider::Invidious => {
-                        format!("'{}/feed/popular'", mainconfig.invidious_instance)
-                    }
-                },
-            )],
-            Page::MainMenu(MainMenuPage::Trending) => vec![(
-                String::from("url"),
-                match status.provider {
-                    Provider::YouTube => String::from("'https://www.youtube.com/feed/trending'"),
-                    Provider::Invidious => {
-                        format!("{}/feed/trending'", mainconfig.invidious_instance)
-                    }
-                },
-            )],
-            _ => Vec::new(),
+                )]
+            }
+            Item::MiniPlaylist(MiniPlaylistItem { id, .. })
+            | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
+                vec![(
+                    String::from("hover-url"),
+                    format!(
+                        "{}/playlist?list={id}",
+                        match status.provider {
+                            Provider::YouTube => "https://youtube.com",
+                            Provider::Invidious => &mainconfig.invidious_instance,
+                        }
+                    ),
+                )]
+            }
+            Item::MiniChannel(MiniChannelItem { id, .. })
+            | Item::FullChannel(FullChannelItem { id, .. }) => {
+                vec![(
+                    String::from("hover-url"),
+                    format!(
+                        "{}/channel/{id}",
+                        match status.provider {
+                            Provider::YouTube => "https://youtube.com",
+                            Provider::Invidious => &mainconfig.invidious_instance,
+                        }
+                    ),
+                )]
+            }
+            Item::Page(_) | Item::Unknown(_) => {
+                vec![(String::from("hover-url"), String::from("not avaliable"))]
+            }
         }
     }
 
@@ -190,21 +199,16 @@ impl FrameworkItem for ItemList {
         }
 
         let status = framework.data.global.get::<Status>().unwrap();
+        let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
+        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
 
         if status.provider_updated {
             set_envs(
-                self.inflate_provider_update(
-                    framework.data.state.get::<Page>().unwrap(),
-                    framework.data.global.get::<MainConfig>().unwrap(),
-                    status,
-                )
-                .into_iter(),
+                self.infalte_item_update(mainconfig, status).into_iter(),
                 &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
             );
         }
 
-        let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
-        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
         self.update_appearance(appearance, mainconfig, &info);
 
         // creates the grid
@@ -299,14 +303,10 @@ impl FrameworkItem for ItemList {
             _ => unreachable!("item `ItemList` cannot be used in `{page:?}`"),
         }
 
-        if framework
-            .data
-            .global
-            .get::<MainConfig>()
-            .unwrap()
-            .images
-            .display()
-        {
+        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
+        let status = framework.data.global.get::<Status>().unwrap();
+
+        if mainconfig.images.display() {
             // download thumbnails of all videos in the list
             download_all_images(self.items.iter().map(|item| item.into()).collect());
         }
@@ -316,14 +316,10 @@ impl FrameworkItem for ItemList {
         self.update();
 
         set_envs(
-            self.inflate_provider_update(
-                framework.data.state.get::<Page>().unwrap(),
-                framework.data.global.get::<MainConfig>().unwrap(),
-                framework.data.global.get::<Status>().unwrap(),
-            )
-            .into_iter(),
+            self.infalte_item_update(mainconfig, status).into_iter(),
             &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
         );
+        update_provider(framework.data);
 
         Ok(())
     }
@@ -361,6 +357,15 @@ impl FrameworkItem for ItemList {
 
         // only create a render task if the key event actually changed something
         if updated {
+            set_envs(
+                self.infalte_item_update(
+                    framework.data.global.get::<MainConfig>().unwrap(),
+                    framework.data.global.get::<Status>().unwrap(),
+                )
+                .into_iter(),
+                &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+            );
+
             framework
                 .data
                 .global
@@ -430,6 +435,14 @@ impl FrameworkItem for ItemList {
         }
 
         self.update();
+        set_envs(
+            self.infalte_item_update(
+                framework.data.global.get::<MainConfig>().unwrap(),
+                framework.data.global.get::<Status>().unwrap(),
+            )
+            .into_iter(),
+            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+        );
 
         // render the new image
         framework

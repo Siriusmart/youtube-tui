@@ -1,11 +1,11 @@
 use super::ItemInfo;
 use crate::{
-    config::{AppearanceConfig, KeyBindingsConfig, MainConfig},
+    config::{AppearanceConfig, KeyBindingsConfig, MainConfig, Provider},
     global::{
-        functions::download_all_images,
+        functions::{download_all_images, set_envs},
         structs::{
             ChannelDisplayPageType, InvidiousClient, Item, KeyAction, Message, Page,
-            SingleItemPage, Status, Task, Tasks,
+            SingleItemPage, StateEnvs, Status, Task, Tasks,
         },
     },
 };
@@ -49,6 +49,43 @@ impl Default for ChannelDisplay {
 }
 
 impl ChannelDisplay {
+    fn infalte_item_update(
+        &self,
+        mainconfig: &MainConfig,
+        status: &Status,
+    ) -> Vec<(String, String)> {
+        match self {
+            ChannelDisplay::Videos {
+                videos, textlist, ..
+            } => vec![(
+                String::from("hover-url"),
+                format!(
+                    "{}/watch?v={}",
+                    match status.provider {
+                        Provider::YouTube => "https://youtube.com",
+                        Provider::Invidious => &mainconfig.invidious_instance,
+                    },
+                    videos[textlist.selected].id().unwrap_or_default()
+                ),
+            )],
+            ChannelDisplay::Playlists {
+                playlists,
+                textlist,
+                ..
+            } => vec![(
+                String::from("hover-url"),
+                format!(
+                    "{}/playlist?list={}",
+                    match status.provider {
+                        Provider::YouTube => "https://youtube.com",
+                        Provider::Invidious => &mainconfig.invidious_instance,
+                    },
+                    playlists[textlist.selected].id().unwrap_or_default()
+                ),
+            )],
+            _ => Vec::new(),
+        }
+    }
     /// update the style of the item (colours, etc), ran on ever render
     fn update_appearance(
         &mut self,
@@ -302,6 +339,14 @@ impl FrameworkItem for ChannelDisplay {
                         .unwrap()
                         .render_image = true;
                     iteminfo.item = Some(videos[textlist.selected].clone());
+                    set_envs(
+                        self.infalte_item_update(
+                            framework.data.global.get::<MainConfig>().unwrap(),
+                            framework.data.global.get::<Status>().unwrap(),
+                        )
+                        .into_iter(),
+                        &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+                    );
                 }
             }
             Self::Playlists {
@@ -430,6 +475,12 @@ impl FrameworkItem for ChannelDisplay {
             }
         }
 
+        set_envs(
+            self.infalte_item_update(mainconfig, framework.data.global.get::<Status>().unwrap())
+                .into_iter(),
+            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+        );
+
         Ok(())
     }
 
@@ -442,7 +493,7 @@ impl FrameworkItem for ChannelDisplay {
         _absolute_y: u16,
     ) -> bool {
         match self {
-            Self::None | Self::Main { .. } => false,
+            Self::None | Self::Main { .. } => return false,
             Self::Videos { textlist, grid, .. } | Self::Playlists { textlist, grid, .. } => {
                 let chunk = grid
                     .chunks(
@@ -492,9 +543,17 @@ impl FrameworkItem for ChannelDisplay {
                     .get_mut::<Status>()
                     .unwrap()
                     .render_image = true;
-
-                true
             }
         }
+        set_envs(
+            self.infalte_item_update(
+                framework.data.global.get::<MainConfig>().unwrap(),
+                framework.data.global.get::<Status>().unwrap(),
+            )
+            .into_iter(),
+            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+        );
+
+        true
     }
 }

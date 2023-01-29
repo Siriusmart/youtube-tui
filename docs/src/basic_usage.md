@@ -61,6 +61,10 @@ Command mode is like that of Vim, it can be started by pressing `:` when nothing
 
 More about commands in the [next chapter](commands.md).
 
+## Command bindings
+
+Keys can be binded to a command, more about it in the next chapter.
+
 ## Buttons
 
 Buttons have no use on their own, but allows you to navigate between pages.

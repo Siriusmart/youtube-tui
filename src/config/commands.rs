@@ -35,7 +35,7 @@ impl From<CommandsConfigSerde> for CommandsConfig {
     }
 }
 
-/// Hashmaps are better formatted in YAML, impls Into<CommandsConfig>
+/// Hashmaps are better formatted in YAML, impls `Into<CommandsConfig>`
 // uses vector to keep the ordering of the commands, and hashmap to have that key - value pair look
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CommandsConfigSerde {
@@ -72,16 +72,16 @@ fn video_default() -> Vec<HashMap<String, String>> {
     vec![
         HashMap::from([(
             String::from("Play video"),
-            String::from("run ${video-player} ${embed-url}"),
+            String::from("run ${video-player} '${embed-url}'"),
         )]),
         HashMap::from([(
             String::from("Play audio"),
-            String::from("run ${terminal-emulator} ${video-player} ${embed-url} --no-video"),
+            String::from("run ${terminal-emulator} ${video-player} '${embed-url}' --no-video"),
         )]),
         HashMap::from([(
             String::from("Play audio (loop)"),
             String::from(
-                "run ${terminal-emulator} ${video-player} ${embed-url} --no-video --loop-file=inf",
+                "run ${terminal-emulator} ${video-player} '${embed-url}' --no-video --loop-file=inf",
             ),
         )]),
         HashMap::from([(
@@ -90,18 +90,18 @@ fn video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Open in browser"),
-            String::from("run ${browser} ${url}"),
+            String::from("run ${browser} '${url}'"),
         )]),
         HashMap::from([(
             String::from("Download video (webm)"),
             String::from(
-                "run ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${embed-url}",
+                "run ${terminal-emulator} ${youtube-downloader} -o ${download-path} '${embed-url}'",
             ),
         )]),
         HashMap::from([(
             String::from("Download audio (opus)"),
             String::from(
-                "run ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${embed-url} -x",
+                "run ${terminal-emulator} ${youtube-downloader} -o ${download-path} '${embed-url}' -x",
             ),
         )]),
         HashMap::from([(
@@ -136,7 +136,7 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Open in browser"),
-            String::from("run ${browser} ${url}"),
+            String::from("run ${browser} '${url}'"),
         )]),
         HashMap::from([(
             String::from("Download all video (webm)"),

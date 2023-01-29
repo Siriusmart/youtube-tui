@@ -192,6 +192,13 @@ impl Item {
             _ => Err(Errors::StrError("not a mini channel")),
         }
     }
+
+    pub fn fullchannel(&self) -> Result<&FullChannelItem, Errors> {
+        match self {
+            Self::FullChannel(fullchannel) => Ok(fullchannel),
+            _ => Err(Errors::StrError("not a full channel")),
+        }
+    }
 }
 
 impl Item {

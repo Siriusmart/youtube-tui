@@ -132,7 +132,7 @@ impl SingleVideoItem {
                 String::from("url"),
                 match status.provider {
                     Provider::Invidious => format!(
-                        "'{}/watch?v={}'",
+                        "{}/watch?v={}",
                         mainconfig.invidious_instance, video_item.id
                     ),
                     Provider::YouTube => format!("'https://youtu.be/{}'", video_item.id),
@@ -142,55 +142,9 @@ impl SingleVideoItem {
             (
                 String::from("embed-url"),
                 match status.provider {
-                    Provider::Invidious => format!(
-                        "'{}/embed/{}'",
-                        mainconfig.invidious_instance, video_item.id
-                    ),
-                    Provider::YouTube => format!("'https://youtube.com/embed/{}'", video_item.id),
-                },
-            ),
-            (String::from("channel-id"), video_item.channel_id.clone()),
-            (
-                String::from("channel-url"),
-                match status.provider {
-                    Provider::YouTube => {
-                        format!("https://www.youtube.com/channel/{}", video_item.channel_id)
+                    Provider::Invidious => {
+                        format!("{}/embed/{}", mainconfig.invidious_instance, video_item.id)
                     }
-                    Provider::Invidious => format!(
-                        "{}/channel/{}",
-                        mainconfig.invidious_instance, video_item.channel_id
-                    ),
-                },
-            ),
-        ]
-    }
-
-    pub fn inflate_provider_update(
-        &self,
-        mainconfig: &MainConfig,
-        status: &Status,
-        item: &Item,
-    ) -> Vec<(String, String)> {
-        let video_item = item.fullvideo().unwrap();
-
-        vec![
-            (
-                String::from("url"),
-                match status.provider {
-                    Provider::Invidious => format!(
-                        "'{}/watch?v={}'",
-                        mainconfig.invidious_instance, video_item.id
-                    ),
-                    Provider::YouTube => format!("'https://youtu.be/{}'", video_item.id),
-                },
-            ),
-            (
-                String::from("embed-url"),
-                match status.provider {
-                    Provider::Invidious => format!(
-                        "'{}/embed/{}'",
-                        mainconfig.invidious_instance, video_item.id
-                    ),
                     Provider::YouTube => format!("'https://youtube.com/embed/{}'", video_item.id),
                 },
             ),
@@ -318,67 +272,14 @@ impl SinglePlaylistItem {
         vec![
             (String::from("id"), playlist_item.id.clone()),
             (String::from("channel-id"), playlist_item.channel_id.clone()),
-        ]
-    }
-
-    pub fn inflate_provider_update(
-        &self,
-        mainconfig: &MainConfig,
-        status: &Status,
-        item: &Item,
-    ) -> Vec<(String, String)> {
-        let playlist_item = item.fullplaylist().unwrap();
-
-        vec![
             (
-                String::from("url"),
-                match status.provider {
-                    Provider::YouTube => {
-                        format!("https://www.youtube.com/playlist?list={}", playlist_item.id)
-                    }
-                    Provider::Invidious => format!(
-                        "{}/playlist?list={}",
-                        mainconfig.invidious_instance, playlist_item.id
-                    ),
-                },
-            ),
-            (
-                String::from("all-videos"),
-                match status.provider {
-                    Provider::YouTube => playlist_item
-                        .videos
-                        .iter()
-                        .map(|video| {
-                            format!("'https://youtu.be/{}'", video.minivideo().unwrap().id)
-                        })
-                        .collect::<Vec<_>>()
-                        .join(" "),
-                    Provider::Invidious => playlist_item
-                        .videos
-                        .iter()
-                        .map(|video| {
-                            format!(
-                                "'{}/watch?v={}'",
-                                mainconfig.invidious_instance,
-                                video.minivideo().unwrap().id
-                            )
-                        })
-                        .collect::<Vec<_>>()
-                        .join(" "),
-                },
-            ),
-            (
-                String::from("channel-url"),
-                match status.provider {
-                    Provider::YouTube => format!(
-                        "https://www.youtube.com/channel/{}",
-                        playlist_item.channel_id
-                    ),
-                    Provider::Invidious => format!(
-                        "{}/channel/{}",
-                        mainconfig.invidious_instance, playlist_item.channel_id
-                    ),
-                },
+                String::from("all-ids"),
+                playlist_item
+                    .videos
+                    .iter()
+                    .map(|video| video.minivideo().unwrap().id.as_str())
+                    .collect::<Vec<&str>>()
+                    .join(" "),
             ),
         ]
     }
@@ -424,32 +325,40 @@ impl SingleItemType {
             Self::None => Vec::new(),
         }
     }
-
-    pub fn inflate_provider_update(
-        &self,
-        mainconfig: &MainConfig,
-        status: &Status,
-        item: &Option<Item>,
-    ) -> Vec<(String, String)> {
-        let item = if let Some(item) = item.as_ref() {
-            item
-        } else {
-            return Vec::new();
-        };
-
-        match self {
-            Self::Video(singlevideoitem) => {
-                singlevideoitem.inflate_provider_update(mainconfig, status, item)
-            }
-            Self::Playlist(singleplaylistitem) => {
-                singleplaylistitem.inflate_provider_update(mainconfig, status, item)
-            }
-            Self::None => Vec::new(),
-        }
-    }
 }
 
 impl SingleItem {
+    fn infalte_item_update(
+        &self,
+        mainconfig: &MainConfig,
+        status: &Status,
+    ) -> Vec<(String, String)> {
+        if let SingleItemType::Playlist(singleplaylistitem) = &self.r#type {
+            if singleplaylistitem.videos_view.selected == 0 {
+                return vec![(String::from("hover-url"), String::from("not avaliable"))];
+            }
+            vec![(
+                String::from("hover-url"),
+                match &self.item {
+                    Some(item) => format!(
+                        "{}/watch?v={}",
+                        match status.provider {
+                            Provider::YouTube => "https://youtube.com",
+                            Provider::Invidious => &mainconfig.invidious_instance,
+                        },
+                        item.fullplaylist().unwrap().videos
+                            [singleplaylistitem.videos_view.selected - 1]
+                            .minivideo()
+                            .unwrap()
+                            .id
+                    ),
+                    None => String::from("not avaliable"),
+                },
+            )]
+        } else {
+            vec![(String::from("hover-url"), String::from("not avaliable"))]
+        }
+    }
     /// update colours and layout every render
     fn update_appearance(
         &mut self,
@@ -573,25 +482,18 @@ impl FrameworkItem for SingleItem {
         popup_render: bool,
         info: tui_additions::framework::ItemInfo,
     ) {
+        let status = framework.data.global.get::<Status>().unwrap();
         if popup_render {
             return;
         }
 
-        if framework
-            .data
-            .global
-            .get::<Status>()
-            .unwrap()
-            .provider_updated
-        {
+        if status.provider_updated {
             set_envs(
-                self.r#type
-                    .inflate_provider_update(
-                        framework.data.global.get::<MainConfig>().unwrap(),
-                        framework.data.global.get::<Status>().unwrap(),
-                        &self.item,
-                    )
-                    .into_iter(),
+                self.infalte_item_update(
+                    framework.data.global.get::<MainConfig>().unwrap(),
+                    status,
+                )
+                .into_iter(),
                 &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
             );
         }
@@ -611,18 +513,20 @@ impl FrameworkItem for SingleItem {
         match &mut self.r#type {
             SingleItemType::Video(typeinfo) => {
                 // 2 by 1 grid, item info in the first cell and textlist at the second
-                typeinfo.update_provider().into_iter().for_each(|index| {
-                    typeinfo.textlist.items[index] = typeinfo.commands[index].0.clone().replace(
-                        "${provider}",
-                        framework
-                            .data
-                            .global
-                            .get::<Status>()
-                            .unwrap()
-                            .provider
-                            .as_str(),
-                    )
-                });
+                if status.provider_updated {
+                    typeinfo.update_provider().into_iter().for_each(|index| {
+                        typeinfo.textlist.items[index] = typeinfo.commands[index].0.clone().replace(
+                            "${provider}",
+                            framework
+                                .data
+                                .global
+                                .get::<Status>()
+                                .unwrap()
+                                .provider
+                                .as_str(),
+                        )
+                    });
+                }
                 self.iteminfo
                     .render(frame, framework, chunks[0], popup_render, info);
                 typeinfo.textlist.set_height(chunks[1].height);
@@ -634,22 +538,22 @@ impl FrameworkItem for SingleItem {
                 //
                 // item info in the first cell, textlists in the second, hovering video on 3rd (if
                 // present)
-                self.iteminfo
-                    .render(frame, framework, chunks[0], popup_render, info);
                 if typeinfo.is_commands_view {
-                    typeinfo.update_provider().into_iter().for_each(|index| {
-                        typeinfo.commands_view.items[index] =
-                            typeinfo.commands[index].0.clone().replace(
-                                "${provider}",
-                                framework
-                                    .data
-                                    .global
-                                    .get::<Status>()
-                                    .unwrap()
-                                    .provider
-                                    .as_str(),
-                            )
-                    });
+                    if status.provider_updated {
+                        typeinfo.update_provider().into_iter().for_each(|index| {
+                            typeinfo.commands_view.items[index] =
+                                typeinfo.commands[index].0.clone().replace(
+                                    "${provider}",
+                                    framework
+                                        .data
+                                        .global
+                                        .get::<Status>()
+                                        .unwrap()
+                                        .provider
+                                        .as_str(),
+                                )
+                        });
+                    }
                     typeinfo.commands_view.set_height(chunks[1].height);
                     frame.render_widget(typeinfo.commands_view.clone(), chunks[1]);
                 } else {
@@ -666,6 +570,8 @@ impl FrameworkItem for SingleItem {
                         );
                     }
                 }
+                self.iteminfo
+                    .render(frame, framework, chunks[0], popup_render, info);
             }
             SingleItemType::None => {}
         }
@@ -726,28 +632,6 @@ impl FrameworkItem for SingleItem {
             }
         };
         self.iteminfo.item = self.item.clone();
-        // need to update provider every time the item loads or else it will display `${provider}`
-        // instead of the actual provider (e.g. `YouTube`)
-        set_envs(
-            self.r#type
-                .inflate_load(
-                    mainconfig,
-                    framework.data.global.get::<Status>().unwrap(),
-                    &self.item,
-                )
-                .into_iter(),
-            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
-        );
-        set_envs(
-            self.r#type
-                .inflate_provider_update(
-                    mainconfig,
-                    framework.data.global.get::<Status>().unwrap(),
-                    &self.item,
-                )
-                .into_iter(),
-            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
-        );
 
         if let Some(item) = &self.item {
             if item.is_unknown() {
@@ -767,6 +651,26 @@ impl FrameworkItem for SingleItem {
             watch_history.push(item, max_watch_history);
             watch_history.save()?;
         }
+
+        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
+        // need to update provider every time the item loads or else it will display `${provider}`
+        // instead of the actual provider (e.g. `YouTube`)
+        set_envs(
+            self.r#type
+                .inflate_load(
+                    mainconfig,
+                    framework.data.global.get::<Status>().unwrap(),
+                    &self.item,
+                )
+                .into_iter(),
+            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+        );
+
+        set_envs(
+            self.infalte_item_update(mainconfig, framework.data.global.get::<Status>().unwrap())
+                .into_iter(),
+            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+        );
 
         Ok(())
     }
@@ -823,7 +727,7 @@ impl FrameworkItem for SingleItem {
                         _ => false,
                     }
                 } else {
-                    match action {
+                    let updated = match action {
                         // checks if it is updated, if it is and selected is not 0 (is hovering on
                         // a video), then also need to update the iteminfo
                         KeyAction::MoveUp => {
@@ -838,6 +742,8 @@ impl FrameworkItem for SingleItem {
                                     .unwrap()
                                     .priority
                                     .push(Task::ClearPage);
+                            } else if singleplaylistitem.videos_view.selected == 0 {
+                                return Ok(());
                             }
 
                             let updated = singleplaylistitem.videos_view.up().is_ok();
@@ -851,6 +757,12 @@ impl FrameworkItem for SingleItem {
                             updated
                         }
                         KeyAction::MoveDown => {
+                            if singleplaylistitem.videos_view.selected
+                                == singleplaylistitem.videos_view.items.len() - 1
+                            {
+                                return Ok(());
+                            }
+
                             let updated = singleplaylistitem.videos_view.down().is_ok();
                             if updated && singleplaylistitem.videos_view.selected != 0 {
                                 singleplaylistitem.hovered_video.item = Some(
@@ -862,17 +774,28 @@ impl FrameworkItem for SingleItem {
                             updated
                         }
                         KeyAction::MoveLeft => {
-                            let updated = singleplaylistitem.videos_view.first().is_ok();
-                            if updated && singleplaylistitem.videos_view.selected != 0 {
-                                singleplaylistitem.hovered_video.item = Some(
-                                    self.item.as_ref().unwrap().fullplaylist()?.videos
-                                        [singleplaylistitem.videos_view.selected - 1]
-                                        .clone(),
-                                );
+                            if singleplaylistitem.videos_view.selected != 0 {
+                                framework
+                                    .data
+                                    .state
+                                    .get_mut::<Tasks>()
+                                    .unwrap()
+                                    .priority
+                                    .push(Task::ClearPage);
+                            } else if singleplaylistitem.videos_view.selected == 0 {
+                                return Ok(());
                             }
+
+                            let updated = singleplaylistitem.videos_view.first().is_ok();
+                            singleplaylistitem.hovered_video.item = None;
                             updated
                         }
                         KeyAction::MoveRight => {
+                            if singleplaylistitem.videos_view.selected
+                                == singleplaylistitem.videos_view.items.len() - 1
+                            {
+                                return Ok(());
+                            }
                             let updated = singleplaylistitem.videos_view.last().is_ok();
                             if updated && singleplaylistitem.videos_view.selected != 0 {
                                 singleplaylistitem.hovered_video.item = Some(
@@ -912,19 +835,32 @@ impl FrameworkItem for SingleItem {
                             true
                         }
                         _ => false,
+                    };
+
+                    if updated {
+                        framework
+                            .data
+                            .global
+                            .get_mut::<Status>()
+                            .unwrap()
+                            .render_image = true;
+                        set_envs(
+                            self.infalte_item_update(
+                                framework.data.global.get::<MainConfig>().unwrap(),
+                                framework.data.global.get::<Status>().unwrap(),
+                            )
+                            .into_iter(),
+                            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+                        );
                     }
+
+                    updated
                 }
             }
             SingleItemType::None => false,
         };
 
         if updated {
-            framework
-                .data
-                .global
-                .get_mut::<Status>()
-                .unwrap()
-                .render_image = true;
             framework
                 .data
                 .state
@@ -1006,6 +942,15 @@ impl FrameworkItem for SingleItem {
         }
 
         self.update();
+
+        set_envs(
+            self.infalte_item_update(
+                framework.data.global.get::<MainConfig>().unwrap(),
+                framework.data.global.get::<Status>().unwrap(),
+            )
+            .into_iter(),
+            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+        );
 
         // render the new image
         framework

@@ -76,6 +76,7 @@ pub fn init(
     Ok(())
 }
 
+/// reload all config files
 pub fn load_configs(framework: &mut FrameworkClean) -> Result<(), Box<dyn Error>> {
     let home_dir = home_dir().unwrap();
     let config_path = home_dir.join(".config/youtube-tui/");

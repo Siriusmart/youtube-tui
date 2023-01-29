@@ -58,12 +58,12 @@ It also includes features like:
 
 - Vim-like commands
 - Mouse support
+- Entensible keybindings system
 
 ### What it doesn't have
 
-- Binding commands to keys (first priority)
-- Channel search (will implement)
-- Subscriptions (will implement)
+- Subscriptions (first priority)
+- Download library (will implement)
 
 ## How to contribute
 

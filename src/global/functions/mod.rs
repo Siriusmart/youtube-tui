@@ -21,3 +21,5 @@ mod from_url;
 pub use from_url::*;
 mod envs;
 pub use envs::*;
+mod update_provider;
+pub use update_provider::*;

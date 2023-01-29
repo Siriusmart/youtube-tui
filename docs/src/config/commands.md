@@ -5,6 +5,7 @@ The commands config file decides what options (that will run a certain command o
 ## Example commands config
 
 ```yaml
+launch_command: loadpage popular ;; flush ;; history clear # suggested to set page to watchhistory if you don't want to wait for popular to load
 video:
 - Play video: ${video-player} ${embed-url}
 - Play audio: ${terminal-emulator} ${video-player} ${embed-url} --no-video
@@ -34,6 +35,7 @@ Notice that a lot of the commands contains the `${label}` pattern, this actually
 Replacing all these with known values it might look something like this:
 
 ```yaml
+launch_command: loadpage popular ;; flush ;; history clear
 video:
 - Play video: mpv 'https://youtube.com/embed/dQw4w9WgXcQ'
 - Play audio: konsole -e mpv 'https://youtube.com/embed/dQw4w9WgXcQ' --no-video
@@ -52,14 +54,6 @@ playlist:
 ```
 
 > Global commands can also be used here. (Ones that start with an `:`).
-
-## Item commands
-
-(will be replaced by global vim-like commands in the next major version)
-
-Notice that there is another pattern in the commands, it is the `%label%` commands. They are special cases that are consumed by the item and is never actually ran as a system command.
-
-For instance `%switch-provider%` toggles the provider between `YouTube` and `Invidious`.
 
 <hr>
 
@@ -83,15 +77,10 @@ Does not include custom env set in `main.yml`.
 
 |Name|Page|Value|
 |---|---|---|
-|`url`|video & playlist|String url to the web page|
-|`id`|video & playlist|String id of the video or playlist|
-|`channel-id`|video & playlist|String id of the channel|
+|`url`|search, popular, trending, video, playlist|String url to the web page|
+|`id`|video, playlist|String id of the video or playlist|
+|`channel-id`|video, playlist|String id of the channel|
 |`embed-url`|video|String url to the embed video (required to play video using mpv from Invidious)|
 |`all-videos`|playlist|String url***s*** separated by space to all embed videos in a playlist|
-|`provider`|video & playlist|To display the current provider, is the only env that can be displayed in the label, and can only be used when `%switch-provider%` is the command|
-
-## Item command reference
-
-|Name|Page|Use|
-|---|---|---|
-|`swtich-provider`|video & playlist|Toggles the provider between `YouTube` and `Invidious`|
+|`hover-url`|trending, popular, search|Url of the currenly hovering item.|
+|`all-ids`|playlist|IDs of all videos in a playlist, separated with space.|
