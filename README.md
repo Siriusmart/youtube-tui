@@ -2,6 +2,7 @@
 ![](https://shields.io/github/license/siriusmart/youtube-tui)
 [![](https://img.shields.io/crates/d/youtube-tui?label=crates.io%20downloads)](https://crates.io/crates/youtube-tui)
 [![](https://img.shields.io/crates/v/youtube-tui?label=crates.io%20version)](https://crates.io/crates/youtube-tui)
+[![](https://img.shields.io/aur/version/youtube-tui)
 ![](https://shields.io/github/stars/siriusmart/youtube-tui?style=social)
 
 ***Read more in the [user manual](https://siriusmart.github.io/youtube-tui) (including installation gude and documentation).***
