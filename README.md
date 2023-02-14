@@ -2,9 +2,10 @@
 ![](https://shields.io/github/license/siriusmart/youtube-tui)
 [![](https://img.shields.io/crates/d/youtube-tui?label=crates.io%20downloads)](https://crates.io/crates/youtube-tui)
 [![](https://img.shields.io/crates/v/youtube-tui?label=crates.io%20version)](https://crates.io/crates/youtube-tui)
+[![](https://img.shields.io/aur/version/youtube-tui)](https://aur.archlinux.org/packages/youtube-tui)
 ![](https://shields.io/github/stars/siriusmart/youtube-tui?style=social)
 
-***Read more in the [user manual](https://siriusmart.github.io/youtube-tui) (including installation gude and documentation).***
+***Read more in the [user manual](https://siriusmart.github.io/youtube-tui) (including installation guide and documentation).***
 
 # Overview
 
@@ -47,7 +48,7 @@ However, the programs to launch can be changed, and therefore the YouTube TUI <u
 
 ## Powerful
 
-The YouTube TUI allows you to browse YouTube with (almost) all of it's features, functions including:
+The YouTube TUI allows you to browse YouTube with (almost) all of its features, functions including:
 
 - View popular/trending videos
 - View information about channels, playlists and videos
@@ -58,7 +59,7 @@ It also includes features like:
 
 - Vim-like commands
 - Mouse support
-- Entensible keybindings system
+- Extensible keybindings system
 
 ### What it doesn't have
 
