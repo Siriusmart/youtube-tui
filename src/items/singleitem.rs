@@ -1,3 +1,5 @@
+use std::fs;
+
 use super::ItemInfo;
 use crate::{
     config::{AppearanceConfig, CommandsConfig, KeyBindingsConfig, MainConfig, Provider},
@@ -9,6 +11,7 @@ use crate::{
         },
     },
 };
+use home::home_dir;
 use tui::{
     layout::{Constraint, Rect},
     style::Style,
@@ -67,22 +70,34 @@ pub struct SinglePlaylistItem {
 
 impl SingleVideoItem {
     pub fn new(commands: &CommandsConfig) -> Self {
+        Self::new_with_map(commands
+                .video
+                .clone()
+                .into_iter()
+                .map(|(display, command)| (display, command))
+                .collect())
+    }
+
+    pub fn new_local(commands: &CommandsConfig) -> Self {
+        Self::new_with_map(commands
+                .local_video
+                .clone()
+                .into_iter()
+                .map(|(display, command)| (display, command))
+                .collect())
+    }
+
+    pub fn new_with_map(commands: Vec<(String, String)>) -> Self {
         Self {
             textlist: TextList::default()
                 .items(
                     &commands
-                        .video
                         .iter()
                         .map(|command| &command.0)
                         .collect::<Vec<_>>(),
                 )
                 .unwrap(),
-            commands: commands
-                .video
-                .clone()
-                .into_iter()
-                .map(|(display, command)| (display, command))
-                .collect(),
+            commands,
         }
     }
 
@@ -167,16 +182,34 @@ impl SingleVideoItem {
 
 impl SinglePlaylistItem {
     pub fn new(commands: &CommandsConfig, playlist_items: &[Item]) -> Self {
+        Self::new_with_map(commands
+                .playlist
+                .clone()
+                .into_iter()
+                .map(|(display, command)| (display, command))
+                .collect(), playlist_items)
+    }
+
+    pub fn new_local(commands: &CommandsConfig, playlist_items: &[Item]) -> Self {
+        Self::new_with_map(commands
+                .local_playlist
+                .clone()
+                .into_iter()
+                .map(|(display, command)| (display, command))
+                .collect(), playlist_items)
+    }
+
+    pub fn new_with_map(commands: Vec<(String, String)>, playlist_items: &[Item]) -> Self {
         let hovered_video = ItemInfo::new(if playlist_items.is_empty() {
             None
         } else {
             Some(playlist_items[0].clone())
         });
+
         Self {
             commands_view: TextList::default()
                 .items(
                     &commands
-                        .playlist
                         .iter()
                         .map(|command| &command.0)
                         .collect::<Vec<_>>(),
@@ -193,12 +226,7 @@ impl SinglePlaylistItem {
                     items
                 })
                 .unwrap(),
-            commands: commands
-                .playlist
-                .clone()
-                .into_iter()
-                .map(|(display, command)| (display, command))
-                .collect(),
+            commands,
             hovered_video,
             is_commands_view: true,
         }
@@ -592,13 +620,12 @@ impl FrameworkItem for SingleItem {
             unreachable!("item `SingleItem` cannot be used in {page:?}")
         };
 
-        let client = &framework.data.global.get::<InvidiousClient>().unwrap().0;
-
         let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
         // load items using the invidious api
         // gets the item that it needs to load from `data.state.Page`
         self.item = match r#type {
             SingleItemPage::Video(id) => {
+                let client = &framework.data.global.get::<InvidiousClient>().unwrap().0;
                 self.r#type = SingleItemType::Video(SingleVideoItem::new(
                     framework.data.global.get::<CommandsConfig>().unwrap(),
                 ));
@@ -609,6 +636,7 @@ impl FrameworkItem for SingleItem {
                 Some(video)
             }
             SingleItemPage::Playlist(id) => {
+                let client = &framework.data.global.get::<InvidiousClient>().unwrap().0;
                 let playlist =
                     Item::from_full_playlist(client.playlist(id, None)?, mainconfig.image_index);
                 let videos = &playlist.fullplaylist()?.videos;
@@ -630,6 +658,34 @@ impl FrameworkItem for SingleItem {
 
                 Some(playlist)
             }
+            SingleItemPage::LocalVideo(id) => {
+                let s = fs::read_to_string(home_dir().unwrap().join(format!(
+                    ".local/share/youtube-tui/watch_history/info/{id}.json"
+                )))?;
+                self.r#type = SingleItemType::Video(SingleVideoItem::new_local(
+                    framework.data.global.get::<CommandsConfig>().unwrap(),
+                ));
+
+                Some(serde_json::from_str(&s)?)
+            }
+
+            SingleItemPage::LocalPlaylist(id) => {
+                let s = fs::read_to_string(home_dir().unwrap().join(format!(
+                    ".local/share/youtube-tui/watch_history/info/{id}.json"
+                )))?;
+
+                let playlist: Item = serde_json::from_str(&s)?;
+                let videos = &playlist.fullplaylist()?.videos;
+                self.r#type = SingleItemType::Playlist(
+                    SinglePlaylistItem::new_local(
+                        framework.data.global.get::<CommandsConfig>().unwrap(),
+                        videos,
+                    )
+                    .into(),
+                );
+
+                Some(playlist)
+            }
         };
         self.iteminfo.item = self.item.clone();
 
@@ -648,7 +704,7 @@ impl FrameworkItem for SingleItem {
 
             // push to watch history
             let watch_history = framework.data.global.get_mut::<WatchHistory>().unwrap();
-            watch_history.push(item, max_watch_history);
+            watch_history.push(item, max_watch_history)?;
             watch_history.save()?;
         }
 

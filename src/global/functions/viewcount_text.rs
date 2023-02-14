@@ -9,7 +9,7 @@ const UNITS: &[(&str, f64)] = &[
 pub fn viewcount_text(views: u64) -> String {
     for unit in UNITS.iter() {
         if unit.1 == 1_f64 {
-            return format!("{}", views);
+            return views.to_string();
         } else if views >= unit.1 as u64 {
             return format!("{:.2}{}", views as f64 / unit.1, unit.0);
         }

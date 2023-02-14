@@ -12,14 +12,16 @@ use tui::{
 use tui_additions::framework::FrameworkItem;
 
 /// button that on press will go to another page instead of selecting it
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum PageButton {
     Trending,
     Popular,
-    History,
     ChannelMain,
     ChannelVideos,
     ChannelPlaylists,
+    History,
+    Subscriptions,
+    Library,
 }
 
 impl PageButton {
@@ -27,7 +29,6 @@ impl PageButton {
         match self {
             Self::Trending => Page::MainMenu(MainMenuPage::Trending),
             Self::Popular => Page::MainMenu(MainMenuPage::Popular),
-            Self::History => Page::MainMenu(MainMenuPage::History),
             Self::ChannelMain => Page::ChannelDisplay(ChannelDisplayPage {
                 id: current_page.channeldisplay().id.clone(),
                 r#type: ChannelDisplayPageType::Main,
@@ -40,6 +41,25 @@ impl PageButton {
                 id: current_page.channeldisplay().id.clone(),
                 r#type: ChannelDisplayPageType::Playlists,
             }),
+            Self::History => Page::MainMenu(MainMenuPage::History),
+            Self::Subscriptions => Page::MainMenu(MainMenuPage::Subscriptions),
+            Self::Library => Page::MainMenu(MainMenuPage::Library),
+        }
+    }
+
+    fn update_toggleable(&mut self, page: &Page) {
+        if *self == Self::Popular || *self == Self::Trending {
+            match page {
+                Page::MainMenu(MainMenuPage::Popular) => *self = Self::Popular,
+                Page::MainMenu(MainMenuPage::Trending) => *self = Self::Trending,
+                _ => {}
+            }
+        } else if *self == Self::Subscriptions || *self == Self::Library {
+            match page {
+                Page::MainMenu(MainMenuPage::Subscriptions) => *self = Self::Subscriptions,
+                Page::MainMenu(MainMenuPage::Library) => *self = Self::Library,
+                _ => {}
+            }
         }
     }
 }
@@ -49,15 +69,25 @@ impl ToString for PageButton {
         match self {
             Self::Popular => String::from("Popular"),
             Self::Trending => String::from("Trending"),
-            Self::History => String::from("History"),
             Self::ChannelMain => String::from("Main"),
             Self::ChannelVideos => String::from("Videos"),
             Self::ChannelPlaylists => String::from("Playlists"),
+            Self::History => String::from("History"),
+            Self::Subscriptions => String::from("Subscriptions"),
+            Self::Library => String::from("Library"),
         }
     }
 }
 
 impl FrameworkItem for PageButton {
+    fn load_item(
+        &mut self,
+        framework: &mut tui_additions::framework::FrameworkClean,
+        _info: tui_additions::framework::ItemInfo,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.update_toggleable(framework.data.state.get::<Page>().unwrap());
+        Ok(())
+    }
     // it is basically a paragraph (text) with borders
     fn render(
         &mut self,
@@ -94,18 +124,30 @@ impl FrameworkItem for PageButton {
 
     // when selected creates a load page task, but returns false to show that it is not being selected
     fn select(&mut self, framework: &mut tui_additions::framework::FrameworkClean) -> bool {
-        let current_page = framework.data.state.get::<Page>().unwrap().clone();
+        let current_page = framework.data.state.get::<Page>().unwrap();
+        let self_page = self.page(current_page);
 
-        if self.page(&current_page) == current_page {
-            *framework.data.global.get_mut::<Message>().unwrap() =
-                Message::Message(String::from("You are already on this page"));
-            return false;
+        if self_page == *current_page {
+            match self {
+                Self::Trending => *self = Self::Popular,
+                Self::Popular => *self = Self::Trending,
+                Self::Subscriptions => *self = Self::Library,
+                Self::Library => *self = Self::Subscriptions,
+                _ => {
+                    *framework.data.global.get_mut::<Message>().unwrap() =
+                        Message::Message(String::from("You are already on this page"));
+                    return false;
+                }
+            }
         }
 
-        let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
-        tasks
+        framework
+            .data
+            .state
+            .get_mut::<Tasks>()
+            .unwrap()
             .priority
-            .push(Task::LoadPage(self.page(&current_page)));
+            .push(Task::LoadPage(self.page(&self_page)));
 
         false
     }

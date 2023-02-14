@@ -83,6 +83,8 @@ pub fn run_single_command(
                 "popular" => Some(Page::MainMenu(MainMenuPage::Popular)),
                 "trending" => Some(Page::MainMenu(MainMenuPage::Trending)),
                 "watchhistory" => Some(Page::MainMenu(MainMenuPage::History)),
+                "subscriptions" => Some(Page::MainMenu(MainMenuPage::Subscriptions)),
+                "library" => Some(Page::MainMenu(MainMenuPage::Library)),
                 "channel" => {
                     if command.len() == 2 {
                         *framework.data.global.get_mut::<Message>().unwrap() =
@@ -169,6 +171,11 @@ pub fn run_single_command(
         ["popular"] => run_single_command(&["loadpage", "popular"], framework, terminal),
         ["trending"] => run_single_command(&["loadpage", "trending"], framework, terminal),
         ["watchhistory"] => run_single_command(&["loadpage", "watchhistory"], framework, terminal),
+        ["subscriptions"] => {
+            run_single_command(&["loadpage", "subscriptions"], framework, terminal)
+        }
+        ["bookmarks"] => run_single_command(&["loadpage", "bookmarks"], framework, terminal),
+        ["library"] => run_single_command(&["loadpage", "library"], framework, terminal),
         ["search"] => run_single_command(&["loadpage", "search"], framework, terminal),
         ["search", ..] => run_single_command(
             &format!("loadpage search {}", command[1..].join(" "))
@@ -334,6 +341,9 @@ const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
     \x1b[33mloadpage popular\x1b[0m                Loads the popular videos page
     \x1b[33mloadpage trending\x1b[0m               Loads the trending videos page
     \x1b[33mloadpage watchhistory\x1b[0m           Loads the watch history page
+    \x1b[33mloadpage subscriptions\x1b[0m          Loads the subscriptions page
+    \x1b[33mloadpage bookmarks\x1b[0m              Loads the bookmarks page
+    \x1b[33mloadpage library\x1b[0m                  Loads the library (saved items) page
     \x1b[33mloadpage search [query]\x1b[0m         Loads the search page with the given query
     \x1b[33mloadpage video [identifier]\x1b[0m     Loads the video item page
     \x1b[33mloadpage playlist [identifier]\x1b[0m  Loads the playlist item page

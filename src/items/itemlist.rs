@@ -39,6 +39,10 @@ impl ItemList {
         mainconfig: &MainConfig,
         status: &Status,
     ) -> Vec<(String, String)> {
+        if self.textlist.items.is_empty() {
+            return vec![];
+        }
+
         match &self.items[self.textlist.selected] {
             Item::MiniVideo(MiniVideoItem { id, .. })
             | Item::FullVideo(FullVideoItem { id, .. }) => {
@@ -121,41 +125,76 @@ impl ItemList {
 
     /// handles select (enter)
     fn select_at_cursor(&self, framework: &mut FrameworkClean) {
-        let page_to_load = match &self.items[self.textlist.selected] {
-            Item::MiniVideo(MiniVideoItem { id, .. })
-            | Item::FullVideo(FullVideoItem { id, .. }) => {
-                Some(Page::SingleItem(SingleItemPage::Video(id.clone())))
+        let page = framework.data.state.get::<Page>().unwrap();
+        let page_to_load = if *page == Page::MainMenu(MainMenuPage::History) {
+            match &self.items[self.textlist.selected] {
+                Item::MiniVideo(MiniVideoItem { id, .. })
+                | Item::FullVideo(FullVideoItem { id, .. }) => {
+                    Some(Page::SingleItem(SingleItemPage::LocalVideo(id.clone())))
+                }
+                Item::MiniPlaylist(MiniPlaylistItem { id, .. })
+                | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
+                    Some(Page::SingleItem(SingleItemPage::LocalPlaylist(id.clone())))
+                }
+                Item::MiniChannel(MiniChannelItem { id: _id, .. })
+                | Item::FullChannel(FullChannelItem { id: _id, .. }) => todo!(),
+                Item::Unknown(_) => {
+                    *framework.data.global.get_mut::<Message>().unwrap() =
+                        Message::Message(String::from("Unknown item"));
+                    framework
+                        .data
+                        .state
+                        .get_mut::<Tasks>()
+                        .unwrap()
+                        .priority
+                        .push(Task::RenderAll);
+                    None
+                }
+                Item::Page(b) => match framework.data.state.get::<Page>().unwrap() {
+                    Page::Search(search) => Some(Page::Search(Search {
+                        page: if *b { search.page + 1 } else { search.page - 1 },
+                        ..search.clone()
+                    })),
+                    _ => unreachable!("Page turners can only be used in search pages"),
+                },
             }
-            Item::MiniPlaylist(MiniPlaylistItem { id, .. })
-            | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
-                Some(Page::SingleItem(SingleItemPage::Playlist(id.clone())))
+        } else {
+            match &self.items[self.textlist.selected] {
+                Item::MiniVideo(MiniVideoItem { id, .. })
+                | Item::FullVideo(FullVideoItem { id, .. }) => {
+                    Some(Page::SingleItem(SingleItemPage::Video(id.clone())))
+                }
+                Item::MiniPlaylist(MiniPlaylistItem { id, .. })
+                | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
+                    Some(Page::SingleItem(SingleItemPage::Playlist(id.clone())))
+                }
+                Item::MiniChannel(MiniChannelItem { id, .. })
+                | Item::FullChannel(FullChannelItem { id, .. }) => {
+                    Some(Page::ChannelDisplay(ChannelDisplayPage {
+                        id: id.clone(),
+                        r#type: ChannelDisplayPageType::Main,
+                    }))
+                }
+                Item::Unknown(_) => {
+                    *framework.data.global.get_mut::<Message>().unwrap() =
+                        Message::Message(String::from("Unknown item"));
+                    framework
+                        .data
+                        .state
+                        .get_mut::<Tasks>()
+                        .unwrap()
+                        .priority
+                        .push(Task::RenderAll);
+                    None
+                }
+                Item::Page(b) => match framework.data.state.get::<Page>().unwrap() {
+                    Page::Search(search) => Some(Page::Search(Search {
+                        page: if *b { search.page + 1 } else { search.page - 1 },
+                        ..search.clone()
+                    })),
+                    _ => unreachable!("Page turners can only be used in search pages"),
+                },
             }
-            Item::MiniChannel(MiniChannelItem { id, .. })
-            | Item::FullChannel(FullChannelItem { id, .. }) => {
-                Some(Page::ChannelDisplay(ChannelDisplayPage {
-                    id: id.clone(),
-                    r#type: ChannelDisplayPageType::Main,
-                }))
-            }
-            Item::Unknown(_) => {
-                *framework.data.global.get_mut::<Message>().unwrap() =
-                    Message::Message(String::from("Unknown item"));
-                framework
-                    .data
-                    .state
-                    .get_mut::<Tasks>()
-                    .unwrap()
-                    .priority
-                    .push(Task::RenderAll);
-                None
-            }
-            Item::Page(b) => match framework.data.state.get::<Page>().unwrap() {
-                Page::Search(search) => Some(Page::Search(Search {
-                    page: if *b { search.page + 1 } else { search.page - 1 },
-                    ..search.clone()
-                })),
-                _ => unreachable!("Page turners can only be used in search pages"),
-            },
         };
 
         if let Some(page_to_load) = page_to_load {
@@ -272,6 +311,8 @@ impl FrameworkItem for ItemList {
                     .map(|item| Item::from_popular_item(item, image_index))
                     .collect();
             }
+            Page::MainMenu(MainMenuPage::Subscriptions) => {}
+            Page::MainMenu(MainMenuPage::Library) => {}
             Page::MainMenu(MainMenuPage::History) => {
                 // the vector needs to be reversed because the latest watch history is pushed to
                 // the back, meaning it needs to be reversed so that the latests one are on top

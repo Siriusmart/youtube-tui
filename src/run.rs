@@ -152,7 +152,7 @@ pub fn run(
                 if framework.is_selected() {
                     if let Err(e) = framework.key_input(key) {
                         *framework.data.global.get_mut::<Message>().unwrap() =
-                            Message::Error(format!("{}", e));
+                            Message::Error(e.to_string());
                     };
                     continue;
                 }
@@ -217,7 +217,6 @@ pub fn run(
                                 let status = framework.data.global.get_mut::<Status>().unwrap();
                                 status.render_image = true;
 
-                                update_provider(&mut framework.data);
                                 framework
                                     .data
                                     .state
@@ -228,6 +227,7 @@ pub fn run(
                                 let state_envs =
                                     framework.data.state.get_mut::<StateEnvs>().unwrap();
                                 set_envs(state_envs.clone().0.into_iter(), &mut state_envs.0);
+                                update_provider(&mut framework.data);
                             }
                         }
                         KeyAction::FirstHistory => {

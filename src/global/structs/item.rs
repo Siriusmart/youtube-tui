@@ -16,6 +16,7 @@ use super::Errors;
 /// Items are things like a single video/playlist and channel
 // they are displayed by the item info widget in `iteminfo.rs`
 #[derive(Clone, Serialize, Deserialize)]
+#[serde(tag = "type", content = "data")]
 pub enum Item {
     // minivideos are all videos that appeared without actually clicking into the video
     MiniVideo(MiniVideoItem),

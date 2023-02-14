@@ -169,6 +169,10 @@ pub enum PageItems {
     Popular,
     /// the history button which loads the watch history page
     History,
+    /// the subscriptions button which loads the subscriptions page
+    Subscriptions,
+    /// the library button which loads the saved page
+    Library,
     /// the search filters `...` button, displays a popup when selected
     SearchFilters,
     /// playlist and video info display
@@ -191,6 +195,8 @@ impl PageItems {
             Self::Popular => Box::new(PageButton::Popular),
             Self::Trending => Box::new(PageButton::Trending),
             Self::History => Box::new(PageButton::History),
+            Self::Subscriptions => Box::new(PageButton::Subscriptions),
+            Self::Library => Box::new(PageButton::Library),
             Self::MessageBar => Box::<MessageBar>::default(),
             Self::ItemList => Box::<ItemList>::default(),
             Self::SearchFilters => Box::<SearchFilter>::default(),
@@ -207,6 +213,8 @@ impl PageItems {
             Self::Popular
             | Self::Trending
             | Self::History
+            | Self::Subscriptions
+            | Self::Library
             | Self::ChannelMain
             | Self::ChannelVideos
             | Self::ChannelPlaylists => Constraint::Length(15),
@@ -221,6 +229,8 @@ impl PageItems {
         match self {
             Self::Popular
             | Self::History
+            | Self::Subscriptions
+            | Self::Library
             | Self::ChannelMain
             | Self::ChannelVideos
             | Self::ChannelPlaylists
@@ -262,7 +272,7 @@ fn main_menu_default() -> PageConfig {
         layout: vec![
             PageRow::from_vec(vec![PageItems::SearchBar, PageItems::SearchFilters], false),
             PageRow::from_vec(
-                vec![PageItems::Popular, PageItems::Trending, PageItems::History],
+                vec![PageItems::Popular, PageItems::Library, PageItems::History],
                 true,
             ),
             PageRow::from_vec(vec![PageItems::ItemList], false),

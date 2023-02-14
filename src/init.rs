@@ -29,6 +29,7 @@ pub fn init(
     let cache_thumbnails_path = home_dir.join(".cache/youtube-tui/thumbnails/");
     let history_thumbnails_path =
         home_dir.join(".local/share/youtube-tui/watch_history/thumbnails/");
+    let history_info_path = home_dir.join(".local/share/youtube-tui/watch_history/info/");
 
     if !&cache_thumbnails_path.exists() {
         fs::create_dir_all(&cache_thumbnails_path).unwrap();
@@ -36,6 +37,10 @@ pub fn init(
 
     if !&history_thumbnails_path.exists() {
         fs::create_dir_all(&history_thumbnails_path).unwrap();
+    }
+
+    if !&history_info_path.exists() {
+        fs::create_dir_all(&history_info_path).unwrap();
     }
 
     // watch history init

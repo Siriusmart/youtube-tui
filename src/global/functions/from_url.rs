@@ -11,15 +11,13 @@ pub fn from_channel_url(identifier: &str) -> Result<String, String> {
             // contained a channel id
             if identifier.len() < index + 33 {
                 return Err(format!(
-                    "Cannot find channel id from string `{}`",
-                    identifier
+                    "Cannot find channel id from string `{identifier}`"
                 ));
             }
             index + 9
         } else {
             return Err(format!(
-                "Cannot find channel id from string `{}`",
-                identifier
+                "Cannot find channel id from string `{identifier}`"
             ));
         };
 
@@ -36,17 +34,17 @@ pub fn from_video_url(identifier: &str) -> Result<String, String> {
         // the id can come after "?v=" in an url
         let index = if let Some(index) = identifier.find("?v=") {
             if identifier.len() < index + 15 {
-                return Err(format!("Cannot find video id from string `{}`", identifier));
+                return Err(format!("Cannot find video id from string `{identifier}`"));
             }
             index + 3
         // and also "youtu.be/"
         } else if let Some(index) = identifier.find("youtu.be/") {
             if identifier.len() < index + 21 {
-                return Err(format!("Cannot find video id from string `{}`", identifier));
+                return Err(format!("Cannot find video id from string `{identifier}`"));
             }
             index + 9
         } else {
-            return Err(format!("Cannot find video id from string `{}`", identifier));
+            return Err(format!("Cannot find video id from string `{identifier}`"));
         };
 
         Ok(identifier[index..index + 11].to_string())
@@ -63,15 +61,13 @@ pub fn from_playlist_url(identifier: &str) -> Result<String, String> {
         let index = if let Some(index) = identifier.find("list=") {
             if identifier.len() < index + 39 {
                 return Err(format!(
-                    "Cannot find plalyist id from string `{}`",
-                    identifier
+                    "Cannot find plalyist id from string `{identifier}`"
                 ));
             }
             index + 5
         } else {
             return Err(format!(
-                "Cannot find playlist id from string `{}`",
-                identifier
+                "Cannot find playlist id from string `{identifier}`"
             ));
         };
 

@@ -72,14 +72,33 @@ pub fn update_provider(data: &mut FrameworkData) {
                 }
             },
         )],
-        Page::SingleItem(SingleItemPage::Video(id)) => vec![
+        Page::MainMenu(MainMenuPage::Subscriptions) => vec![(
+            String::from("url"),
+            match status.provider {
+                Provider::YouTube => String::from("https://www.youtube.com/feed/subscriptions"),
+                Provider::Invidious => {
+                    format!("{}/feed/subscriptions", mainconfig.invidious_instance)
+                }
+            },
+        )],
+        Page::MainMenu(MainMenuPage::Library) => vec![(
+            String::from("url"),
+            match status.provider {
+                Provider::YouTube => String::from("https://www.youtube.com/feed/library"),
+                Provider::Invidious => {
+                    format!("{}/feed/library", mainconfig.invidious_instance)
+                }
+            },
+        )],
+        Page::SingleItem(SingleItemPage::Video(id))
+        | Page::SingleItem(SingleItemPage::LocalVideo(id)) => vec![
             (
                 String::from("url"),
                 match status.provider {
                     Provider::Invidious => {
                         format!("{}/watch?v={}", mainconfig.invidious_instance, id)
                     }
-                    Provider::YouTube => format!("https://youtu.be/{}", id),
+                    Provider::YouTube => format!("https://youtu.be/{id}"),
                 },
             ),
             (
@@ -88,7 +107,7 @@ pub fn update_provider(data: &mut FrameworkData) {
                     Provider::Invidious => {
                         format!("{}/embed/{}", mainconfig.invidious_instance, id)
                     }
-                    Provider::YouTube => format!("https://youtube.com/embed/{}", id),
+                    Provider::YouTube => format!("https://youtube.com/embed/{id}"),
                 },
             ),
             (
@@ -108,12 +127,13 @@ pub fn update_provider(data: &mut FrameworkData) {
                 },
             ),
         ],
-        Page::SingleItem(SingleItemPage::Playlist(id)) => vec![
+        Page::SingleItem(SingleItemPage::Playlist(id))
+        | Page::SingleItem(SingleItemPage::LocalPlaylist(id)) => vec![
             (
                 String::from("url"),
                 match status.provider {
                     Provider::YouTube => {
-                        format!("https://www.youtube.com/playlist?list={}", id)
+                        format!("https://www.youtube.com/playlist?list={id}")
                     }
                     Provider::Invidious => {
                         format!("{}/playlist?list={}", mainconfig.invidious_instance, id)

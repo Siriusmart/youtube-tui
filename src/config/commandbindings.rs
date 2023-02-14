@@ -22,6 +22,8 @@ pub struct CommandBindings {
     pub channel_videos: HashMap<KeyCode, HashMap<u8, String>>,
     pub channel_playlists: HashMap<KeyCode, HashMap<u8, String>>,
     pub watchhistory: HashMap<KeyCode, HashMap<u8, String>>,
+    pub subscriptions: HashMap<KeyCode, HashMap<u8, String>>,
+    pub libray: HashMap<KeyCode, HashMap<u8, String>>,
 }
 
 impl Key for CommandBindings {
@@ -41,8 +43,14 @@ impl CommandBindings {
             Page::MainMenu(MainMenuPage::Trending) => get_command(key, &self.trending),
             Page::MainMenu(MainMenuPage::Popular) => get_command(key, &self.popular),
             Page::MainMenu(MainMenuPage::History) => get_command(key, &self.watchhistory),
-            Page::SingleItem(SingleItemPage::Video(_)) => get_command(key, &self.video),
-            Page::SingleItem(SingleItemPage::Playlist(_)) => get_command(key, &self.playlist),
+            Page::MainMenu(MainMenuPage::Subscriptions) => get_command(key, &self.subscriptions),
+            Page::MainMenu(MainMenuPage::Library) => get_command(key, &self.libray),
+            Page::SingleItem(SingleItemPage::Video(_))
+            | Page::SingleItem(SingleItemPage::LocalVideo(_)) => get_command(key, &self.video),
+            Page::SingleItem(SingleItemPage::Playlist(_))
+            | Page::SingleItem(SingleItemPage::LocalPlaylist(_)) => {
+                get_command(key, &self.playlist)
+            }
             Page::ChannelDisplay(ChannelDisplayPage {
                 r#type: ChannelDisplayPageType::Main,
                 ..
@@ -90,6 +98,10 @@ pub struct CommandBindingsSerde {
     pub channel_playlists: HashMap<KeyCodeSerde, HashMap<u8, String>>,
     #[serde(default = "watchhistory_default")]
     pub watchhistory: HashMap<KeyCodeSerde, HashMap<u8, String>>,
+    #[serde(default = "subscriptions_default")]
+    pub subscriptions: HashMap<KeyCodeSerde, HashMap<u8, String>>,
+    #[serde(default = "library_default")]
+    pub library: HashMap<KeyCodeSerde, HashMap<u8, String>>,
 }
 
 impl ConfigTrait for CommandBindingsSerde {
@@ -109,6 +121,8 @@ impl CommandBindingsSerde {
             video: de_serde(self.video)?,
             trending: de_serde(self.trending)?,
             watchhistory: de_serde(self.watchhistory)?,
+            subscriptions: de_serde(self.subscriptions)?,
+            libray: de_serde(self.library)?,
         })
     }
 }
@@ -126,6 +140,8 @@ impl Default for CommandBindingsSerde {
             video: video_default(),
             trending: trending_default(),
             watchhistory: watchhistory_default(),
+            subscriptions: subscriptions_default(),
+            library: library_default(),
         }
     }
 }
@@ -227,4 +243,12 @@ fn watchhistory_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
         (KeyCodeSerde::Char('A'), HashMap::from([(1, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video --loop-playlist=inf --shuffle"))])),
         (KeyCodeSerde::Char('p'), HashMap::from([(2, String::from("run mpv '${hover-url}'"))]))
     ])
+}
+
+fn subscriptions_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
+    HashMap::default()
+}
+
+fn library_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
+    HashMap::default()
 }

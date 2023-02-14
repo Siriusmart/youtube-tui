@@ -8,7 +8,7 @@ pub fn secs_display_string(mut secs: u32) -> String {
     if secs >= SECS_IN_HOUR {
         let hours = secs / SECS_IN_HOUR;
         secs -= hours * SECS_IN_HOUR;
-        out.push(format!("{}", hours));
+        out.push(hours.to_string());
     }
 
     if secs >= SECS_IN_MINUTE {
@@ -28,7 +28,7 @@ pub fn secs_display_string(mut secs: u32) -> String {
 }
 
 fn two_digit_num(num: u32) -> String {
-    let out = format!("{}", num);
+    let out = num.to_string();
 
     format!("{}{}", "0".repeat(2 - out.len()), out)
 }

@@ -127,7 +127,7 @@ impl FrameworkItem for ItemInfo {
                 );
                 if let Some(views) = &minivideo.views {
                     out.0.push((
-                        format!("{} views", views),
+                        format!("{views} views"),
                         Style::default().fg(appearance.colors.item_info.viewcount),
                     ));
                 }
@@ -141,7 +141,7 @@ impl FrameworkItem for ItemInfo {
                 ));
                 if let Some(published) = &minivideo.published {
                     out.0.push((
-                        format!("Published {}", published),
+                        format!("Published {published}"),
                         Style::default().fg(appearance.colors.item_info.published),
                     ));
                 }
@@ -365,7 +365,7 @@ impl FrameworkItem for ItemInfo {
         if text.is_empty() {
             return;
         }
-        let paragraph = Paragraph::new(format!("Description:\n{}", text))
+        let paragraph = Paragraph::new(format!("Description:\n{text}"))
             .style(style)
             .wrap(Wrap { trim: true });
         frame.render_widget(

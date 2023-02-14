@@ -135,7 +135,7 @@ impl TaskQueue {
 
             *framework.data.global.get_mut::<Message>().unwrap() = if let Err(e) = framework.load()
             {
-                Message::Error(format!("{}", e))
+                Message::Error(e.to_string())
             } else {
                 Message::None
             };
@@ -164,7 +164,7 @@ impl TaskQueue {
             Self::render_force_clear(framework, terminal)?;
             *framework.data.global.get_mut::<Message>().unwrap() = if let Err(e) = framework.load()
             {
-                Message::Error(format!("{}", e))
+                Message::Error(e.to_string())
             } else {
                 Message::None
             };

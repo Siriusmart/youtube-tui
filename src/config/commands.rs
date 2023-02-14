@@ -11,6 +11,8 @@ pub struct CommandsConfig {
     pub launch_command: String,
     pub video: Vec<(String, String)>,
     pub playlist: Vec<(String, String)>,
+    pub local_video: Vec<(String, String)>,
+    pub local_playlist: Vec<(String, String)>,
 }
 
 impl Key for CommandsConfig {
@@ -31,6 +33,16 @@ impl From<CommandsConfigSerde> for CommandsConfig {
                 .into_iter()
                 .map(|hashmap| hashmap.into_iter().last().unwrap())
                 .collect(),
+            local_video: original
+                .local_video
+                .into_iter()
+                .map(|hashmap| hashmap.into_iter().last().unwrap())
+                .collect(),
+            local_playlist: original
+                .local_playlist
+                .into_iter()
+                .map(|hashmap| hashmap.into_iter().last().unwrap())
+                .collect(),
         }
     }
 }
@@ -45,6 +57,10 @@ pub struct CommandsConfigSerde {
     pub video: Vec<HashMap<String, String>>,
     #[serde(default = "playlist_default")]
     pub playlist: Vec<HashMap<String, String>>,
+    #[serde(default = "local_video_default")]
+    pub local_video: Vec<HashMap<String, String>>,
+    #[serde(default = "local_playlist_default")]
+    pub local_playlist: Vec<HashMap<String, String>>,
 }
 
 impl ConfigTrait for CommandsConfigSerde {
@@ -57,6 +73,8 @@ impl Default for CommandsConfigSerde {
             launch_command: launch_command_default(),
             video: video_default(),
             playlist: playlist_default(),
+            local_video: local_video_default(),
+            local_playlist: local_playlist_default(),
         }
     }
 }
@@ -114,6 +132,99 @@ fn video_default() -> Vec<HashMap<String, String>> {
 fn playlist_default() -> Vec<HashMap<String, String>> {
     vec![
         HashMap::from([(String::from("Switch view"), String::from("%switch-view%"))]),
+        HashMap::from([(
+            String::from("Play all videos"),
+            String::from("run ${video-player} ${all-videos}"),
+        )]),
+        HashMap::from([(
+            String::from("Play all audio"),
+            String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video"),
+        )]),
+        HashMap::from([(
+            String::from("Shuffle play all audio"),
+            String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle"),
+        )]),
+        HashMap::from([(
+            String::from("Shuffle play all audio (loop)"),
+            String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle --loop-playlist=inf"),
+        )]),
+        HashMap::from([(
+            String::from("View channel"),
+            String::from("channel ${channel-id}"),
+        )]),
+        HashMap::from([(
+            String::from("Open in browser"),
+            String::from("run ${browser} '${url}'"),
+        )]),
+        HashMap::from([(
+            String::from("Download all video (webm)"),
+            String::from("run ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos}")
+        )]),
+        HashMap::from([(
+            String::from("Download all audio (opus)"),
+            String::from("run ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos} -x")
+        )]),
+        HashMap::from([(
+            String::from("Mode: ${provider}"),
+            String::from("switchprovider"),
+        )]),
+    ]
+}
+
+fn local_video_default() -> Vec<HashMap<String, String>> {
+    vec![
+        HashMap::from([(
+            String::from("Reload as online mode"),
+            String::from("video ${id}"),
+        )]),
+        HashMap::from([(
+            String::from("Play video"),
+            String::from("run ${video-player} '${embed-url}'"),
+        )]),
+        HashMap::from([(
+            String::from("Play audio"),
+            String::from("run ${terminal-emulator} ${video-player} '${embed-url}' --no-video"),
+        )]),
+        HashMap::from([(
+            String::from("Play audio (loop)"),
+            String::from(
+                "run ${terminal-emulator} ${video-player} '${embed-url}' --no-video --loop-file=inf",
+            ),
+        )]),
+        HashMap::from([(
+            String::from("View channel"),
+            String::from("channel ${channel-id}"),
+        )]),
+        HashMap::from([(
+            String::from("Open in browser"),
+            String::from("run ${browser} '${url}'"),
+        )]),
+        HashMap::from([(
+            String::from("Download video (webm)"),
+            String::from(
+                "run ${terminal-emulator} ${youtube-downloader} -o ${download-path} '${embed-url}'",
+            ),
+        )]),
+        HashMap::from([(
+            String::from("Download audio (opus)"),
+            String::from(
+                "run ${terminal-emulator} ${youtube-downloader} -o ${download-path} '${embed-url}' -x",
+            ),
+        )]),
+        HashMap::from([(
+            String::from("Mode: ${provider}"),
+            String::from("switchprovider"),
+        )]),
+    ]
+}
+
+fn local_playlist_default() -> Vec<HashMap<String, String>> {
+    vec![
+        HashMap::from([(String::from("Switch view"), String::from("%switch-view%"))]),
+        HashMap::from([(
+            String::from("Reload as online mode"),
+            String::from("playlist ${id}"),
+        )]),
         HashMap::from([(
             String::from("Play all videos"),
             String::from("run ${video-player} ${all-videos}"),
