@@ -83,7 +83,7 @@ impl Default for CommandsConfigSerde {
 // Different pages may contain different `env`s (for example `url` is different in each page)
 
 fn launch_command_default() -> String {
-    String::from("loadpage popular ;; flush ;; history clear")
+    String::from("loadpage watchhistory ;; flush ;; history clear")
 }
 
 fn video_default() -> Vec<HashMap<String, String>> {
@@ -111,16 +111,16 @@ fn video_default() -> Vec<HashMap<String, String>> {
             String::from("run ${browser} '${url}'"),
         )]),
         HashMap::from([(
-            String::from("Download video (webm)"),
-            String::from(
-                "run ${terminal-emulator} ${youtube-downloader} -o ${download-path} '${embed-url}'",
-            ),
+            String::from("Toggle bookmark"),
+            String::from("togglemark ${id}")
         )]),
         HashMap::from([(
-            String::from("Download audio (opus)"),
-            String::from(
-                "run ${terminal-emulator} ${youtube-downloader} -o ${download-path} '${embed-url}' -x",
-            ),
+            String::from("Save video"),
+            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}' ;; run ${terminal-emulator} ${youtube-downloader} ${all-videos} -o '${save-path}${id}/%(id)s'")
+        )]),
+        HashMap::from([(
+            String::from("Save audio"),
+            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}' ;; run ${terminal-emulator} ${youtube-downloader} ${all-videos} -x -o '${save-path}${id}/%(id)s'")
         )]),
         HashMap::from([(
             String::from("Mode: ${provider}"),
@@ -133,16 +133,16 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
     vec![
         HashMap::from([(String::from("Switch view"), String::from("%switch-view%"))]),
         HashMap::from([(
+            String::from("Reload as online mode"),
+            String::from("playlist ${id}"),
+        )]),
+        HashMap::from([(
             String::from("Play all videos"),
             String::from("run ${video-player} ${all-videos}"),
         )]),
         HashMap::from([(
             String::from("Play all audio"),
             String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video"),
-        )]),
-        HashMap::from([(
-            String::from("Shuffle play all audio"),
-            String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle"),
         )]),
         HashMap::from([(
             String::from("Shuffle play all audio (loop)"),
@@ -157,12 +157,12 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
             String::from("run ${browser} '${url}'"),
         )]),
         HashMap::from([(
-            String::from("Download all video (webm)"),
-            String::from("run ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos}")
+            String::from("Toggle bookmark"),
+            String::from("togglemark ${id}")
         )]),
         HashMap::from([(
-            String::from("Download all audio (opus)"),
-            String::from("run ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos} -x")
+            String::from("Save all audio"),
+            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}' ;; run mkdir '${save-path}${id}' ;; run ${terminal-emulator} ${youtube-downloader} ${all-videos} -x -o '${save-path}${id}/%(id)s'")
         )]),
         HashMap::from([(
             String::from("Mode: ${provider}"),
@@ -200,16 +200,16 @@ fn local_video_default() -> Vec<HashMap<String, String>> {
             String::from("run ${browser} '${url}'"),
         )]),
         HashMap::from([(
-            String::from("Download video (webm)"),
-            String::from(
-                "run ${terminal-emulator} ${youtube-downloader} -o ${download-path} '${embed-url}'",
-            ),
+            String::from("Toggle bookmark"),
+            String::from("togglemark ${id}")
         )]),
         HashMap::from([(
-            String::from("Download audio (opus)"),
-            String::from(
-                "run ${terminal-emulator} ${youtube-downloader} -o ${download-path} '${embed-url}' -x",
-            ),
+            String::from("Save video"),
+            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}' ;; run ${terminal-emulator} ${youtube-downloader} ${all-videos} -o '${save-path}${id}/%(id)s'")
+        )]),
+        HashMap::from([(
+            String::from("Save audio"),
+            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}' ;; run ${terminal-emulator} ${youtube-downloader} ${all-videos} -x -o '${save-path}${id}/%(id)s'")
         )]),
         HashMap::from([(
             String::from("Mode: ${provider}"),
@@ -234,10 +234,6 @@ fn local_playlist_default() -> Vec<HashMap<String, String>> {
             String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video"),
         )]),
         HashMap::from([(
-            String::from("Shuffle play all audio"),
-            String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle"),
-        )]),
-        HashMap::from([(
             String::from("Shuffle play all audio (loop)"),
             String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle --loop-playlist=inf"),
         )]),
@@ -250,12 +246,12 @@ fn local_playlist_default() -> Vec<HashMap<String, String>> {
             String::from("run ${browser} '${url}'"),
         )]),
         HashMap::from([(
-            String::from("Download all video (webm)"),
-            String::from("run ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos}")
+            String::from("Toggle bookmark"),
+            String::from("togglemark ${id}")
         )]),
         HashMap::from([(
-            String::from("Download all audio (opus)"),
-            String::from("run ${terminal-emulator} ${youtube-downloader} -o ${download-path} ${all-videos} -x")
+            String::from("Save all audio"),
+            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}' ;; run mkdir '${save-path}${id}' ;; run ${terminal-emulator} ${youtube-downloader} ${all-videos} -x -o '${save-path}${id}/%(id)s'")
         )]),
         HashMap::from([(
             String::from("Mode: ${provider}"),

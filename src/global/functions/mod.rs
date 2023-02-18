@@ -23,3 +23,5 @@ mod envs;
 pub use envs::*;
 mod update_provider;
 pub use update_provider::*;
+mod init_move;
+pub use init_move::*;

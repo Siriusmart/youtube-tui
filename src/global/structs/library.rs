@@ -5,14 +5,14 @@ use serde::{Deserialize, Serialize};
 use typemap::Key;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
-pub struct WatchHistory(pub Vec<Item>);
+pub struct Library(pub Vec<Item>);
 
-impl Key for WatchHistory {
+impl Key for Library {
     type Value = Self;
 }
 
-impl Collection for WatchHistory {
-    const INDEX_PATH: &'static str = ".local/share/youtube-tui/watch_history.json";
+impl Collection for Library {
+    const INDEX_PATH: &'static str = ".local/share/youtube-tui/library.json";
 
     fn items(&self) -> &Vec<Item> {
         &self.0

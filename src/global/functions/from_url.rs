@@ -10,15 +10,11 @@ pub fn from_channel_url(identifier: &str) -> Result<String, String> {
             // if there isnt 24 characters after `/channel/`, that url must not have
             // contained a channel id
             if identifier.len() < index + 33 {
-                return Err(format!(
-                    "Cannot find channel id from string `{identifier}`"
-                ));
+                return Err(format!("Cannot find channel id from string `{identifier}`"));
             }
             index + 9
         } else {
-            return Err(format!(
-                "Cannot find channel id from string `{identifier}`"
-            ));
+            return Err(format!("Cannot find channel id from string `{identifier}`"));
         };
 
         Ok(identifier[index..index + 24].to_string())

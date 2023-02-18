@@ -2,7 +2,7 @@ use home::home_dir;
 use std::{error::Error, fs};
 use tui_additions::framework::Framework;
 
-use crate::global::structs::WatchHistory;
+use crate::global::{structs::WatchHistory, traits::Collection};
 
 /// function to run when the app ends
 // exit tasks:

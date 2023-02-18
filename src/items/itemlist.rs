@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use home::home_dir;
 use tui::{
     layout::{Constraint, Rect},
     style::Style,
@@ -16,7 +17,7 @@ use crate::{
         functions::{download_all_images, set_envs, update_provider},
         structs::{
             ChannelDisplayPage, ChannelDisplayPageType, FullChannelItem, FullPlaylistItem,
-            FullVideoItem, InvidiousClient, Item, KeyAction, MainMenuPage, Message,
+            FullVideoItem, InvidiousClient, Item, KeyAction, Library, MainMenuPage, Message,
             MiniChannelItem, MiniPlaylistItem, MiniVideoItem, Page, SingleItemPage, StateEnvs,
             Status, Task, Tasks, WatchHistory,
         },
@@ -40,7 +41,7 @@ impl ItemList {
         status: &Status,
     ) -> Vec<(String, String)> {
         if self.textlist.items.is_empty() {
-            return vec![];
+            return Vec::new();
         }
 
         match &self.items[self.textlist.selected] {
@@ -125,8 +126,14 @@ impl ItemList {
 
     /// handles select (enter)
     fn select_at_cursor(&self, framework: &mut FrameworkClean) {
-        let page = framework.data.state.get::<Page>().unwrap();
-        let page_to_load = if *page == Page::MainMenu(MainMenuPage::History) {
+        let page_to_load = if home_dir()
+            .unwrap()
+            .join(format!(
+                ".cache/youtube-tui/info/{}.json",
+                self.items[self.textlist.selected].id().unwrap_or_default()
+            ))
+            .exists()
+        {
             match &self.items[self.textlist.selected] {
                 Item::MiniVideo(MiniVideoItem { id, .. })
                 | Item::FullVideo(FullVideoItem { id, .. }) => {
@@ -312,20 +319,15 @@ impl FrameworkItem for ItemList {
                     .collect();
             }
             Page::MainMenu(MainMenuPage::Subscriptions) => {}
-            Page::MainMenu(MainMenuPage::Library) => {}
+            Page::MainMenu(MainMenuPage::Library) => {
+                let history = framework.data.global.get::<Library>().unwrap();
+                self.items = history.0.clone().into_iter().rev().collect();
+            }
             Page::MainMenu(MainMenuPage::History) => {
                 // the vector needs to be reversed because the latest watch history is pushed to
                 // the back, meaning it needs to be reversed so that the latests one are on top
-                self.items = framework
-                    .data
-                    .global
-                    .get::<WatchHistory>()
-                    .unwrap()
-                    .0
-                    .clone()
-                    .into_iter()
-                    .rev()
-                    .collect();
+                let history = framework.data.global.get::<WatchHistory>().unwrap();
+                self.items = history.0.clone().into_iter().rev().collect();
             }
             Page::Search(search) => {
                 self.items = client

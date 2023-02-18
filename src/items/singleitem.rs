@@ -9,6 +9,7 @@ use crate::{
             InvidiousClient, Item, KeyAction, Message, Page, SingleItemPage, StateEnvs, Status,
             Task, Tasks, WatchHistory,
         },
+        traits::Collection,
     },
 };
 use home::home_dir;
@@ -70,21 +71,25 @@ pub struct SinglePlaylistItem {
 
 impl SingleVideoItem {
     pub fn new(commands: &CommandsConfig) -> Self {
-        Self::new_with_map(commands
+        Self::new_with_map(
+            commands
                 .video
                 .clone()
                 .into_iter()
                 .map(|(display, command)| (display, command))
-                .collect())
+                .collect(),
+        )
     }
 
     pub fn new_local(commands: &CommandsConfig) -> Self {
-        Self::new_with_map(commands
+        Self::new_with_map(
+            commands
                 .local_video
                 .clone()
                 .into_iter()
                 .map(|(display, command)| (display, command))
-                .collect())
+                .collect(),
+        )
     }
 
     pub fn new_with_map(commands: Vec<(String, String)>) -> Self {
@@ -182,21 +187,27 @@ impl SingleVideoItem {
 
 impl SinglePlaylistItem {
     pub fn new(commands: &CommandsConfig, playlist_items: &[Item]) -> Self {
-        Self::new_with_map(commands
+        Self::new_with_map(
+            commands
                 .playlist
                 .clone()
                 .into_iter()
                 .map(|(display, command)| (display, command))
-                .collect(), playlist_items)
+                .collect(),
+            playlist_items,
+        )
     }
 
     pub fn new_local(commands: &CommandsConfig, playlist_items: &[Item]) -> Self {
-        Self::new_with_map(commands
+        Self::new_with_map(
+            commands
                 .local_playlist
                 .clone()
                 .into_iter()
                 .map(|(display, command)| (display, command))
-                .collect(), playlist_items)
+                .collect(),
+            playlist_items,
+        )
     }
 
     pub fn new_with_map(commands: Vec<(String, String)>, playlist_items: &[Item]) -> Self {
@@ -659,9 +670,11 @@ impl FrameworkItem for SingleItem {
                 Some(playlist)
             }
             SingleItemPage::LocalVideo(id) => {
-                let s = fs::read_to_string(home_dir().unwrap().join(format!(
-                    ".local/share/youtube-tui/watch_history/info/{id}.json"
-                )))?;
+                let s = fs::read_to_string(
+                    home_dir()
+                        .unwrap()
+                        .join(format!(".cache/youtube-tui/info/{id}.json")),
+                )?;
                 self.r#type = SingleItemType::Video(SingleVideoItem::new_local(
                     framework.data.global.get::<CommandsConfig>().unwrap(),
                 ));
@@ -670,9 +683,11 @@ impl FrameworkItem for SingleItem {
             }
 
             SingleItemPage::LocalPlaylist(id) => {
-                let s = fs::read_to_string(home_dir().unwrap().join(format!(
-                    ".local/share/youtube-tui/watch_history/info/{id}.json"
-                )))?;
+                let s = fs::read_to_string(
+                    home_dir()
+                        .unwrap()
+                        .join(format!(".cache/youtube-tui/info/{id}.json")),
+                )?;
 
                 let playlist: Item = serde_json::from_str(&s)?;
                 let videos = &playlist.fullplaylist()?.videos;
@@ -704,13 +719,14 @@ impl FrameworkItem for SingleItem {
 
             // push to watch history
             let watch_history = framework.data.global.get_mut::<WatchHistory>().unwrap();
-            watch_history.push(item, max_watch_history)?;
+            watch_history.push(item, Some(max_watch_history))?;
             watch_history.save()?;
         }
 
         let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
         // need to update provider every time the item loads or else it will display `${provider}`
         // instead of the actual provider (e.g. `YouTube`)
+
         set_envs(
             self.r#type
                 .inflate_load(

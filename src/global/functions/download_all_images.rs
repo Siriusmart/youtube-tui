@@ -36,7 +36,7 @@ impl From<&Item> for Option<DownloadRequest> {
                 url: fullchannel.thumbnail_url.clone(),
                 id: fullchannel.id.clone(),
             },
-            Item::Unknown(_) | Item::Page(_) => return None,
+            _ => return None,
         })
     }
 }

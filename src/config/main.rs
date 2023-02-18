@@ -147,7 +147,11 @@ fn default_env() -> HashMap<String, String> {
         (String::from("youtube-downloader"), String::from("yt-dlp")),
         (
             String::from("download-path"),
-            String::from("'~/Downloads/%(title)s-%(id)s.%(ext)s'"),
+            String::from("~/Downloads/%(title)s-%(id)s.%(ext)s"),
+        ),
+        (
+            String::from("save-path"),
+            String::from("~/.local/share/youtube-tui/saved/"),
         ),
     ])
 }

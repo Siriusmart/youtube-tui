@@ -4,9 +4,11 @@ use crate::{
         CommandsConfigSerde, KeyBindingsConfig, MainConfig, MinDimentions, PagesConfig, Search,
     },
     global::{
-        functions::run_command,
-        structs::{InvidiousClient, Message, Page, StateEnvs, Status, Tasks, WatchHistory},
-        traits::ConfigTrait,
+        functions::{init_move, run_command},
+        structs::{
+            InvidiousClient, Library, Message, Page, StateEnvs, Status, Tasks, WatchHistory,
+        },
+        traits::{Collection, ConfigTrait},
     },
 };
 use home::home_dir;
@@ -24,30 +26,36 @@ pub fn init(
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     command: Option<&str>,
 ) -> Result<(), Box<dyn Error>> {
-    // creating files
     let home_dir = home_dir().unwrap();
-    let cache_thumbnails_path = home_dir.join(".cache/youtube-tui/thumbnails/");
-    let history_thumbnails_path =
-        home_dir.join(".local/share/youtube-tui/watch_history/thumbnails/");
-    let history_info_path = home_dir.join(".local/share/youtube-tui/watch_history/info/");
 
-    if !&cache_thumbnails_path.exists() {
-        fs::create_dir_all(&cache_thumbnails_path).unwrap();
-    }
+    // creating files
+    [
+        ".cache/youtube-tui/thumbnails/",
+        ".cache/youtube-tui/info/",
+        ".local/share/youtube-tui/thumbnails/",
+        ".local/share/youtube-tui/info/",
+        ".local/share/youtube-tui/saved/",
+    ]
+    .into_iter()
+    .for_each(|s| {
+        let dir = home_dir.join(s);
+        if !dir.exists() {
+            fs::create_dir_all(dir).unwrap();
+        }
+    });
 
-    if !&history_thumbnails_path.exists() {
-        fs::create_dir_all(&history_thumbnails_path).unwrap();
-    }
-
-    if !&history_info_path.exists() {
-        fs::create_dir_all(&history_info_path).unwrap();
-    }
-
-    // watch history init
-    WatchHistory::init_move();
+    init_move();
 
     load_configs(&mut framework.split_clean().0).ok();
 
+    framework
+        .data
+        .global
+        .insert::<WatchHistory>(WatchHistory(WatchHistory::load()));
+    framework
+        .data
+        .global
+        .insert::<Library>(Library(Library::load()));
     framework.data.global.insert::<Message>(Message::None);
     framework.data.global.insert::<Status>(Status {
         provider: framework.data.global.get::<MainConfig>().unwrap().provider,
@@ -101,10 +109,6 @@ pub fn load_configs(framework: &mut FrameworkClean) -> Result<(), Box<dyn Error>
         .data
         .global
         .insert::<CommandsConfig>(CommandsConfig::from(*CommandsConfigSerde::load()?));
-    framework
-        .data
-        .global
-        .insert::<WatchHistory>(WatchHistory::load());
     framework
         .data
         .global

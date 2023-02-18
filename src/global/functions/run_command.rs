@@ -1,13 +1,17 @@
 use crate::{
     config::Search,
-    global::structs::{
-        ChannelDisplayPage, ChannelDisplayPageType, MainMenuPage, Message, Page, SingleItemPage,
-        Status, Task, Tasks,
+    global::{
+        structs::{
+            ChannelDisplayPage, ChannelDisplayPageType, Item, Library, MainMenuPage, Message, Page,
+            SingleItemPage, Status, Task, Tasks,
+        },
+        traits::Collection,
     },
     load_configs,
 };
+use home::home_dir;
 use run_script::ScriptOptions;
-use std::{env, io::Stdout, thread};
+use std::{env, error::Error, fs, io::Stdout, thread};
 use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::framework::Framework;
 
@@ -59,6 +63,49 @@ pub fn run_single_command(
     // match a command splitted by space to a bunch of avaliable commands
     match command {
         [] => {}
+        ["bookmark", id] => {
+            match (|| -> Result<Item, Box<dyn Error>> {
+                Ok(serde_json::from_str(&fs::read_to_string(
+                    home_dir()
+                        .unwrap()
+                        .join(format!(".cache/youtube-tui/info/{id}.json")),
+                )?)?)
+            })() {
+                Ok(item) => {
+                    let library = framework.data.global.get_mut::<Library>().unwrap();
+                    let _ = library.push(item, None);
+                    let _ = library.save();
+                    *framework.data.global.get_mut::<Message>().unwrap() =
+                        Message::Success(String::from("Item bookmarked"))
+                }
+                Err(e) => {
+                    *framework.data.global.get_mut::<Message>().unwrap() =
+                        Message::Error(format!("Unknown item: {e}"))
+                }
+            }
+        }
+        ["unmark", id] => {
+            let library = framework.data.global.get_mut::<Library>().unwrap();
+
+            if library.remove(id) {
+                let _ = library.save();
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Success(String::from("Bookmark removed"))
+            } else {
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Error(String::from("No item with that ID found"))
+            }
+        }
+        ["togglemark", id] => {
+            let library = framework.data.global.get_mut::<Library>().unwrap();
+            if library.remove(id) {
+                let _ = library.save();
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Success(String::from("Bookmark removed"))
+            } else {
+                run_single_command(&["bookmark", id], framework, terminal);
+            }
+        }
         ["help"] | ["h"] => {
             *framework.data.global.get_mut::<Message>().unwrap() = Message::Message(String::from(
                 "Avaliable commands can be viewed by running `youtube-tui help` in terminal",
@@ -360,6 +407,11 @@ const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
     \x1b[33mquit\x1b[0m                            Immediately exit
     \x1b[33mrun [command]\x1b[0m                   Runs a system command (e.g. `run firefox example.com`)
     \x1b[33mcopy [text]\x1b[0m                     Copies text to clipboard
+
+\x1b[91mLIBRARY:\x1b[0m
+    \x1b[33mbookmark [id]\x1b[0m                   Bookmark item with ID (item must be already loaded)
+    \x1b[33munmark [id]\x1b[0m                     Remove bookmark item with ID
+    \x1b[33mtogglemark [id]\x1b[0m                 Toggle bookmark status
 
 \x1b[91mALT:\x1b[0m
 \x1b[37malts links back to the original command\x1b[30m

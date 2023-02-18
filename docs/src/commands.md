@@ -47,6 +47,14 @@ run [command]
 >
 > But for when tasks are stacked up in the *same* event loop and the order of which they are executed matters, this command can be used to force the already stacked up commands to be ran first.
 
+## Library
+
+```vim
+bookmark [id]
+unmark [id]
+togglemark [id]
+```
+
 ## Text commands
 
 Text commands generates a *text only response* without launching the TUI.
