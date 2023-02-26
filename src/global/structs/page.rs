@@ -81,8 +81,6 @@ pub enum ChannelDisplayPageType {
 /// Different items to be displayed on a single item page
 #[derive(Clone, PartialEq, Eq)]
 pub enum SingleItemPage {
-    LocalVideo(String),
-    LocalPlaylist(String),
     Video(String),
     Playlist(String),
 }

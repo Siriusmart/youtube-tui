@@ -4,10 +4,14 @@
 
 Creator and main developer of YouTube TUI.
 
+## <a href="https://github.com/LuckyTurtleDev" target=_blank>LuckyTurtleDev</a>
+
+Maintainer of the <a href="https://aur.archlinux.org/packages/youtube-tui" target=_blank>`youtube-tui`</a> package on AUR.
+
 ## <a href="https://github.com/zaedus" target=_blank>Zaedus</a>
 
-Made the PKGBUILD and maintainer of the `youtube-tui-full-bin`, `youtube-tui-nodefaults-bin` and `youtube-tui-git` package on <a href="https://aur.archlinux.org/packages/youtube-tui-git" target=_blank>the AUR</a>.
+Maintainer of the <a href="https://aur.archlinux.org/packages/youtube-tui-full-bin" target=_blank>`youtube-tui-full-bin`</a>, <a href="https://aur.archlinux.org/packages/youtube-tui-nodefaults-bin" target=_blank>`youtube-tui-nodefaults-bin`</a> and <a href="https://aur.archlinux.org/packages/youtube-tui-git" target=_blank>`youtube-tui-git`</a> package on AUR.
 
-## <a href="https://github.com/fractal-tess" target=_blank>Fractal Tess</a>
+## <a href="https://github.com/fractal-tess" target=_blank>Fractal Tess</a>, <a href="https://github.com/msrd0" target=_blank>msrd0</a>
 
 Fixed typos in README.

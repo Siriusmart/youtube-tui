@@ -2,7 +2,7 @@ use typemap::Key;
 
 /// Messages in the message bar
 // is stored in `data.global`
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum Message {
     Message(String),
     Error(String),
@@ -21,5 +21,9 @@ impl Message {
             Self::Message(msg) | Self::Error(msg) | Self::Success(msg) => msg.to_string(),
             Self::None => default.to_string(),
         }
+    }
+
+    pub fn is_none(&self) -> bool {
+        self == &Self::None
     }
 }

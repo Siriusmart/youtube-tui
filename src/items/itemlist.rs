@@ -137,11 +137,11 @@ impl ItemList {
             match &self.items[self.textlist.selected] {
                 Item::MiniVideo(MiniVideoItem { id, .. })
                 | Item::FullVideo(FullVideoItem { id, .. }) => {
-                    Some(Page::SingleItem(SingleItemPage::LocalVideo(id.clone())))
+                    Some(Page::SingleItem(SingleItemPage::Video(id.clone())))
                 }
                 Item::MiniPlaylist(MiniPlaylistItem { id, .. })
                 | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
-                    Some(Page::SingleItem(SingleItemPage::LocalPlaylist(id.clone())))
+                    Some(Page::SingleItem(SingleItemPage::Playlist(id.clone())))
                 }
                 Item::MiniChannel(MiniChannelItem { id: _id, .. })
                 | Item::FullChannel(FullChannelItem { id: _id, .. }) => todo!(),

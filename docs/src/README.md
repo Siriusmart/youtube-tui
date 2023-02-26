@@ -6,6 +6,8 @@ Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for 
 
 It is like an _app launcher_, it launches other programs to do the heavy lifting (for example, `mpv` for playing videos).
 
+> Consider regenerating config files on updates to allow new features.
+
 ## Customisable
 
 The YouTube TUI can be customised through config files, they are located in `~/.config/youtube-tui` and are in the YAML format.
@@ -29,11 +31,13 @@ env:
 
 Anything from layouts to colours and keybindings can be customised, more on that later.
 
-## Dependency-free
+## ~~Dependency-free~~
+
+> Clipboard need to be put as an optional feature before before calling dependency-free, for now `libxcb` is a required dependency.
 
 The YouTube TUI does not work on its own, it is instead like a _TUI frontend_ for programs like `mpv` or `yt-dlp`/`youtube-dl`.
 
-However, the programs to launch can be changed, and therefore the YouTube TUI <u>does not rely on any specific dependencies</u> to run.
+However, the programs to launch can be changed, and therefore ~~the YouTube TUI <u>does not rely on any specific dependencies</u> to run~~.
 
 ![](./images/custom-dependencies-showcase.png)
 
@@ -50,12 +54,12 @@ It also includes features like:
 
 - Vim-like commands
 - Mouse support
-- Entensible keybindings system
+- Extensible keybindings system
+- Offline library
 
 ### What it doesn't have
 
 - Subscriptions (first priority)
-- Download library (will implement)
 
 ## How to contribute
 

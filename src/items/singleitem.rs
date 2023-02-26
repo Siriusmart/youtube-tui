@@ -4,7 +4,7 @@ use super::ItemInfo;
 use crate::{
     config::{AppearanceConfig, CommandsConfig, KeyBindingsConfig, MainConfig, Provider},
     global::{
-        functions::{apply_envs, download_all_images, set_envs},
+        functions::{apply_envs, load_playlist, load_video, set_envs},
         structs::{
             InvidiousClient, Item, KeyAction, Message, Page, SingleItemPage, StateEnvs, Status,
             Task, Tasks, WatchHistory,
@@ -16,6 +16,7 @@ use home::home_dir;
 use tui::{
     layout::{Constraint, Rect},
     style::Style,
+    widgets::{Block, Borders},
 };
 use tui_additions::{
     framework::{FrameworkClean, FrameworkItem},
@@ -70,26 +71,34 @@ pub struct SinglePlaylistItem {
 }
 
 impl SingleVideoItem {
-    pub fn new(commands: &CommandsConfig) -> Self {
-        Self::new_with_map(
-            commands
-                .video
-                .clone()
-                .into_iter()
-                .map(|(display, command)| (display, command))
-                .collect(),
-        )
-    }
-
-    pub fn new_local(commands: &CommandsConfig) -> Self {
-        Self::new_with_map(
-            commands
-                .local_video
-                .clone()
-                .into_iter()
-                .map(|(display, command)| (display, command))
-                .collect(),
-        )
+    pub fn new(commands: &CommandsConfig, mainconfig: &MainConfig, id: &str) -> Self {
+        let saved = (|| -> Option<()> {
+            fs::read_dir(home_dir().unwrap().join(mainconfig.env.get("save-path")?.replacen("~/", "", 1)))
+                .ok()?
+                .filter_map(|entry| Some(entry.ok()?.path().file_stem()?.to_os_string()))
+                .find(|stem| stem.as_os_str().to_str().unwrap_or_default().contains(id))?;
+            Some(())
+        })()
+        .is_some();
+        if saved {
+            Self::new_with_map(
+                commands
+                    .saved_video
+                    .clone()
+                    .into_iter()
+                    .map(|(display, command)| (display, command))
+                    .collect(),
+            )
+        } else {
+            Self::new_with_map(
+                commands
+                    .video
+                    .clone()
+                    .into_iter()
+                    .map(|(display, command)| (display, command))
+                    .collect(),
+            )
+        }
     }
 
     pub fn new_with_map(commands: Vec<(String, String)>) -> Self {
@@ -169,6 +178,7 @@ impl SingleVideoItem {
                 },
             ),
             (String::from("channel-id"), video_item.channel_id.clone()),
+            (String::from("title"), video_item.title.clone()),
             (
                 String::from("channel-url"),
                 match status.provider {
@@ -186,28 +196,36 @@ impl SingleVideoItem {
 }
 
 impl SinglePlaylistItem {
-    pub fn new(commands: &CommandsConfig, playlist_items: &[Item]) -> Self {
-        Self::new_with_map(
-            commands
-                .playlist
-                .clone()
-                .into_iter()
-                .map(|(display, command)| (display, command))
-                .collect(),
-            playlist_items,
-        )
-    }
-
-    pub fn new_local(commands: &CommandsConfig, playlist_items: &[Item]) -> Self {
-        Self::new_with_map(
-            commands
-                .local_playlist
-                .clone()
-                .into_iter()
-                .map(|(display, command)| (display, command))
-                .collect(),
-            playlist_items,
-        )
+    pub fn new(commands: &CommandsConfig, mainconfig: &MainConfig ,id: &str, playlist_items: &[Item]) -> Self {
+        let saved = (|| -> Option<()> {
+            fs::read_dir(home_dir().unwrap().join(mainconfig.env.get("save-path")?.replacen("~/", "", 1)))
+                .ok()?
+                .filter_map(|entry| Some(entry.ok()?.path().file_stem()?.to_os_string()))
+                .find(|stem| stem.as_os_str().to_str().unwrap_or_default().contains(id))?;
+            Some(())
+        })()
+        .is_some();
+        if saved {
+            Self::new_with_map(
+                commands
+                    .saved_playlist
+                    .clone()
+                    .into_iter()
+                    .map(|(display, command)| (display, command))
+                    .collect(),
+                playlist_items,
+            )
+        } else {
+            Self::new_with_map(
+                commands
+                    .playlist
+                    .clone()
+                    .into_iter()
+                    .map(|(display, command)| (display, command))
+                    .collect(),
+                playlist_items,
+            )
+        }
     }
 
     pub fn new_with_map(commands: Vec<(String, String)>, playlist_items: &[Item]) -> Self {
@@ -311,6 +329,7 @@ impl SinglePlaylistItem {
         vec![
             (String::from("id"), playlist_item.id.clone()),
             (String::from("channel-id"), playlist_item.channel_id.clone()),
+            (String::from("title"), playlist_item.title.clone()),
             (
                 String::from("all-ids"),
                 playlist_item
@@ -526,6 +545,18 @@ impl FrameworkItem for SingleItem {
             return;
         }
 
+        let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
+
+        if self.item.is_none() {
+            frame.render_widget(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(appearance.borders),
+                area,
+            );
+            return;
+        }
+
         if status.provider_updated {
             set_envs(
                 self.infalte_item_update(
@@ -537,17 +568,11 @@ impl FrameworkItem for SingleItem {
             );
         }
 
-        let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
         self.update_appearance(appearance, &info);
 
         let chunks = self.grid.chunks(area).unwrap()[0].clone();
 
         frame.render_widget(self.grid.clone(), area);
-
-        // only continue if `self.item` is Some
-        if self.item.is_none() {
-            return;
-        }
 
         match &mut self.r#type {
             SingleItemType::Video(typeinfo) => {
@@ -634,74 +659,59 @@ impl FrameworkItem for SingleItem {
         let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
         // load items using the invidious api
         // gets the item that it needs to load from `data.state.Page`
-        self.item = match r#type {
+        let (item, r#type) = match r#type {
             SingleItemPage::Video(id) => {
-                let client = &framework.data.global.get::<InvidiousClient>().unwrap().0;
-                self.r#type = SingleItemType::Video(SingleVideoItem::new(
-                    framework.data.global.get::<CommandsConfig>().unwrap(),
-                ));
-                let video = Item::from_full_video(client.video(id, None)?, mainconfig.image_index);
-                if mainconfig.images.display() {
-                    download_all_images(vec![(&video).into()]);
-                }
-                Some(video)
+                let home_dir = home_dir().unwrap();
+                let path = home_dir.join(format!(".cache/youtube-tui/info/{id}.json"));
+
+                let video = if path.exists() {
+                    serde_json::from_str(&fs::read_to_string(path)?)?
+                } else {
+                    load_video(
+                        &framework.data.global.get::<InvidiousClient>().unwrap().0,
+                        id,
+                        mainconfig,
+                    )?
+                };
+                (
+                    video,
+                    SingleItemType::Video(SingleVideoItem::new(
+                        framework.data.global.get::<CommandsConfig>().unwrap(),
+                        mainconfig,
+                        id,
+                    )),
+                )
             }
             SingleItemPage::Playlist(id) => {
-                let client = &framework.data.global.get::<InvidiousClient>().unwrap().0;
-                let playlist =
-                    Item::from_full_playlist(client.playlist(id, None)?, mainconfig.image_index);
-                let videos = &playlist.fullplaylist()?.videos;
-                self.r#type = SingleItemType::Playlist(
+                let path = home_dir()
+                    .unwrap()
+                    .join(format!(".cache/youtube-tui/info/{id}.json"));
+
+                let playlist = if path.exists() {
+                    serde_json::from_str(&fs::read_to_string(path)?)?
+                } else {
+                    load_playlist(
+                        &framework.data.global.get::<InvidiousClient>().unwrap().0,
+                        id,
+                        mainconfig,
+                    )?
+                };
+                let r#type = SingleItemType::Playlist(
                     SinglePlaylistItem::new(
                         framework.data.global.get::<CommandsConfig>().unwrap(),
-                        videos,
+                        mainconfig,
+                        id,
+                        &playlist.fullplaylist().unwrap().videos,
                     )
                     .into(),
                 );
 
-                if mainconfig.images.display() {
-                    download_all_images({
-                        let mut items = videos.iter().map(|item| item.into()).collect::<Vec<_>>();
-                        items.extend([(&playlist).into()].into_iter());
-                        items
-                    });
-                }
-
-                Some(playlist)
-            }
-            SingleItemPage::LocalVideo(id) => {
-                let s = fs::read_to_string(
-                    home_dir()
-                        .unwrap()
-                        .join(format!(".cache/youtube-tui/info/{id}.json")),
-                )?;
-                self.r#type = SingleItemType::Video(SingleVideoItem::new_local(
-                    framework.data.global.get::<CommandsConfig>().unwrap(),
-                ));
-
-                Some(serde_json::from_str(&s)?)
-            }
-
-            SingleItemPage::LocalPlaylist(id) => {
-                let s = fs::read_to_string(
-                    home_dir()
-                        .unwrap()
-                        .join(format!(".cache/youtube-tui/info/{id}.json")),
-                )?;
-
-                let playlist: Item = serde_json::from_str(&s)?;
-                let videos = &playlist.fullplaylist()?.videos;
-                self.r#type = SingleItemType::Playlist(
-                    SinglePlaylistItem::new_local(
-                        framework.data.global.get::<CommandsConfig>().unwrap(),
-                        videos,
-                    )
-                    .into(),
-                );
-
-                Some(playlist)
+                (playlist, r#type)
             }
         };
+
+        self.item = Some(item);
+        self.r#type = r#type;
         self.iteminfo.item = self.item.clone();
 
         if let Some(item) = &self.item {

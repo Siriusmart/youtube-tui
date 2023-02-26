@@ -45,12 +45,8 @@ impl CommandBindings {
             Page::MainMenu(MainMenuPage::History) => get_command(key, &self.watchhistory),
             Page::MainMenu(MainMenuPage::Subscriptions) => get_command(key, &self.subscriptions),
             Page::MainMenu(MainMenuPage::Library) => get_command(key, &self.libray),
-            Page::SingleItem(SingleItemPage::Video(_))
-            | Page::SingleItem(SingleItemPage::LocalVideo(_)) => get_command(key, &self.video),
-            Page::SingleItem(SingleItemPage::Playlist(_))
-            | Page::SingleItem(SingleItemPage::LocalPlaylist(_)) => {
-                get_command(key, &self.playlist)
-            }
+            Page::SingleItem(SingleItemPage::Video(_)) => get_command(key, &self.video),
+            Page::SingleItem(SingleItemPage::Playlist(_)) => get_command(key, &self.playlist),
             Page::ChannelDisplay(ChannelDisplayPage {
                 r#type: ChannelDisplayPageType::Main,
                 ..
@@ -250,5 +246,9 @@ fn subscriptions_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
 }
 
 fn library_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
-    HashMap::default()
+    HashMap::from([
+        (KeyCodeSerde::Char('a'), HashMap::from([(2, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video"))])),
+        (KeyCodeSerde::Char('A'), HashMap::from([(1, String::from("run ${terminal-emulator} mpv '${hover-url}' --no-video --loop-playlist=inf --shuffle"))])),
+        (KeyCodeSerde::Char('p'), HashMap::from([(2, String::from("run mpv '${hover-url}'"))]))
+    ])
 }

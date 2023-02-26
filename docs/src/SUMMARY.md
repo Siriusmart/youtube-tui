@@ -18,12 +18,11 @@
 
 # Contributing
 
-- [How it works](how_it_works.md)
-	- [Framework](framework.md)
-	- [Invidious API]()
-	- [Individual items]()
-
-- [Contribution guide]()
+- [How it works](explaination/how_it_works.md)
+	- [Framework](explaination/framework.md)
+	- [Event loop]()
+	- [Invidious and loading videos]()
+	- [Caching and library]()
 
 - [Changelogs](changelogs.md)
 - [Contributors](contributors.md)

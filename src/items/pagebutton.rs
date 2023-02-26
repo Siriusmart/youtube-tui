@@ -55,11 +55,11 @@ impl PageButton {
                 _ => {}
             }
         } else if *self == Self::Subscriptions || *self == Self::Library {
-            match page {
-                Page::MainMenu(MainMenuPage::Subscriptions) => *self = Self::Subscriptions,
-                Page::MainMenu(MainMenuPage::Library) => *self = Self::Library,
-                _ => {}
-            }
+            // match page {
+            //     Page::MainMenu(MainMenuPage::Subscriptions) => *self = Self::Subscriptions,
+            //     Page::MainMenu(MainMenuPage::Library) => *self = Self::Library,
+            //     _ => {}
+            // }
         }
     }
 }
@@ -131,8 +131,8 @@ impl FrameworkItem for PageButton {
             match self {
                 Self::Trending => *self = Self::Popular,
                 Self::Popular => *self = Self::Trending,
-                Self::Subscriptions => *self = Self::Library,
-                Self::Library => *self = Self::Subscriptions,
+                // Self::Subscriptions => *self = Self::Library,
+                // Self::Library => *self = Self::Subscriptions,
                 _ => {
                     *framework.data.global.get_mut::<Message>().unwrap() =
                         Message::Message(String::from("You are already on this page"));

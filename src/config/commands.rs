@@ -10,9 +10,9 @@ use crate::global::traits::ConfigTrait;
 pub struct CommandsConfig {
     pub launch_command: String,
     pub video: Vec<(String, String)>,
+    pub saved_video: Vec<(String, String)>,
     pub playlist: Vec<(String, String)>,
-    pub local_video: Vec<(String, String)>,
-    pub local_playlist: Vec<(String, String)>,
+    pub saved_playlist: Vec<(String, String)>,
 }
 
 impl Key for CommandsConfig {
@@ -28,18 +28,18 @@ impl From<CommandsConfigSerde> for CommandsConfig {
                 .into_iter()
                 .map(|hashmap| hashmap.into_iter().last().unwrap())
                 .collect(),
+            saved_video: original
+                .saved_video
+                .into_iter()
+                .map(|hashmap| hashmap.into_iter().last().unwrap())
+                .collect(),
             playlist: original
                 .playlist
                 .into_iter()
                 .map(|hashmap| hashmap.into_iter().last().unwrap())
                 .collect(),
-            local_video: original
-                .local_video
-                .into_iter()
-                .map(|hashmap| hashmap.into_iter().last().unwrap())
-                .collect(),
-            local_playlist: original
-                .local_playlist
+            saved_playlist: original
+                .saved_playlist
                 .into_iter()
                 .map(|hashmap| hashmap.into_iter().last().unwrap())
                 .collect(),
@@ -55,12 +55,12 @@ pub struct CommandsConfigSerde {
     pub launch_command: String,
     #[serde(default = "video_default")]
     pub video: Vec<HashMap<String, String>>,
+    #[serde(default = "saved_video_default")]
+    pub saved_video: Vec<HashMap<String, String>>,
     #[serde(default = "playlist_default")]
     pub playlist: Vec<HashMap<String, String>>,
-    #[serde(default = "local_video_default")]
-    pub local_video: Vec<HashMap<String, String>>,
-    #[serde(default = "local_playlist_default")]
-    pub local_playlist: Vec<HashMap<String, String>>,
+    #[serde(default = "saved_playlist_default")]
+    pub saved_playlist: Vec<HashMap<String, String>>,
 }
 
 impl ConfigTrait for CommandsConfigSerde {
@@ -72,9 +72,9 @@ impl Default for CommandsConfigSerde {
         Self {
             launch_command: launch_command_default(),
             video: video_default(),
+            saved_video: saved_video_default(),
             playlist: playlist_default(),
-            local_video: local_video_default(),
-            local_playlist: local_playlist_default(),
+            saved_playlist: saved_playlist_default(),
         }
     }
 }
@@ -83,11 +83,15 @@ impl Default for CommandsConfigSerde {
 // Different pages may contain different `env`s (for example `url` is different in each page)
 
 fn launch_command_default() -> String {
-    String::from("loadpage watchhistory ;; flush ;; history clear")
+    String::from("loadpage library ;; flush ;; history clear")
 }
 
 fn video_default() -> Vec<HashMap<String, String>> {
     vec![
+        HashMap::from([(
+            String::from("Reload updated video"),
+            String::from("run rm '~/.cache/youtube-tui/info/${id}.json' ;; video ${id}"),
+        )]),
         HashMap::from([(
             String::from("Play video"),
             String::from("run ${video-player} '${embed-url}'"),
@@ -115,16 +119,61 @@ fn video_default() -> Vec<HashMap<String, String>> {
             String::from("togglemark ${id}")
         )]),
         HashMap::from([(
-            String::from("Save video"),
-            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}' ;; run ${terminal-emulator} ${youtube-downloader} ${all-videos} -o '${save-path}${id}/%(id)s'")
+            String::from("Save video to library"),
+            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}.*' ;; run ${terminal-emulator} ${youtube-downloader} '${embed-url}' -o '${save-path}%(title)s[%(id)s].%(ext)s'")
         )]),
         HashMap::from([(
-            String::from("Save audio"),
-            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}' ;; run ${terminal-emulator} ${youtube-downloader} ${all-videos} -x -o '${save-path}${id}/%(id)s'")
+            String::from("Save audio to library"),
+            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}.*' ;; run ${terminal-emulator} ${youtube-downloader} '${embed-url}' -x -o '${save-path}%(title)s[%(id)s].%(ext)s'")
         )]),
         HashMap::from([(
             String::from("Mode: ${provider}"),
             String::from("switchprovider"),
+        )]),
+    ]
+}
+
+fn saved_video_default() -> Vec<HashMap<String, String>> {
+    vec![
+        HashMap::from([(
+            String::from("Reload updated video"),
+            String::from("run rm '~/.cache/youtube-tui/info/${id}.json' ;; video ${id}"),
+        )]),
+        HashMap::from([(
+            String::from("[Offline] Play saved file"),
+            String::from("run find ${save-path} | grep ${id} | ${video-player} --playlist=- --force-window"),
+        )]),
+        HashMap::from([(
+            String::from("[Offline] Play saved file (audio)"),
+            String::from("run ${terminal-emulator} bash -c 'find ${save-path} | grep ${id} | ${video-player} --playlist=- --no-video'"),
+        )]),
+        HashMap::from([(
+            String::from("[Offline] Play saved file (audio loop)"),
+            String::from("run ${terminal-emulator} bash -c 'find ${save-path} | grep ${id} | ${video-player} --playlist=- --no-video --loop'"),
+        )]),
+        HashMap::from([(
+            String::from("View channel"),
+            String::from("channel ${channel-id}"),
+        )]),
+        HashMap::from([(
+            String::from("Open in browser"),
+            String::from("run ${browser} '${url}'"),
+        )]),
+        HashMap::from([(
+            String::from("Toggle bookmark"),
+            String::from("togglemark ${id}")
+        )]),
+        HashMap::from([(
+            String::from("Redownload video to library"),
+            String::from("bookmark ${id} ;; run rm ${save-path}*${id}*.* ;; run ${terminal-emulator} ${youtube-downloader} ${embed-url} -o '${save-path}%(title)s[%(id)s].%(ext)s'"),
+        )]),
+        HashMap::from([(
+            String::from("Redownload audio to library"),
+            String::from("bookmark ${id} ;; run rm ${save-path}*${id}*.* ;; run ${terminal-emulator} ${youtube-downloader} ${embed-url} -x -o '${save-path}%(title)s[%(id)s].%(ext)s'")
+        )]),
+        HashMap::from([(
+            String::from("Delete saved file"),
+            String::from("run rm ${save-path}*${id}*.*")
         )]),
     ]
 }
@@ -133,19 +182,19 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
     vec![
         HashMap::from([(String::from("Switch view"), String::from("%switch-view%"))]),
         HashMap::from([(
-            String::from("Reload as online mode"),
-            String::from("playlist ${id}"),
+            String::from("Reload updated playlist"),
+            String::from("run rm ~/.cache/youtube-tui/info/${id}.json ;; reload"),
         )]),
         HashMap::from([(
-            String::from("Play all videos"),
+            String::from("Play all (videos)"),
             String::from("run ${video-player} ${all-videos}"),
         )]),
         HashMap::from([(
-            String::from("Play all audio"),
+            String::from("Play all (audio)"),
             String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video"),
         )]),
         HashMap::from([(
-            String::from("Shuffle play all audio (loop)"),
+            String::from("Shuffle play all (audio loop)"),
             String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle --loop-playlist=inf"),
         )]),
         HashMap::from([(
@@ -161,8 +210,12 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
             String::from("togglemark ${id}")
         )]),
         HashMap::from([(
-            String::from("Save all audio"),
-            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}' ;; run mkdir '${save-path}${id}' ;; run ${terminal-emulator} ${youtube-downloader} ${all-videos} -x -o '${save-path}${id}/%(id)s'")
+            String::from("Save playlist videos to library"),
+            String::from("bookmark ${id} ;; run rm -rf '${save-path}*${id}*' ;; run ${terminal-emulator} bash -c \"${youtube-downloader} ${all-videos} -o '\"'${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s'\"'\"")
+        )]),
+        HashMap::from([(
+            String::from("Save playlist audio to library"),
+            String::from("bookmark ${id} ;; run rm -rf '${save-path}*${id}*' ;; run ${terminal-emulator} bash -c \"${youtube-downloader} ${all-videos} -x -o '\"'${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s'\"'\"")
         )]),
         HashMap::from([(
             String::from("Mode: ${provider}"),
@@ -171,71 +224,24 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
     ]
 }
 
-fn local_video_default() -> Vec<HashMap<String, String>> {
-    vec![
-        HashMap::from([(
-            String::from("Reload as online mode"),
-            String::from("video ${id}"),
-        )]),
-        HashMap::from([(
-            String::from("Play video"),
-            String::from("run ${video-player} '${embed-url}'"),
-        )]),
-        HashMap::from([(
-            String::from("Play audio"),
-            String::from("run ${terminal-emulator} ${video-player} '${embed-url}' --no-video"),
-        )]),
-        HashMap::from([(
-            String::from("Play audio (loop)"),
-            String::from(
-                "run ${terminal-emulator} ${video-player} '${embed-url}' --no-video --loop-file=inf",
-            ),
-        )]),
-        HashMap::from([(
-            String::from("View channel"),
-            String::from("channel ${channel-id}"),
-        )]),
-        HashMap::from([(
-            String::from("Open in browser"),
-            String::from("run ${browser} '${url}'"),
-        )]),
-        HashMap::from([(
-            String::from("Toggle bookmark"),
-            String::from("togglemark ${id}")
-        )]),
-        HashMap::from([(
-            String::from("Save video"),
-            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}' ;; run ${terminal-emulator} ${youtube-downloader} ${all-videos} -o '${save-path}${id}/%(id)s'")
-        )]),
-        HashMap::from([(
-            String::from("Save audio"),
-            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}' ;; run ${terminal-emulator} ${youtube-downloader} ${all-videos} -x -o '${save-path}${id}/%(id)s'")
-        )]),
-        HashMap::from([(
-            String::from("Mode: ${provider}"),
-            String::from("switchprovider"),
-        )]),
-    ]
-}
-
-fn local_playlist_default() -> Vec<HashMap<String, String>> {
+fn saved_playlist_default() -> Vec<HashMap<String, String>> {
     vec![
         HashMap::from([(String::from("Switch view"), String::from("%switch-view%"))]),
         HashMap::from([(
-            String::from("Reload as online mode"),
-            String::from("playlist ${id}"),
+            String::from("Reload updated playlist"),
+            String::from("run rm ~/.cache/youtube-tui/info/${id}.json ;; reload"),
         )]),
         HashMap::from([(
-            String::from("Play all videos"),
-            String::from("run ${video-player} ${all-videos}"),
+            String::from("[Offline] Play all (videos)"),
+            String::from("run find ${save-path} | grep ${id} | ${video-player} --playlist=- --force-window"),
         )]),
         HashMap::from([(
-            String::from("Play all audio"),
-            String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video"),
+            String::from("[Offline] Play all (audio)"),
+            String::from("run ${terminal-emulator} bash -c 'find ${save-path} | grep ${id} | ${video-player} --playlist=- --no-video'"),
         )]),
         HashMap::from([(
-            String::from("Shuffle play all audio (loop)"),
-            String::from("run ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle --loop-playlist=inf"),
+            String::from("[Offline] Shuffle play all (audio loop)"),
+            String::from("run ${terminal-emulator} bash -c 'find ${save-path} | grep ${id} | ${video-player} --playlist=- --no-video --loop-playlist=inf'"),
         )]),
         HashMap::from([(
             String::from("View channel"),
@@ -250,12 +256,16 @@ fn local_playlist_default() -> Vec<HashMap<String, String>> {
             String::from("togglemark ${id}")
         )]),
         HashMap::from([(
-            String::from("Save all audio"),
-            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}' ;; run mkdir '${save-path}${id}' ;; run ${terminal-emulator} ${youtube-downloader} ${all-videos} -x -o '${save-path}${id}/%(id)s'")
+            String::from("Redownload playlist videos to library"),
+            String::from("bookmark ${id} ;; run rm -rf ${save-path}*${id}* ;; run ${terminal-emulator} bash -c \"${youtube-downloader} ${all-videos} -o '\"'${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s'\"'\"")
         )]),
         HashMap::from([(
-            String::from("Mode: ${provider}"),
-            String::from("switchprovider"),
+            String::from("Redownload playlist audio to library"),
+            String::from("bookmark ${id} ;; run rm -rf ${save-path}*${id}* ;; run ${terminal-emulator} bash -c \"${youtube-downloader} ${all-videos} -x -o '\"'${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s'\"'\"")
+        )]),
+        HashMap::from([(
+            String::from("Delete saved files"),
+            String::from("run rm -rf ${save-path}*${id}*")
         )]),
     ]
 }

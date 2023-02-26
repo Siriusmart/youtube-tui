@@ -76,7 +76,7 @@ pub fn run_single_command(
                     let _ = library.push(item, None);
                     let _ = library.save();
                     *framework.data.global.get_mut::<Message>().unwrap() =
-                        Message::Success(String::from("Item bookmarked"))
+                        Message::Success(String::from("Bookmark added"))
                 }
                 Err(e) => {
                     *framework.data.global.get_mut::<Message>().unwrap() =

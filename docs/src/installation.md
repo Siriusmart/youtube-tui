@@ -1,12 +1,12 @@
 # Installation
 
-It's about download (or building) the binary and putting them in an easily accessible location (like `/bin/`).
+> Currently YouTube TUI requires `libxcb`, which should come preinstalled in most Linux system.
 
-The YouTube TUI is not tested for Windows.
+The YouTube TUI is *not* tested for Windows.
 
 ## Install from Crates.io (recommended)
 
-Crates.io is a repository for programs written in Rust, and the YouTube TUI is avaliable <a href="https://crates.io/crates/youtube-tui" target=_blank>*there*</a>.
+Crates.io is a repository for programs written in Rust, and the YouTube TUI is available <a href="https://crates.io/crates/youtube-tui" target=_blank>*there*</a>.
 
 To install using this method, you will need `rustc` and `cargo` present. <a href="https://www.rust-lang.org/tools/install" target=_blank>*Here*</a>'s a tutorial on how to get them.
 
@@ -20,14 +20,15 @@ cargo install youtube-tui
 
 ## AUR for Arch Linux (recommended)
 
-The YouTube TUI is avaliable in the AUR <a href="https://aur.archlinux.org/packages/youtube-tui-git" target=_blank>*here*</a>.
+The YouTube TUI is available in the AUR <a href="https://aur.archlinux.org/packages/youtube-tui-git" target=_blank>*here*</a>.
 
 Use an <a href="https://aur.archlinux.org" target=_blank>AUR</a> helper like <a href="https://aur.archlinux.org/packages/yay" target=_blank>`yay`</a> to install.
 
 ```sh
-yay -S youtube-tui-git # replace `yay` with your AUR helper
-yay -S youtube-tui-full-bin # requires libsixel
-yay -S youtube-tui-nodefaults-bin
+yay -S youtube-tui # lastest crates.io release, recommended
+yay -S youtube-tui-git # latest git version, potentially untested
+yay -S youtube-tui-full-bin # default binary (out of date)
+yay -S youtube-tui-nodefaults-bin # minimal binary (out of date)
 ```
 
 ## Build from source
@@ -71,5 +72,3 @@ Display images with Sixels, allows the display of images at full definition. Not
 Enabling this will also enable `halfblock`.
 
 Requires <a href="https://github.com/saitoha/libsixel" target=_blank>`libsixel`</a>.
-
-> `sixel` and `halfblock` does not compile on Windows.

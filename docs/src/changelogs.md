@@ -1,12 +1,26 @@
 # Changelogs
 
+## v0.7.0
+
+### Added
+
+- File system based caching
+- Bookmark library
+- Save video/playlists for offline viewing
+
+### Fixed
+
+- Empty ItemList crash (<a href="https://github.com/Siriusmart/youtube-tui/issues/26" target=_blank>issue 26</a>)
+
+<hr>
+
 ## v0.6.2
 
-#### Added
+### Added
 
 - Command bindings
 
-#### Fixed
+### Fixed
 
 - Image not cleared when going back to "switch view"
 
@@ -34,7 +48,7 @@
 
 ## v0.5.3
 
-#### Fixed
+### Fixed
 
 - Search bar could not handle non English characters (e.g. <a href="https://github.com/Siriusmart/youtube-tui/issues/14" target=_blank>Russian</a>)
 
@@ -68,11 +82,11 @@
 
 ## v0.4.4
 
-#### Added
+### Added
 
 - Added default select item for each page (can be changed in `layouts.yml`)
 
-#### Fixes
+### Fixes
 
 - Video list view in playlists not working
 - Channel view scroll causes panic

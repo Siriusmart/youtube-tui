@@ -76,7 +76,7 @@ impl TaskQueue {
 
     /// runs all tasks in a task queue
     pub fn run(
-        self,
+        mut self,
         framework: &mut Framework,
         terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     ) -> Result<(), Box<dyn Error>> {
@@ -139,8 +139,10 @@ impl TaskQueue {
             } else {
                 Message::None
             };
-            update_provider(&mut framework.data);
-            Self::render(framework, terminal)?;
+            let status = framework.data.global.get_mut::<Status>().unwrap();
+            status.provider_updated = true;
+            status.render_image = true;
+            self.render = RenderTask::All;
         }
 
         if self.reload {
@@ -168,8 +170,10 @@ impl TaskQueue {
             } else {
                 Message::None
             };
-            update_provider(&mut framework.data);
-            Self::render(framework, terminal)?;
+            let status = framework.data.global.get_mut::<Status>().unwrap();
+            status.provider_updated = true;
+            status.render_image = true;
+            self.render = RenderTask::All;
         }
 
         match self.render {
@@ -181,6 +185,10 @@ impl TaskQueue {
                 unimplemented!("tui-rs does not support partial re-rendering");
             }
             RenderTask::None => {}
+        }
+
+        if framework.data.global.get::<Status>().unwrap().provider_updated {
+            update_provider(&mut framework.data);
         }
 
         Ok(())

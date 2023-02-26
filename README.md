@@ -1,19 +1,12 @@
-![](https://img.shields.io/github/languages/top/siriusmart/youtube-tui?label=rust)
-![](https://shields.io/github/license/siriusmart/youtube-tui)
-[![](https://img.shields.io/crates/d/youtube-tui?label=crates.io%20downloads)](https://crates.io/crates/youtube-tui)
-[![](https://img.shields.io/crates/v/youtube-tui?label=crates.io%20version)](https://crates.io/crates/youtube-tui)
-[![](https://img.shields.io/aur/version/youtube-tui)](https://aur.archlinux.org/packages/youtube-tui)
-![](https://shields.io/github/stars/siriusmart/youtube-tui?style=social)
-
-***Read more in the [user manual](https://siriusmart.github.io/youtube-tui) (including installation guide and documentation).***
-
 # Overview
 
 Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal.
 
-![](./docs/src/images/search-showcase.png)
+![](../images/search-showcase.png)
 
 It is like an _app launcher_, it launches other programs to do the heavy lifting (for example, `mpv` for playing videos).
+
+> Consider regenerating config files on updates to allow new features.
 
 ## Customisable
 
@@ -38,17 +31,19 @@ env:
 
 Anything from layouts to colours and keybindings can be customised, more on that later.
 
-## Dependency-free
+## ~~Dependency-free~~
+
+> Clipboard need to be put as an optional feature before before calling dependency-free, for now `libxcb` is a required dependency.
 
 The YouTube TUI does not work on its own, it is instead like a _TUI frontend_ for programs like `mpv` or `yt-dlp`/`youtube-dl`.
 
-However, the programs to launch can be changed, and therefore the YouTube TUI <u>does not rely on any specific dependencies</u> to run.
+However, the programs to launch can be changed, and therefore ~~the YouTube TUI <u>does not rely on any specific dependencies</u> to run~~.
 
-![](./docs/src/images/custom-dependencies-showcase.png)
+![](../images/custom-dependencies-showcase.png)
 
 ## Powerful
 
-The YouTube TUI allows you to browse YouTube with (almost) all of its features, functions including:
+The YouTube TUI allows you to browse YouTube with (almost) all of it's features, functions including:
 
 - View popular/trending videos
 - View information about channels, playlists and videos
@@ -60,11 +55,11 @@ It also includes features like:
 - Vim-like commands
 - Mouse support
 - Extensible keybindings system
+- Offline library
 
 ### What it doesn't have
 
 - Subscriptions (first priority)
-- Download library (will implement)
 
 ## How to contribute
 

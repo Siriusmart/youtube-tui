@@ -90,8 +90,7 @@ pub fn update_provider(data: &mut FrameworkData) {
                 }
             },
         )],
-        Page::SingleItem(SingleItemPage::Video(id))
-        | Page::SingleItem(SingleItemPage::LocalVideo(id)) => vec![
+        Page::SingleItem(SingleItemPage::Video(id)) => vec![
             (
                 String::from("url"),
                 match status.provider {
@@ -127,8 +126,7 @@ pub fn update_provider(data: &mut FrameworkData) {
                 },
             ),
         ],
-        Page::SingleItem(SingleItemPage::Playlist(id))
-        | Page::SingleItem(SingleItemPage::LocalPlaylist(id)) => vec![
+        Page::SingleItem(SingleItemPage::Playlist(id)) => vec![
             (
                 String::from("url"),
                 match status.provider {

@@ -49,12 +49,6 @@ To apply search filters, select the button with 3 dots (`...`) to the right of t
 
 Press `Enter` to select a video or playlist from any lists, then move the cursor to the *bottom item* where you can play, download and open the webpage in browser.
 
-### Playlist views
-
-The playlist page allows two different view modes, the first of which is *commands view* - similar to what the video page offers.
-
-The other one is *videos view*, which allows you to look at each videos in the playlist individually.
-
 ## Command mode
 
 Command mode is like that of Vim, it can be started by pressing `:` when nothing is selected.
@@ -63,11 +57,13 @@ More about commands in the [next chapter](commands.md).
 
 ## Command bindings
 
-Keys can be binded to a command, more about it in the next chapter.
+Keys can be bind to a command, more about it in the next chapter.
+
+For example `Ctrl + F` launches your web browser.
 
 ## Buttons
 
-Buttons have no use on their own, but allows you to navigate between pages.
+Buttons are similar to hyperlinks, it allows you to navigate between pages.
 
 ## Mouse click control
 
@@ -83,3 +79,7 @@ However, there are some downsides to not using your keyboard.
 
 1. Cannot move up or down to items not on screen in a list (you can do that with `Up` or `Down arrow`)
 2. Cannot access function keys like `Backspace` or `Q`
+
+## Library
+
+Items can be bookmarked and saved to library, they can also be saved to be viewed offline.
