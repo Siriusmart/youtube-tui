@@ -1,8 +1,17 @@
+![](https://img.shields.io/github/languages/top/siriusmart/youtube-tui?label=rust)
+![](https://shields.io/github/license/siriusmart/youtube-tui)
+[![](https://img.shields.io/crates/d/youtube-tui?label=crates.io%20downloads)](https://crates.io/crates/youtube-tui)
+[![](https://img.shields.io/crates/v/youtube-tui?label=crates.io%20version)](https://crates.io/crates/youtube-tui)
+[![](https://img.shields.io/aur/version/youtube-tui)](https://aur.archlinux.org/packages/youtube-tui)
+![](https://shields.io/github/stars/siriusmart/youtube-tui?style=social)
+
+***Read more in the [user manual](https://siriusmart.github.io/youtube-tui) (including installation guide and documentation).***
+
 # Overview
 
 Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal.
 
-![](../images/search-showcase.png)
+![](./docs/src/images/search-showcase.png)
 
 It is like an _app launcher_, it launches other programs to do the heavy lifting (for example, `mpv` for playing videos).
 
@@ -39,7 +48,7 @@ The YouTube TUI does not work on its own, it is instead like a _TUI frontend_ fo
 
 However, the programs to launch can be changed, and therefore ~~the YouTube TUI <u>does not rely on any specific dependencies</u> to run~~.
 
-![](../images/custom-dependencies-showcase.png)
+![](./docs/src/images/custom-dependencies-showcase.png)
 
 ## Powerful
 
