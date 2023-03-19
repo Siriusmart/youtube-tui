@@ -7,13 +7,8 @@ use tui_additions::{
 };
 
 use crate::{
-    config::{CommandBindings, KeyBindingsConfig, MainConfig},
-    global::{
-        functions::{
-            apply_envs, clear_envs, command_capture, run_command, set_envs, update_provider,
-        },
-        structs::{KeyAction, Message, Page, StateEnvs, Status, Task, Tasks},
-    },
+    config::*,
+    global::{functions::*, structs::*},
 };
 
 /// the main event loop of the program

@@ -1,13 +1,11 @@
+use crate::{config::serde::*, global::traits::*};
+use home::home_dir;
+use serde::{Deserialize, Serialize};
 use std::{
     error::Error,
     fs::{self, OpenOptions},
     io::Write,
 };
-
-use super::serde::{BorderTypeSerde, ColorSerde, ColorVariantSerde};
-use crate::global::traits::{ConfigTrait, EXTENSION};
-use home::home_dir;
-use serde::{Deserialize, Serialize};
 use tui::{style::Color, widgets::BorderType};
 use typemap::Key;
 

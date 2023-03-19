@@ -1,3 +1,4 @@
+use crate::global::structs::Item;
 use home::home_dir;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
@@ -6,8 +7,6 @@ use std::{
     io::Write,
 };
 use typemap::Key;
-
-use crate::global::structs::Item;
 
 pub trait Collection
 where

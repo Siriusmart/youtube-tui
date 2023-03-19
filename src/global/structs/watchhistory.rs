@@ -1,6 +1,4 @@
-use crate::global::traits::Collection;
-
-use super::Item;
+use crate::global::{structs::Item, traits::Collection};
 use serde::{Deserialize, Serialize};
 use typemap::Key;
 

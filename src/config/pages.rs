@@ -1,13 +1,8 @@
-use crate::{
-    global::traits::ConfigTrait,
-    items::{
-        ChannelDisplay, ItemList, MessageBar, PageButton, SearchBar, SearchFilter, SingleItem,
-    },
-};
+use crate::{global::traits::ConfigTrait, items::*};
 use serde::{Deserialize, Serialize};
 use std::slice;
 use tui::layout::Constraint;
-use tui_additions::framework::{Framework, FrameworkItem, Row, RowItem, State};
+use tui_additions::framework::*;
 use typemap::Key;
 
 /// Minimum screen dimention for the tui to display without panicking, stored in `data.state`

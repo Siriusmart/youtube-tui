@@ -27,6 +27,8 @@ pub struct MainConfig {
     pub image_index: usize,
     #[serde(default = "provider_default")]
     pub provider: Provider,
+    #[serde(default = "shell_default")]
+    pub shell: String,
     #[serde(default = "default_env")]
     pub env: HashMap<String, String>,
 }
@@ -48,6 +50,7 @@ impl Default for MainConfig {
             refresh_after_modifying_search_filters: refresh_after_modifying_search_filters_default(
             ),
             provider: provider_default(),
+            shell: shell_default(),
 
             env: default_env(),
         }
@@ -154,4 +157,8 @@ fn default_env() -> HashMap<String, String> {
             String::from("~/.local/share/youtube-tui/saved/"),
         ),
     ])
+}
+
+fn shell_default() -> String {
+    String::from("sh")
 }

@@ -1,5 +1,5 @@
 use chrono::Utc;
-use std::ops::{Add, Rem, Sub};
+use std::ops::*;
 
 /// generate a random number between range
 pub fn fake_rand_range<T>(from: T, to: T) -> T

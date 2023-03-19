@@ -1,13 +1,7 @@
 use std::env;
 use tui_additions::framework::FrameworkData;
 
-use crate::{
-    config::{MainConfig, Provider},
-    global::structs::{
-        ChannelDisplayPage, ChannelDisplayPageType, MainMenuPage, Page, SingleItemPage, StateEnvs,
-        Status,
-    },
-};
+use crate::{config::*, global::structs::*};
 
 use super::set_envs;
 
@@ -115,13 +109,13 @@ pub fn update_provider(data: &mut FrameworkData) {
                     Provider::YouTube => {
                         format!(
                             "https://www.youtube.com/channel/{}",
-                            env::var("channel-id").unwrap()
+                            env::var("channel-id").unwrap_or(String::from("env_not_found"))
                         )
                     }
                     Provider::Invidious => format!(
                         "{}/channel/{}",
                         mainconfig.invidious_instance,
-                        env::var("channel-id").unwrap()
+                        env::var("channel-id").unwrap_or(String::from("env_not_found"))
                     ),
                 },
             ),
@@ -142,13 +136,13 @@ pub fn update_provider(data: &mut FrameworkData) {
                 String::from("all-videos"),
                 match status.provider {
                     Provider::YouTube => env::var("all-ids")
-                        .unwrap()
+                        .unwrap_or(String::from("env_not_found"))
                         .split(' ')
                         .map(|id| format!("'https://youtu.be/{id}'"))
                         .collect::<Vec<_>>()
                         .join(" "),
                     Provider::Invidious => env::var("all-ids")
-                        .unwrap()
+                        .unwrap_or(String::from("env_not_found"))
                         .split(' ')
                         .map(|id| format!("'{}/watch?v={id}'", mainconfig.invidious_instance,))
                         .collect::<Vec<_>>()
@@ -160,12 +154,12 @@ pub fn update_provider(data: &mut FrameworkData) {
                 match status.provider {
                     Provider::YouTube => format!(
                         "https://www.youtube.com/channel/{}",
-                        env::var("channel-id").unwrap()
+                        env::var("channel-id").unwrap_or(String::from("env_not_found"))
                     ),
                     Provider::Invidious => format!(
                         "{}/channel/{}",
                         mainconfig.invidious_instance,
-                        env::var("channel-id").unwrap()
+                        env::var("channel-id").unwrap_or(String::from("env_not_found"))
                     ),
                 },
             ),

@@ -1,13 +1,7 @@
 use super::ItemInfo;
 use crate::{
-    config::{AppearanceConfig, KeyBindingsConfig, MainConfig, Provider},
-    global::{
-        functions::{download_all_images, set_envs},
-        structs::{
-            ChannelDisplayPageType, InvidiousClient, Item, KeyAction, Message, Page,
-            SingleItemPage, StateEnvs, Status, Task, Tasks,
-        },
-    },
+    config::*,
+    global::{functions::*, structs::*},
 };
 use tui::{
     layout::{Constraint, Rect},

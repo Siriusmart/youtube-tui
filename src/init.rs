@@ -1,15 +1,6 @@
 use crate::{
-    config::{
-        AppearanceConfig, CommandBindings, CommandBindingsSerde, CommandsConfig,
-        CommandsConfigSerde, KeyBindingsConfig, MainConfig, MinDimentions, PagesConfig, Search,
-    },
-    global::{
-        functions::{init_move, run_command},
-        structs::{
-            InvidiousClient, Library, Message, Page, StateEnvs, Status, Tasks, WatchHistory,
-        },
-        traits::{Collection, ConfigTrait},
-    },
+    config::*,
+    global::{functions::*, structs::*, traits::*},
 };
 use home::home_dir;
 use std::{error::Error, fs, io::Stdout};

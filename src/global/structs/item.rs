@@ -1,12 +1,6 @@
-use crate::global::functions::{date_text, secs_display_string, viewcount_text};
+use crate::global::functions::*;
 use invidious::structs::{
-    channel::Channel,
-    hidden::{
-        ChannelVideo, Playlist, PlaylistItem, PopularItem, SearchItem, SearchItemTransition,
-        TrendingVideo,
-    },
-    universal::Playlist as FullPlaylist,
-    video::Video,
+    channel::Channel, hidden::*, universal::Playlist as FullPlaylist, video::Video,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;

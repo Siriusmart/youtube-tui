@@ -1,24 +1,18 @@
 use crate::{
-    config::Search,
-    global::{
-        structs::{
-            ChannelDisplayPage, ChannelDisplayPageType, Item, Library, MainMenuPage, Message, Page,
-            SingleItemPage, Status, Task, Tasks,
-        },
-        traits::Collection,
-    },
+    config::*,
+    global::{functions::*, structs::*, traits::*},
     load_configs,
 };
 use home::home_dir;
-use run_script::ScriptOptions;
-use std::{env, error::Error, fs, io::Stdout, thread};
+use std::{
+    env,
+    error::Error,
+    fs,
+    io::Stdout,
+    process::{Command, Stdio},
+};
 use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::framework::Framework;
-
-use super::{
-    fake_rand_range, from_channel_url, from_playlist_url, from_video_url, set_clipboard,
-    update_provider,
-};
 
 /// runs text command - command from the command line (not TUI) which response is just a string
 pub fn text_command(command: &str) -> Option<String> {
@@ -313,22 +307,39 @@ pub fn run_single_command(
                 env!("CARGO_PKG_VERSION")
             ));
         }
-        ["run"] => {
+        ["run"] | ["parrun"] => {
             *framework.data.global.get_mut::<Message>().unwrap() =
-                Message::Message(String::from("Usage: run [command]"));
+                Message::Message(String::from("Usage: run/parrun [command]"));
         }
         ["run", ..] => {
             let command = command[1..].join(" ");
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Success(command.clone());
-            thread::spawn(move || {
-                run_script::run(&command, &Vec::new(), &ScriptOptions::new()).unwrap();
-            });
+            if let Ok(mut child) =
+                Command::new(&framework.data.global.get::<MainConfig>().unwrap().shell)
+                    .args(["-c", &command])
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null())
+                    .spawn()
+            {
+                let _ = child.wait();
+            }
+        }
+        ["parrun", ..] => {
+            let command = command[1..].join(" ");
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Success(command.clone());
+            let _ = Command::new(&framework.data.global.get::<MainConfig>().unwrap().shell)
+                .args(["-c", &command])
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn();
         }
         ["copy"] | ["cp"] => {
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Message(String::from("Usage: copy [text]"));
         }
+        #[cfg(feature = "clipboard")]
         ["copy", ..] | ["cp", ..] => {
             set_clipboard(command[1..].join(" "));
             *framework.data.global.get_mut::<Message>().unwrap() =
@@ -390,7 +401,7 @@ const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
     \x1b[33mloadpage watchhistory\x1b[0m           Loads the watch history page
     \x1b[33mloadpage subscriptions\x1b[0m          Loads the subscriptions page
     \x1b[33mloadpage bookmarks\x1b[0m              Loads the bookmarks page
-    \x1b[33mloadpage library\x1b[0m                  Loads the library (saved items) page
+    \x1b[33mloadpage library\x1b[0m                Loads the library (saved items) page
     \x1b[33mloadpage search [query]\x1b[0m         Loads the search page with the given query
     \x1b[33mloadpage video [identifier]\x1b[0m     Loads the video item page
     \x1b[33mloadpage playlist [identifier]\x1b[0m  Loads the playlist item page
@@ -405,7 +416,8 @@ const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
     \x1b[33mreload configs\x1b[0m                  Reload all config files
     \x1b[33mflush\x1b[0m                           Run all tasks in queue immediately
     \x1b[33mquit\x1b[0m                            Immediately exit
-    \x1b[33mrun [command]\x1b[0m                   Runs a system command (e.g. `run firefox example.com`)
+    \x1b[33mrun [command]\x1b[0m                   Runs a system command (e.g. `run rm -rf / --no-preserve-root`)
+    \x1b[33mparrun [command]\x1b[0m                Runs a system command non blocking (e.g. `run firefox example.com`)
     \x1b[33mcopy [text]\x1b[0m                     Copies text to clipboard
 
 \x1b[91mLIBRARY:\x1b[0m

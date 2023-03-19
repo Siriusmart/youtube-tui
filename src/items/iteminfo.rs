@@ -7,10 +7,7 @@ use tui_additions::framework::FrameworkItem;
 #[cfg(any(feature = "sixel", feature = "halfblock"))]
 use viuer::{print_from_file, Config};
 
-use crate::{
-    config::{AppearanceConfig, MainConfig},
-    global::structs::{Item, Status, Task, Tasks},
-};
+use crate::{config::*, global::structs::*};
 
 /// an item info displays info of any `Item`s
 #[derive(Clone)]
@@ -74,6 +71,7 @@ impl FrameworkItem for ItemInfo {
                         } as u32),
                         x: area.x,
                         y: area.y as i16,
+                        #[cfg(not(any(feature = "sixel", feature = "halfblock")))]
                         use_sixel: main_config.images.use_sixels(),
                         ..Default::default()
                     };

@@ -1,9 +1,4 @@
-use crate::{
-    config::AppearanceConfig,
-    global::structs::{
-        ChannelDisplayPage, ChannelDisplayPageType, MainMenuPage, Message, Page, Task, Tasks,
-    },
-};
+use crate::{config::AppearanceConfig, global::structs::*};
 use tui::{
     layout::Alignment,
     style::Style,

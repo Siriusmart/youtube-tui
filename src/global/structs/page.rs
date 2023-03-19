@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::config::{PageConfig, PagesConfig, Search};
+use crate::config::*;
 use tui_additions::framework::Framework;
 use typemap::Key;
 

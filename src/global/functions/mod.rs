@@ -15,7 +15,9 @@ mod command_capture;
 pub use command_capture::command_capture;
 mod fake_rand;
 pub use fake_rand::*;
+#[cfg(feature = "clipboard")]
 mod clipboard;
+#[cfg(feature = "clipboard")]
 pub use self::clipboard::*;
 mod from_url;
 pub use from_url::*;

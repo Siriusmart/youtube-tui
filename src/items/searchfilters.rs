@@ -1,9 +1,6 @@
 use crate::{
-    config::{AppearanceConfig, KeyBindingsConfig, MainConfig, Search, SearchFilters},
-    global::{
-        functions::popup_area,
-        structs::{KeyAction, Message, Page, Status, Task, Tasks},
-    },
+    config::*,
+    global::{functions::popup_area, structs::*},
 };
 use tui::{
     layout::{Alignment, Constraint, Rect},

@@ -1,9 +1,8 @@
 use crate::{
-    config::{AppearanceConfig, MainConfig, MinDimentions},
-    global::functions::{clear_envs, run_command, set_envs, update_provider},
+    config::*,
+    global::{functions::*, structs::*},
 };
 
-use super::{message::Message, page::Page, status::Status, StateEnvs};
 use std::{error::Error, io::Stdout, mem};
 use tui::{
     backend::CrosstermBackend, layout::Alignment, style::Style, widgets::Paragraph, Frame, Terminal,
@@ -187,7 +186,13 @@ impl TaskQueue {
             RenderTask::None => {}
         }
 
-        if framework.data.global.get::<Status>().unwrap().provider_updated {
+        if framework
+            .data
+            .global
+            .get::<Status>()
+            .unwrap()
+            .provider_updated
+        {
             update_provider(&mut framework.data);
         }
 

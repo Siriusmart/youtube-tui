@@ -1,5 +1,10 @@
 use std::error::Error;
 
+use crate::{
+    config::*,
+    global::{functions::*, structs::*},
+    items::ItemInfo,
+};
 use home::home_dir;
 use tui::{
     layout::{Constraint, Rect},
@@ -8,20 +13,6 @@ use tui::{
 use tui_additions::{
     framework::{FrameworkClean, FrameworkItem},
     widgets::{Grid, TextList},
-};
-
-use super::ItemInfo;
-use crate::{
-    config::{AppearanceConfig, KeyBindingsConfig, MainConfig, Provider, Search},
-    global::{
-        functions::{download_all_images, set_envs, update_provider},
-        structs::{
-            ChannelDisplayPage, ChannelDisplayPageType, FullChannelItem, FullPlaylistItem,
-            FullVideoItem, InvidiousClient, Item, KeyAction, Library, MainMenuPage, Message,
-            MiniChannelItem, MiniPlaylistItem, MiniVideoItem, Page, SingleItemPage, StateEnvs,
-            Status, Task, Tasks, WatchHistory,
-        },
-    },
 };
 
 /// An item list displays a list of items

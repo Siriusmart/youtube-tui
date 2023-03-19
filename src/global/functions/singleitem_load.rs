@@ -1,10 +1,6 @@
-use std::error::Error;
-
+use crate::{config::MainConfig, global::functions::download_all_images, global::structs::Item};
 use invidious::reqwest::blocking::Client;
-
-use crate::{config::MainConfig, global::structs::Item};
-
-use super::download_all_images;
+use std::error::Error;
 
 pub fn load_playlist(
     client: &Client,

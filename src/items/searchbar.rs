@@ -1,12 +1,10 @@
 use std::error::Error;
 
-use crate::{
-    config::{AppearanceConfig, KeyBindingsConfig, Search},
-    global::{
-        functions::get_clipboard,
-        structs::{KeyAction, Message, Page, Task, Tasks},
-    },
-};
+use crate::{config::*, global::structs::*};
+
+#[cfg(feature = "clipboard")]
+use crate::global::functions::*;
+
 use crossterm::event::KeyCode;
 use tui::{
     layout::Alignment,
@@ -80,6 +78,7 @@ impl FrameworkItem for SearchBar {
         _info: tui_additions::framework::ItemInfo,
     ) -> Result<(), Box<dyn Error>> {
         // pasting clipboard content
+        #[cfg(feature = "clipboard")]
         if framework
             .data
             .global

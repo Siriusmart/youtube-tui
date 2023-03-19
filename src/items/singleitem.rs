@@ -2,15 +2,8 @@ use std::fs;
 
 use super::ItemInfo;
 use crate::{
-    config::{AppearanceConfig, CommandsConfig, KeyBindingsConfig, MainConfig, Provider},
-    global::{
-        functions::{apply_envs, load_playlist, load_video, set_envs},
-        structs::{
-            InvidiousClient, Item, KeyAction, Message, Page, SingleItemPage, StateEnvs, Status,
-            Task, Tasks, WatchHistory,
-        },
-        traits::Collection,
-    },
+    config::*,
+    global::{functions::*, structs::*, traits::Collection},
 };
 use home::home_dir;
 use tui::{
@@ -73,10 +66,14 @@ pub struct SinglePlaylistItem {
 impl SingleVideoItem {
     pub fn new(commands: &CommandsConfig, mainconfig: &MainConfig, id: &str) -> Self {
         let saved = (|| -> Option<()> {
-            fs::read_dir(home_dir().unwrap().join(mainconfig.env.get("save-path")?.replacen("~/", "", 1)))
-                .ok()?
-                .filter_map(|entry| Some(entry.ok()?.path().file_stem()?.to_os_string()))
-                .find(|stem| stem.as_os_str().to_str().unwrap_or_default().contains(id))?;
+            fs::read_dir(
+                home_dir()
+                    .unwrap()
+                    .join(mainconfig.env.get("save-path")?.replacen("~/", "", 1)),
+            )
+            .ok()?
+            .filter_map(|entry| Some(entry.ok()?.path().file_stem()?.to_os_string()))
+            .find(|stem| stem.as_os_str().to_str().unwrap_or_default().contains(id))?;
             Some(())
         })()
         .is_some();
@@ -196,12 +193,21 @@ impl SingleVideoItem {
 }
 
 impl SinglePlaylistItem {
-    pub fn new(commands: &CommandsConfig, mainconfig: &MainConfig ,id: &str, playlist_items: &[Item]) -> Self {
+    pub fn new(
+        commands: &CommandsConfig,
+        mainconfig: &MainConfig,
+        id: &str,
+        playlist_items: &[Item],
+    ) -> Self {
         let saved = (|| -> Option<()> {
-            fs::read_dir(home_dir().unwrap().join(mainconfig.env.get("save-path")?.replacen("~/", "", 1)))
-                .ok()?
-                .filter_map(|entry| Some(entry.ok()?.path().file_stem()?.to_os_string()))
-                .find(|stem| stem.as_os_str().to_str().unwrap_or_default().contains(id))?;
+            fs::read_dir(
+                home_dir()
+                    .unwrap()
+                    .join(mainconfig.env.get("save-path")?.replacen("~/", "", 1)),
+            )
+            .ok()?
+            .filter_map(|entry| Some(entry.ok()?.path().file_stem()?.to_os_string()))
+            .find(|stem| stem.as_os_str().to_str().unwrap_or_default().contains(id))?;
             Some(())
         })()
         .is_some();

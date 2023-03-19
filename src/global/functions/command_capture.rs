@@ -1,13 +1,14 @@
-use super::{apply_envs, get_clipboard};
-use crate::{
-    config::KeyBindingsConfig,
-    global::structs::{KeyAction, Message, Status, Task, Tasks},
-};
+use crate::global::{functions::*, structs::*};
+
+#[cfg(feature = "clipboard")]
+use crate::config::*;
+
 use crossterm::event::{KeyCode, KeyEvent};
 use tui_additions::framework::FrameworkClean;
 
 /// handles key input when the user is entering commands
 pub fn command_capture(framework: &mut FrameworkClean, key: KeyEvent) -> bool {
+    #[cfg(feature = "clipboard")]
     if framework
         .data
         .global

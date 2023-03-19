@@ -1,7 +1,4 @@
-use crate::global::{
-    structs::Message,
-    traits::{AsUrlString, ConfigTrait, SearchFilterItem},
-};
+use crate::global::{structs::Message, traits::*};
 use serde::{Deserialize, Serialize};
 use typemap::Key;
 

@@ -1,7 +1,4 @@
-use crate::{
-    config::{AppearanceConfig, MainConfig},
-    global::structs::{Message, Status},
-};
+use crate::{config::*, global::structs::*};
 use tui::{
     layout::Rect,
     style::Style,
