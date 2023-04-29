@@ -10,6 +10,8 @@ pub struct MainConfig {
     pub mouse_support: bool,
     #[serde(default = "invidious_instance_default")]
     pub invidious_instance: String,
+    #[serde(default = "write_to_config_default")]
+    pub write_config: WriteConfig,
     #[serde(default = "max_watch_history_default")]
     pub max_watch_history: usize,
     #[serde(default = "allow_unicode_default")]
@@ -40,6 +42,7 @@ impl Key for MainConfig {
 impl Default for MainConfig {
     fn default() -> Self {
         Self {
+            write_config: write_to_config_default(),
             mouse_support: mouse_support_default(),
             invidious_instance: invidious_instance_default(),
             max_watch_history: max_watch_history_default(),
@@ -85,6 +88,13 @@ pub enum Provider {
     Invidious,
 }
 
+#[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+pub enum WriteConfig {
+    Must,
+    Try,
+    Dont,
+}
+
 impl Provider {
     pub fn as_str(&self) -> &str {
         match self {
@@ -104,7 +114,7 @@ impl Provider {
 // default functions
 
 fn invidious_instance_default() -> String {
-    String::from("https://vid.puffyan.us")
+    String::from("https://y.com.sb")
 }
 
 fn message_bar_default_default() -> String {
@@ -137,6 +147,10 @@ const fn max_watch_history_default() -> usize {
 
 const fn mouse_support_default() -> bool {
     true
+}
+
+const fn write_to_config_default() -> WriteConfig {
+    WriteConfig::Try
 }
 
 fn default_env() -> HashMap<String, String> {

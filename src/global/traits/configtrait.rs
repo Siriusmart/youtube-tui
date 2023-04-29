@@ -6,13 +6,15 @@ use std::{
     io::Write,
 };
 
+use crate::config::WriteConfig;
+
 pub const EXTENSION: &str = "yml";
 
 /// Trait for loading, saving config files
 pub trait ConfigTrait {
     const LABEL: &'static str;
 
-    fn load() -> Result<Box<Self>, Box<dyn Error>>
+    fn load(write: WriteConfig) -> Result<Box<Self>, Box<dyn Error>>
     where
         Self: Serialize + DeserializeOwned + Default + Clone,
     {
@@ -51,13 +53,28 @@ pub trait ConfigTrait {
 
         // Overwrites the old config file with added options (if any),
         // but it also removes things like comments in the old config file
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&config_path)?;
 
-        file.write_all(serde_yaml::to_string(&config)?.as_bytes())?;
+        match write {
+            WriteConfig::Must => {
+                let mut file = OpenOptions::new()
+                    .write(true)
+                    .create(true)
+                    .truncate(true)
+                    .open(&config_path)?;
+                file.write_all(serde_yaml::to_string(&config)?.as_bytes())?
+            }
+            WriteConfig::Try => {
+                if let Ok(mut file) = OpenOptions::new()
+                    .write(true)
+                    .create(true)
+                    .truncate(true)
+                    .open(&config_path)
+                {
+                    let _ = file.write_all(serde_yaml::to_string(&config)?.as_bytes());
+                }
+            }
+            WriteConfig::Dont => {}
+        }
 
         Ok(Box::new(config))
     }

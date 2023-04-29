@@ -37,7 +37,7 @@ pub fn init(
 
     init_move();
 
-    load_configs(&mut framework.split_clean().0).ok();
+    load_configs(&mut framework.split_clean().0)?;
 
     framework
         .data
@@ -90,7 +90,7 @@ pub fn load_configs(framework: &mut FrameworkClean) -> Result<(), Box<dyn Error>
     }
 
     // inserting data
-    let main_config = *MainConfig::load()?;
+    let main_config = *MainConfig::load(WriteConfig::Try)?;
 
     framework
         .data
@@ -99,25 +99,31 @@ pub fn load_configs(framework: &mut FrameworkClean) -> Result<(), Box<dyn Error>
     framework
         .data
         .global
-        .insert::<CommandsConfig>(CommandsConfig::from(*CommandsConfigSerde::load()?));
+        .insert::<CommandsConfig>(CommandsConfig::from(*CommandsConfigSerde::load(
+            main_config.write_config,
+        )?));
     framework
         .data
         .global
-        .insert::<AppearanceConfig>(AppearanceConfig::load()?);
+        .insert::<AppearanceConfig>(AppearanceConfig::load(main_config.write_config)?);
+    framework
+        .data
+        .global
+        .insert::<PagesConfig>(*PagesConfig::load(main_config.write_config)?);
+    framework
+        .data
+        .global
+        .insert::<KeyBindingsConfig>(KeyBindingsConfig::load(main_config.write_config)?);
+    framework.data.global.insert::<CommandBindings>(
+        (*CommandBindingsSerde::load(main_config.write_config)?)
+            .into()
+            .unwrap(),
+    );
+    framework
+        .data
+        .state
+        .insert::<Search>(*Search::load(main_config.write_config)?);
     framework.data.global.insert::<MainConfig>(main_config);
-    framework
-        .data
-        .global
-        .insert::<PagesConfig>(*PagesConfig::load()?);
-    framework
-        .data
-        .global
-        .insert::<KeyBindingsConfig>(KeyBindingsConfig::load()?);
-    framework
-        .data
-        .global
-        .insert::<CommandBindings>((*CommandBindingsSerde::load()?).into().unwrap());
-    framework.data.state.insert::<Search>(*Search::load()?);
 
     Ok(())
 }

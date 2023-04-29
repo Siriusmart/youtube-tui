@@ -9,12 +9,9 @@ use crate::global::{structs::WatchHistory, traits::Collection};
 //  - move thumbnails of videos in watch history to `~/.local/share/youtube-tui/watch_history/thumbnails`
 //  - remove `~/.cache`
 pub fn exit(framework: &Framework) -> Result<(), Box<dyn Error>> {
-    framework
-        .data
-        .global
-        .get::<WatchHistory>()
-        .unwrap()
-        .exit_move();
+    if let Some(history) = framework.data.global.get::<WatchHistory>() {
+        history.exit_move()
+    }
 
     let home_dir = home_dir().unwrap();
     let cache_path = home_dir.join(".cache/youtube-tui/");

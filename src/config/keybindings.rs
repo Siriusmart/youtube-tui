@@ -1,4 +1,7 @@
-use super::serde::{KeyCodeSerde, KeyVariantsSerde};
+use super::{
+    serde::{KeyCodeSerde, KeyVariantsSerde},
+    WriteConfig,
+};
 use crate::global::{
     structs::KeyAction,
     traits::{ConfigTrait, EXTENSION},
@@ -133,8 +136,8 @@ impl KeyBindingsConfigSerde {
 
 impl KeyBindingsConfig {
     /// generates a new file if the original one is invalid
-    pub fn load() -> Result<Self, Box<dyn Error>> {
-        let serde = *KeyBindingsConfigSerde::load()?;
+    pub fn load(write: WriteConfig) -> Result<Self, Box<dyn Error>> {
+        let serde = *KeyBindingsConfigSerde::load(write)?;
         // check if it be converted from `KeyBindingsConfigSerde` to `KeyBindingsConfig`
         let try_into = serde.into();
 

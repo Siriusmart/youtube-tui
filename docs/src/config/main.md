@@ -6,7 +6,8 @@ The main config file is located in `~/.config/youtube-tui/main.yml`.
 
 ```yaml
 mouse_support: true
-invidious_instance: https://vid.puffyan.us
+invidious_instance: https://y.com.sb
+write_config: Try
 max_watch_history: 50
 allow_unicode: false
 message_bar_default: All good :)
@@ -36,7 +37,21 @@ Whether mouse click events are supports, if `false` then mouse will not do anyth
 The Invidious instance you want to use, a full list of Invidious instances can be found here <a href="https://api.invidious.io" target=_blank>*here*</a>.
 
 *Accept: string of a valid url to an Invidious instance*
- 
+
+### write_config
+
+Whether to write to config after every read, this allows for auto-formatting the config files, as well as removing any error/deprecated options and adding new options.
+
+|write_config|Description|
+|---|---|
+|`Must`|Always write to config, panics if failed.|
+|`Try`|Tries to write to config, continues if failed.|
+|`Dont`|Don't write to config at all|
+
+> `main.yml` is a loaded with `Try` no matter what.
+
+*Accept: `Must`/`Try`/`Dont`*
+
 ### max_watch_history
 
 The maximum length that the watch history can hold, a value higher will record more items, but will also result in a larger file size in storage.

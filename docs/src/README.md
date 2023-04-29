@@ -31,13 +31,13 @@ env:
 
 Anything from layouts to colours and keybindings can be customised, more on that later.
 
-## ~~Dependency-free~~
+## Dependency-free*
 
-> Clipboard need to be put as an optional feature before before calling dependency-free, for now `libxcb` is a required dependency.
+<sub>See [installation#features](./installation.md#features) for more info on dependencies.</sub>
 
 The YouTube TUI does not work on its own, it is instead like a _TUI frontend_ for programs like `mpv` or `yt-dlp`/`youtube-dl`.
 
-However, the programs to launch can be changed, and therefore ~~the YouTube TUI <u>does not rely on any specific dependencies</u> to run~~.
+However, the programs to launch can be changed, and therefore the YouTube TUI <u>does not rely on any specific dependencies</u> to run.
 
 ![](./images/custom-dependencies-showcase.png)
 
@@ -60,6 +60,8 @@ It also includes features like:
 ### What it doesn't have
 
 - Subscriptions (first priority)
+- Clipboard feature that does not depend on the `clipboard` feature
+- Up arrow command history + Ctrl arrow keys move between words
 
 ## How to contribute
 

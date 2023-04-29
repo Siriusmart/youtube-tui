@@ -1,14 +1,24 @@
 # Changelogs
 
-## v0.7.0
+## v0.7.1
 
 ### Added
+
+- Options for config loading. (`write_config` in `main.yml`)
+
+### Fixed
+
+- Fixed crashing when launching without permissions to write to config files (<a href="https://github.com/Siriusmart/youtube-tui/issues/29" target=_blank>issue 29</a>)
+
+### v0.7.0
+
+#### Added
 
 - File system based caching
 - Bookmark library
 - Save video/playlists for offline viewing
 
-### Fixed
+#### Fixed
 
 - Empty ItemList crash (<a href="https://github.com/Siriusmart/youtube-tui/issues/26" target=_blank>issue 26</a>)
 

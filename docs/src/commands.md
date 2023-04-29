@@ -41,11 +41,14 @@ reload configs (alt `reload/r config/configs`)
 flush
 quit (alt `q`, `exit`, `x`)
 run [command]
+parrun [command]
 ```
 
 > The `flush` command is used to run all tasks in queue immediately, this is usually done automatically.
 >
 > But for when tasks are stacked up in the *same* event loop and the order of which they are executed matters, this command can be used to force the already stacked up commands to be ran first.
+
+> `run` is used for running *blocking commands*, while `parrun` is non-blocking.
 
 ## Library
 

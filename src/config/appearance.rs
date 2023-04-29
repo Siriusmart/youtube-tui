@@ -9,6 +9,8 @@ use std::{
 use tui::{style::Color, widgets::BorderType};
 use typemap::Key;
 
+use super::WriteConfig;
+
 /// `appearance.yml`, impl serde version of AppearanceConfig
 #[derive(Default, Serialize, Deserialize, Clone)]
 pub struct AppearanceConfigSerde {
@@ -27,8 +29,8 @@ pub struct AppearanceConfig {
 
 impl AppearanceConfig {
     /// generates a new file if the original one is invalid
-    pub fn load() -> Result<Self, Box<dyn Error>> {
-        let serde = *AppearanceConfigSerde::load()?;
+    pub fn load(write: WriteConfig) -> Result<Self, Box<dyn Error>> {
+        let serde = *AppearanceConfigSerde::load(write)?;
         let try_into = Self::from(serde);
 
         // check if it be converted from `AppearanceConfigSerde` to `AppearanceConfig`
