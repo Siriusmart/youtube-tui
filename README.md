@@ -5,23 +5,21 @@
 [![](https://img.shields.io/aur/version/youtube-tui)](https://aur.archlinux.org/packages/youtube-tui)
 ![](https://shields.io/github/stars/siriusmart/youtube-tui?style=social)
 
-***Read more in the [user manual](https://siriusmart.github.io/youtube-tui) (including installation guide and documentation).***
-
 # Overview
 
 Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal.
 
-![](./docs/src/images/search-showcase.png)
+![](./images/search-showcase.png)
 
-It launches other programs to do the heavy lifting (for example, `mpv` for playing videos).
+It is like an _app launcher_, it launches other programs to do the heavy lifting (for example, `mpv` for playing videos).
 
-> When updating, consider regenerating config files to allow new features.
+> Consider regenerating config files on updates to allow new features.
 
 ## Customisable
 
-The YouTube TUI can be customised through config files. They are located in `~/.config/youtube-tui` and are in the YAML format.
+The YouTube TUI can be customised through config files, they are located in `~/.config/youtube-tui` and are in the YAML format.
 
-Here's an example configuration:
+Here's an example of the config file:
 
 ```yaml
 mouse_support: true
@@ -40,19 +38,19 @@ env:
 
 Anything from layouts to colours and keybindings can be customised, more on that later.
 
-## ~~Dependency-free~~
+## Dependency-free*
 
-> The clipboard needs to be put as an optional feature before calling youtube-tui dependency-free; for now, `libxcb` is a required dependency.
+<sub>See [installation#features](./installation.md#features) for more info on dependencies.</sub>
 
-The YouTube TUI does not work on its own, it is instead a _TUI frontend_ for programs like `mpv` or `yt-dlp`/`youtube-dl`.
+The YouTube TUI does not work on its own, it is instead like a _TUI frontend_ for programs like `mpv` or `yt-dlp`/`youtube-dl`.
 
-However, the programs to launch can be changed, and therefore ~~the YouTube TUI <u>does not rely on any specific dependencies</u> to run~~.
+However, the programs to launch can be changed, and therefore the YouTube TUI <u>does not rely on any specific dependencies</u> to run.
 
-![](./docs/src/images/custom-dependencies-showcase.png)
+![](./images/custom-dependencies-showcase.png)
 
 ## Powerful
 
-The YouTube TUI allows you to browse YouTube with (almost) all of its features, functions including:
+The YouTube TUI allows you to browse YouTube with (almost) all of it's features, functions including:
 
 - View popular/trending videos
 - View information about channels, playlists and videos
@@ -69,6 +67,8 @@ It also includes features like:
 ### What it doesn't have
 
 - Subscriptions (first priority)
+- Clipboard feature that does not depend on the `clipboard` feature
+- Up arrow command history + Ctrl arrow keys move between words
 
 ## How to contribute
 
