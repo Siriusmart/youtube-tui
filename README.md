@@ -9,7 +9,7 @@
 
 Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal.
 
-![](./images/search-showcase.png)
+![](./docs/src/images/search-showcase.png)
 
 It is like an _app launcher_, it launches other programs to do the heavy lifting (for example, `mpv` for playing videos).
 
@@ -40,13 +40,13 @@ Anything from layouts to colours and keybindings can be customised, more on that
 
 ## Dependency-free*
 
-<sub>See [installation#features](./installation.md#features) for more info on dependencies.</sub>
+<sub>See [installation#features](https://siriusmart.github.io/youtube-tui/installation.html#features) for more info on dependencies.</sub>
 
 The YouTube TUI does not work on its own, it is instead like a _TUI frontend_ for programs like `mpv` or `yt-dlp`/`youtube-dl`.
 
 However, the programs to launch can be changed, and therefore the YouTube TUI <u>does not rely on any specific dependencies</u> to run.
 
-![](./images/custom-dependencies-showcase.png)
+![](./docs/src/images/custom-dependencies-showcase.png)
 
 ## Powerful
 
