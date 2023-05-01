@@ -30,6 +30,13 @@ yay -S youtube-tui-git # latest git version, potentially untested
 yay -S youtube-tui-full-bin # default binary (out of date)
 yay -S youtube-tui-nodefaults-bin # minimal binary (out of date)
 ```
+## Installation on NixOS 
+Add the following Nix code to your NixOS Configuration
+```nix 
+environment.systemPackages = [
+  pkgs.youtube-tui
+];
+```
 
 ## Build from source
 
