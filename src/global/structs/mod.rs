@@ -10,6 +10,7 @@ mod state_env;
 mod status;
 mod tasks;
 mod watchhistory;
+mod subscriptions;
 
 pub use errors::*;
 pub use invidiousclient::*;
@@ -22,3 +23,4 @@ pub use state_env::*;
 pub use status::*;
 pub use tasks::*;
 pub use watchhistory::*;
+pub use subscriptions::*;

@@ -5,6 +5,7 @@
 ### Added
 
 - Options for config loading. (`write_config` in `main.yml`)
+- Parrallel/blocking commands `parrun`/`run`
 
 ### Fixed
 

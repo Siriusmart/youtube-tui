@@ -2057,6 +2057,7 @@ dependencies = [
  "futures",
  "home",
  "invidious",
+ "rayon",
  "reqwest",
  "serde",
  "serde_json",

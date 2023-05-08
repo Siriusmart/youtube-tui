@@ -37,6 +37,8 @@ pub struct MiniVideoItem {
     pub description: Option<String>,
 }
 
+unsafe impl Send for MiniVideoItem {}
+
 /// stores information of a previewed playlist
 #[derive(Clone, Serialize, Deserialize)]
 pub struct MiniPlaylistItem {
@@ -189,6 +191,56 @@ impl Item {
     }
 
     pub fn fullchannel(&self) -> Result<&FullChannelItem, Errors> {
+        match self {
+            Self::FullChannel(fullchannel) => Ok(fullchannel),
+            _ => Err(Errors::StrError("not a full channel")),
+        }
+    }
+}
+
+
+impl Item {
+    /// stript self into a FullVideoItem
+    pub fn into_fullvideo(self) -> Result<FullVideoItem, Errors> {
+        match self {
+            Self::FullVideo(fullvideo) => Ok(fullvideo),
+            _ => Err(Errors::StrError("not a full video")),
+        }
+    }
+
+    /// stript self into a MiniVideoItem
+    pub fn into_minivideo(self) -> Result<MiniVideoItem, Errors> {
+        match self {
+            Self::MiniVideo(minivideo) => Ok(minivideo),
+            _ => Err(Errors::StrError("not a mini video")),
+        }
+    }
+
+    /// stript self into a MiniPlaylistItem
+    pub fn into_miniplaylist(self) -> Result<MiniPlaylistItem, Errors> {
+        match self {
+            Self::MiniPlaylist(miniplaylist) => Ok(miniplaylist),
+            _ => Err(Errors::StrError("not a mini playlist")),
+        }
+    }
+
+    /// stript self into a FullPlaylistItem
+    pub fn into_fullplaylist(self) -> Result<FullPlaylistItem, Errors> {
+        match self {
+            Self::FullPlaylist(fullplaylist) => Ok(fullplaylist),
+            _ => Err(Errors::StrError("not a full playlist")),
+        }
+    }
+
+    /// stript self into a MiniChannelItem
+    pub fn into_minichannel(self) -> Result<MiniChannelItem, Errors> {
+        match self {
+            Self::MiniChannel(minichannel) => Ok(minichannel),
+            _ => Err(Errors::StrError("not a mini channel")),
+        }
+    }
+
+    pub fn into_fullchannel(self) -> Result<FullChannelItem, Errors> {
         match self {
             Self::FullChannel(fullchannel) => Ok(fullchannel),
             _ => Err(Errors::StrError("not a full channel")),

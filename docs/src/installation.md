@@ -1,7 +1,5 @@
 # Installation
 
-> Currently YouTube TUI requires `libxcb`, which should come preinstalled in most Linux system.
-
 The YouTube TUI is *not* tested for Windows.
 
 ## Install from Crates.io (recommended)

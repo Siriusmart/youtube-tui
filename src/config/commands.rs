@@ -141,15 +141,15 @@ fn saved_video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("[Offline] Play saved file"),
-            String::from("parrun find ${save-path} | grep ${id} | ${video-player} --playlist=- --force-window"),
+            String::from("parrun ${video-player} ${save-path}*${id}* --force-window"),
         )]),
         HashMap::from([(
             String::from("[Offline] Play saved file (audio)"),
-            String::from("parrun ${terminal-emulator} bash -c 'find ${save-path} | grep ${id} | ${video-player} --playlist=- --no-video'"),
+            String::from("parrun ${terminal-emulator} ${video-player} ${save-path}*${id}* --no-video"),
         )]),
         HashMap::from([(
             String::from("[Offline] Play saved file (audio loop)"),
-            String::from("parrun ${terminal-emulator} bash -c 'find ${save-path} | grep ${id} | ${video-player} --playlist=- --no-video --loop'"),
+            String::from("parrun ${terminal-emulator} ${video-player} ${save-path}*${id}* --no-video --loop"),
         )]),
         HashMap::from([(
             String::from("View channel"),
@@ -233,15 +233,15 @@ fn saved_playlist_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("[Offline] Play all (videos)"),
-            String::from("parrun find ${save-path} | grep ${id} | ${video-player} --playlist=- --force-window"),
+            String::from("parrun ${terminal-emulator} bash -c '${video-player} ${save-path}*${id}*/* --force-window'"),
         )]),
         HashMap::from([(
             String::from("[Offline] Play all (audio)"),
-            String::from("parrun ${terminal-emulator} bash -c 'find ${save-path} | grep ${id} | ${video-player} --playlist=- --no-video'"),
+            String::from("parrun ${terminal-emulator} bash -c '${video-player} ${save-path}*${id}*/* --no-video'"),
         )]),
         HashMap::from([(
             String::from("[Offline] Shuffle play all (audio loop)"),
-            String::from("parrun ${terminal-emulator} bash -c 'find ${save-path} | grep ${id} | ${video-player} --playlist=- --no-video --loop-playlist=inf --shuffle'"),
+            String::from("parrun ${terminal-emulator} bash -c '${video-player} ${save-path}*${id}*/* --no-video --loop-playlist=inf --shuffle'"),
         )]),
         HashMap::from([(
             String::from("View channel"),
