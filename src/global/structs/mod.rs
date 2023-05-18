@@ -8,9 +8,9 @@ mod message;
 mod page;
 mod state_env;
 mod status;
+mod subscriptions;
 mod tasks;
 mod watchhistory;
-mod subscriptions;
 
 pub use errors::*;
 pub use invidiousclient::*;
@@ -21,6 +21,6 @@ pub use message::*;
 pub use page::*;
 pub use state_env::*;
 pub use status::*;
+pub use subscriptions::*;
 pub use tasks::*;
 pub use watchhistory::*;
-pub use subscriptions::*;

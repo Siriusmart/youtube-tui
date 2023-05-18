@@ -10,7 +10,7 @@ use viuer::{print_from_file, Config};
 use crate::{config::*, global::structs::*};
 
 /// an item info displays info of any `Item`s
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct ItemInfo {
     pub item: Option<Item>,
     pub lazy_scroll: u16,
@@ -378,15 +378,6 @@ impl FrameworkItem for ItemInfo {
 
     fn selectable(&self) -> bool {
         true
-    }
-}
-
-impl Default for ItemInfo {
-    fn default() -> Self {
-        Self {
-            item: None,
-            lazy_scroll: 0,
-        }
     }
 }
 

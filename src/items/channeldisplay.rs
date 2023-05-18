@@ -405,7 +405,9 @@ impl FrameworkItem for ChannelDisplay {
                         .channel(&page.id, None)?,
                     mainconfig.image_index,
                 );
-                download_all_images(vec![(&channel).into()]);
+                if mainconfig.images.display() {
+                    download_all_images(vec![(&channel).into()]);
+                }
                 *self = Self::Main {
                     iteminfo: ItemInfo::new(Some(channel.clone())),
                     channel,
@@ -423,7 +425,9 @@ impl FrameworkItem for ChannelDisplay {
                     .into_iter()
                     .map(|video| Item::from_channel_video(video, mainconfig.image_index))
                     .collect::<Vec<_>>();
-                download_all_images(videos.iter().map(|item| item.into()).collect());
+                if mainconfig.images.display() {
+                    download_all_images(videos.iter().map(|item| item.into()).collect());
+                }
                 *self = Self::Videos {
                     textlist: TextList::default()
                         .ascii_only(!mainconfig.allow_unicode)
@@ -451,7 +455,9 @@ impl FrameworkItem for ChannelDisplay {
                     .into_iter()
                     .map(Item::from_channel_playlist)
                     .collect::<Vec<_>>();
-                download_all_images(playlists.iter().map(|item| item.into()).collect());
+                if mainconfig.images.display() {
+                    download_all_images(playlists.iter().map(|item| item.into()).collect());
+                }
                 *self = Self::Playlists {
                     textlist: TextList::default()
                         .ascii_only(!mainconfig.allow_unicode)

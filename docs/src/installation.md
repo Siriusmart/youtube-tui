@@ -1,6 +1,6 @@
 # Installation
 
-The YouTube TUI is *not* tested for Windows.
+The YouTube TUI is *not* intended for Windows, pull requests to make it work are welcome.
 
 ## Install from Crates.io (recommended)
 

@@ -1,8 +1,8 @@
-use std::{collections::HashMap, error::Error, sync::mpsc, thread};
 use serde::*;
+use std::{collections::HashMap, error::Error, sync::mpsc, thread};
 // use rayon::prelude::*;
+use super::{InvidiousClient, Item, MiniVideoItem};
 use crate::config::MainConfig;
-use super::{MiniVideoItem, InvidiousClient, Item};
 
 #[derive(Serialize, Deserialize)]
 /// id, videos
@@ -32,7 +32,7 @@ impl Subscriptions {
                 (id, Some(videos)) => {
                     self.0.insert(id, videos);
                     success += 1;
-                },
+                }
                 (id, None) => {
                     self.0.get_mut(&id).unwrap().clear();
                     failed += 1;
@@ -44,6 +44,20 @@ impl Subscriptions {
     }
 }
 
-fn sync_one(id: &str, client: &InvidiousClient, image_index: usize) -> Result<Vec<MiniVideoItem>, Box<dyn Error>> {
-    Ok(client.0.channel_videos(id, None)?.videos.into_iter().map(|video| Item::from_channel_video(video, image_index).into_minivideo().unwrap()).collect())
+fn sync_one(
+    id: &str,
+    client: &InvidiousClient,
+    image_index: usize,
+) -> Result<Vec<MiniVideoItem>, Box<dyn Error>> {
+    Ok(client
+        .0
+        .channel_videos(id, None)?
+        .videos
+        .into_iter()
+        .map(|video| {
+            Item::from_channel_video(video, image_index)
+                .into_minivideo()
+                .unwrap()
+        })
+        .collect())
 }

@@ -1,7 +1,5 @@
 use crate::global::functions::*;
-use invidious::structs::{
-    channel::Channel, hidden::*, universal::Playlist as FullPlaylist, video::Video,
-};
+use invidious::{channel::Channel, hidden::*, universal::Playlist as FullPlaylist, video::Video};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
@@ -197,7 +195,6 @@ impl Item {
         }
     }
 }
-
 
 impl Item {
     /// stript self into a FullVideoItem

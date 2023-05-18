@@ -1,9 +1,9 @@
 use crate::{config::MainConfig, global::functions::download_all_images, global::structs::Item};
-use invidious::reqwest::blocking::Client;
+use invidious::ClientSync;
 use std::error::Error;
 
 pub fn load_playlist(
-    client: &Client,
+    client: &ClientSync,
     id: &str,
     mainconfig: &MainConfig,
 ) -> Result<Item, Box<dyn Error>> {
@@ -22,7 +22,7 @@ pub fn load_playlist(
 }
 
 pub fn load_video(
-    client: &Client,
+    client: &ClientSync,
     id: &str,
     mainconfig: &MainConfig,
 ) -> Result<Item, Box<dyn Error>> {

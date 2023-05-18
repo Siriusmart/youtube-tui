@@ -53,20 +53,18 @@ pub fn run(
                     let (mut frameworkclean, state) = framework.split_clean();
                     for row in state.0.iter_mut() {
                         for item in row.items.iter_mut() {
-                            match item.item.r#type() {
-                                "youtube_tui::items::searchfilters::SearchFilter" => {
-                                    if item.item.mouse_event(
-                                        &mut frameworkclean,
-                                        0,
-                                        0,
-                                        mouse.column,
-                                        mouse.row,
-                                    ) {
-                                        searchfilter_clicked = true;
-                                        break;
-                                    }
-                                }
-                                _ => {}
+                            if item.item.r#type()
+                                == "youtube_tui::items::searchfilters::SearchFilter"
+                                && item.item.mouse_event(
+                                    &mut frameworkclean,
+                                    0,
+                                    0,
+                                    mouse.column,
+                                    mouse.row,
+                                )
+                            {
+                                searchfilter_clicked = true;
+                                break;
                             }
                         }
 

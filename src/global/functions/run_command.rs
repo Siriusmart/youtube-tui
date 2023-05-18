@@ -36,7 +36,7 @@ pub fn run_command(
     framework: &mut Framework,
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
 ) {
-    command.split(";;").into_iter().for_each(|single_command| {
+    command.split(";;").for_each(|single_command| {
         run_single_command(
             &single_command
                 .trim()
