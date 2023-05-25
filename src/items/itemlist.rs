@@ -309,7 +309,6 @@ impl FrameworkItem for ItemList {
                     .map(|item| Item::from_popular_item(item, image_index))
                     .collect();
             }
-            Page::MainMenu(MainMenuPage::Subscriptions) => {}
             Page::MainMenu(MainMenuPage::Library) => {
                 let history = framework.data.global.get::<Library>().unwrap();
                 self.items = history.0.clone().into_iter().rev().collect();

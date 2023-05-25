@@ -124,7 +124,7 @@ pub fn run_single_command(
                 "popular" => Some(Page::MainMenu(MainMenuPage::Popular)),
                 "trending" => Some(Page::MainMenu(MainMenuPage::Trending)),
                 "watchhistory" => Some(Page::MainMenu(MainMenuPage::History)),
-                "subscriptions" => Some(Page::MainMenu(MainMenuPage::Subscriptions)),
+                "subscriptions" | "subs" => Some(Page::Subscriptions(None)),
                 "library" => Some(Page::MainMenu(MainMenuPage::Library)),
                 "channel" => {
                     if command.len() == 2 {
@@ -212,7 +212,7 @@ pub fn run_single_command(
         ["popular"] => run_single_command(&["loadpage", "popular"], framework, terminal),
         ["trending"] => run_single_command(&["loadpage", "trending"], framework, terminal),
         ["watchhistory"] => run_single_command(&["loadpage", "watchhistory"], framework, terminal),
-        ["subscriptions"] => {
+        ["subscriptions"] | ["subs"] => {
             run_single_command(&["loadpage", "subscriptions"], framework, terminal)
         }
         ["bookmarks"] => run_single_command(&["loadpage", "bookmarks"], framework, terminal),
@@ -345,6 +345,83 @@ pub fn run_single_command(
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Success(String::from("Copied to clipboad"));
         }
+        ["sub", identifier] => {
+            let id = if identifier.len() == 24 {
+                identifier.to_string()
+            } else {
+                let splitted = identifier.split_once("/channel/");
+
+                match splitted {
+                    Some((_, actual_stuff)) if actual_stuff.len() >= 24 => {
+                        actual_stuff[0..24].to_string()
+                    }
+                    _ => {
+                        *framework.data.global.get_mut::<Message>().unwrap() =
+                            Message::Error(String::from("Invalid identifier: no channel ID found"));
+                        return;
+                    }
+                }
+            };
+
+            let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
+            let image_index = mainconfig.image_index;
+            let download_thumbnails = mainconfig.images.display();
+            let client = framework
+                .data
+                .global
+                .get::<InvidiousClient>()
+                .unwrap()
+                .clone();
+
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Message(String::from("Syncing..."));
+            terminal.draw(|frame| framework.render(frame)).unwrap();
+            framework.render(&mut terminal.get_frame());
+
+            let subscriptions = framework.data.global.get_mut::<Subscriptions>().unwrap();
+            match subscriptions.sync_one(&id, &client, image_index, download_thumbnails) {
+                Ok(()) => {
+                    *framework.data.global.get_mut::<Message>().unwrap() =
+                        Message::Success(String::from("Channel synced"));
+                }
+                Err(e) => {
+                    *framework.data.global.get_mut::<Message>().unwrap() =
+                        Message::Error(format!("Sync failed: {e}"));
+                }
+            };
+        }
+        ["unsub", identifier] => {
+            let id = if identifier.len() == 24 {
+                identifier.to_string()
+            } else {
+                let splitted = identifier.split_once("/channel/");
+
+                match splitted {
+                    Some((_, actual_stuff)) if actual_stuff.len() >= 24 => {
+                        actual_stuff[0..24].to_string()
+                    }
+                    _ => {
+                        *framework.data.global.get_mut::<Message>().unwrap() =
+                            Message::Error(String::from("Invalid identifier: no channel ID found"));
+                        return;
+                    }
+                }
+            };
+
+            if framework
+                .data
+                .global
+                .get_mut::<Subscriptions>()
+                .unwrap()
+                .remove_one(&id)
+            {
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Success(String::from("Unsubscribed from channel"));
+            } else {
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Error(String::from("Channel not found in subscriptions"));
+            }
+        }
         _ => {
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Error(format!("Unknown command: `{}`", command.join(" ")));
@@ -424,6 +501,8 @@ const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
     \x1b[33mbookmark [id]\x1b[0m                   Bookmark item with ID (item must be already loaded)
     \x1b[33munmark [id]\x1b[0m                     Remove bookmark item with ID
     \x1b[33mtogglemark [id]\x1b[0m                 Toggle bookmark status
+    \x1b[33msub [id or url]\x1b[0m                 Add channel to subscription
+    \x1b[33munsub [id or url]\x1b[0m               Remove channel from subscription
 
 \x1b[91mALT:\x1b[0m
 \x1b[37malts links back to the original command\x1b[30m

@@ -28,6 +28,8 @@ impl Key for MinDimentions {
 pub struct PagesConfig {
     #[serde(default = "main_menu_default")]
     pub main_menu: PageConfig,
+    #[serde(default = "subscriptions_default")]
+    pub subscriptions: PageConfig,
     #[serde(default = "search_default")]
     pub search: PageConfig,
     #[serde(default = "singleitem_default")]
@@ -48,6 +50,7 @@ impl Default for PagesConfig {
     fn default() -> Self {
         Self {
             main_menu: main_menu_default(),
+            subscriptions: subscriptions_default(),
             search: search_default(),
             singleitem: singleitem_default(),
             channeldisplay: channeldisplay_default(),
@@ -168,6 +171,8 @@ pub enum PageItems {
     Subscriptions,
     /// the library button which loads the saved page
     Library,
+    /// Subscriptions list (channels)
+    ChannelList,
     /// the search filters `...` button, displays a popup when selected
     SearchFilters,
     /// playlist and video info display
@@ -192,6 +197,7 @@ impl PageItems {
             Self::History => Box::new(PageButton::History),
             Self::Subscriptions => Box::new(PageButton::Subscriptions),
             Self::Library => Box::new(PageButton::Library),
+            Self::ChannelList => Box::<ChannelList>::default(),
             Self::MessageBar => Box::<MessageBar>::default(),
             Self::ItemList => Box::<ItemList>::default(),
             Self::SearchFilters => Box::<SearchFilter>::default(),
@@ -215,7 +221,9 @@ impl PageItems {
             | Self::ChannelPlaylists => Constraint::Length(15),
             Self::SearchBar => Constraint::Min(16),
             Self::MessageBar => Constraint::Min(3),
-            Self::ItemList | Self::SingleItemInfo | Self::ChannelDisplay => Constraint::Min(9),
+            Self::ItemList | Self::SingleItemInfo | Self::ChannelDisplay | Self::ChannelList => {
+                Constraint::Min(9)
+            }
             Self::SearchFilters => Constraint::Length(5),
         }
     }
@@ -233,7 +241,9 @@ impl PageItems {
             | Self::MessageBar
             | Self::SearchBar
             | Self::SearchFilters => Constraint::Length(3),
-            Self::ItemList | Self::SingleItemInfo | Self::ChannelDisplay => Constraint::Min(6),
+            Self::ItemList | Self::SingleItemInfo | Self::ChannelDisplay | Self::ChannelList => {
+                Constraint::Min(6)
+            }
         }
     }
 }
@@ -267,7 +277,11 @@ fn main_menu_default() -> PageConfig {
         layout: vec![
             PageRow::from_vec(vec![PageItems::SearchBar, PageItems::SearchFilters], false),
             PageRow::from_vec(
-                vec![PageItems::Popular, PageItems::Library, PageItems::History],
+                vec![
+                    PageItems::Library,
+                    PageItems::Subscriptions,
+                    PageItems::History,
+                ],
                 true,
             ),
             PageRow::from_vec(vec![PageItems::ItemList], false),
@@ -315,5 +329,24 @@ fn channeldisplay_default() -> PageConfig {
             PageRow::from_vec(vec![PageItems::MessageBar], false),
         ],
         message: String::from("Loading channel details..."),
+    }
+}
+
+fn subscriptions_default() -> PageConfig {
+    PageConfig {
+        layout: vec![
+            PageRow::from_vec(vec![PageItems::SearchBar, PageItems::SearchFilters], false),
+            PageRow::from_vec(
+                vec![
+                    PageItems::Library,
+                    PageItems::Subscriptions,
+                    PageItems::History,
+                ],
+                true,
+            ),
+            PageRow::from_vec(vec![PageItems::ChannelList], false),
+            PageRow::from_vec(vec![PageItems::MessageBar], false),
+        ],
+        message: String::from("Loading subscriptions..."),
     }
 }

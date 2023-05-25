@@ -9,6 +9,8 @@ use typemap::Key;
 #[derive(Clone, PartialEq, Eq)]
 pub enum Page {
     MainMenu(MainMenuPage),
+    // Option<new channel selected index>
+    Subscriptions(Option<usize>),
     Search(Search),
     SingleItem(SingleItemPage),
     ChannelDisplay(ChannelDisplayPage),
@@ -20,6 +22,7 @@ impl Debug for Page {
             "{}(_)",
             match self {
                 Self::MainMenu(_) => "MainMenu",
+                Self::Subscriptions(_) => "Subscriptions",
                 Self::Search(_) => "Search",
                 Self::SingleItem(_) => "SingleItem",
                 Self::ChannelDisplay(_) => "ChannelDisplay",
@@ -54,7 +57,6 @@ pub enum MainMenuPage {
     Trending,
     Popular,
     History,
-    Subscriptions,
     Library,
 }
 
@@ -90,6 +92,7 @@ impl Page {
         let pages_config = framework.data.global.get::<PagesConfig>().unwrap();
         match self {
             Self::MainMenu(_) => pages_config.main_menu.clone(),
+            Self::Subscriptions(_) => pages_config.subscriptions.clone(),
             Self::Search(_) => pages_config.search.clone(),
             Self::SingleItem(_) => pages_config.singleitem.clone(),
             Self::ChannelDisplay(_) => pages_config.channeldisplay.clone(),
@@ -101,6 +104,7 @@ impl Page {
         let pages_config = framework.data.global.get::<PagesConfig>().unwrap();
         match self {
             Self::MainMenu(_) => pages_config.main_menu.message.clone(),
+            Self::Subscriptions(_) => pages_config.subscriptions.message.clone(),
             Self::Search(_) => pages_config.search.message.clone(),
             Self::SingleItem(_) => pages_config.singleitem.message.clone(),
             Self::ChannelDisplay(_) => pages_config.channeldisplay.message.clone(),

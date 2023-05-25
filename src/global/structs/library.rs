@@ -11,7 +11,7 @@ impl Key for Library {
     type Value = Self;
 }
 
-impl Collection for Library {
+impl Collection<Item> for Library {
     const INDEX_PATH: &'static str = ".local/share/youtube-tui/library.json";
 
     fn items(&self) -> &Vec<Item> {
@@ -20,5 +20,9 @@ impl Collection for Library {
 
     fn items_mut(&mut self) -> &mut Vec<Item> {
         &mut self.0
+    }
+
+    fn from_items(items: Vec<Item>) -> Self {
+        Self(items)
     }
 }

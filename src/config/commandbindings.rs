@@ -40,8 +40,8 @@ impl CommandBindings {
             Page::MainMenu(MainMenuPage::Trending) => get_command(key, &self.trending),
             Page::MainMenu(MainMenuPage::Popular) => get_command(key, &self.popular),
             Page::MainMenu(MainMenuPage::History) => get_command(key, &self.watchhistory),
-            Page::MainMenu(MainMenuPage::Subscriptions) => get_command(key, &self.subscriptions),
             Page::MainMenu(MainMenuPage::Library) => get_command(key, &self.libray),
+            Page::Subscriptions(_) => get_command(key, &self.subscriptions),
             Page::SingleItem(SingleItemPage::Video(_)) => get_command(key, &self.video),
             Page::SingleItem(SingleItemPage::Playlist(_)) => get_command(key, &self.playlist),
             Page::ChannelDisplay(ChannelDisplayPage {

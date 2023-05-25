@@ -1,46 +1,107 @@
+use super::*;
+use crate::global::{
+    functions::{download_all_images, DownloadRequest},
+    traits::{Collection, CollectionItem},
+};
+use home::home_dir;
 use serde::*;
-use std::{collections::HashMap, error::Error, sync::mpsc, thread};
-// use rayon::prelude::*;
-use super::{InvidiousClient, Item, MiniVideoItem};
-use crate::config::MainConfig;
+use std::{
+    error::Error,
+    fmt::Display,
+    fs::{self, OpenOptions},
+    io::Write,
+    sync::{atomic::AtomicU32, mpsc, Arc},
+    thread,
+};
+use typemap::Key;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 /// id, videos
-pub struct Subscriptions(pub HashMap<String, Vec<MiniVideoItem>>);
+pub struct Subscriptions(pub Vec<SubItem>);
+
+impl Key for Subscriptions {
+    type Value = Self;
+}
 
 impl Subscriptions {
     /// Res<(success, failed)>
-    pub fn sync(&mut self, client: &InvidiousClient, mainconfig: &MainConfig) -> (u32, u32) {
-        let mut failed: u32 = 0;
-        let mut success: u32 = 0;
+    pub fn sync(
+        &mut self,
+        client: &InvidiousClient,
+        image_index: usize,
+        download_thumbnails: bool,
+    ) -> (u32, u32) {
+        let failed = Arc::new(AtomicU32::new(0));
+        let success = Arc::new(AtomicU32::new(0));
 
         let (tx, rx) = mpsc::channel();
-        let image_index = mainconfig.image_index;
+        let mut channels = Vec::new();
+        std::mem::swap(&mut self.0, &mut channels);
 
-        self.0.keys().for_each(|k| {
+        channels.into_iter().for_each(|mut item| {
             let tx = tx.clone();
             let client = client.clone();
-            let k = k.clone();
+            let success = success.clone();
+            let failed = failed.clone();
             thread::spawn(move || {
-                let res = sync_one(&k, &client, image_index).ok();
-                tx.send((k, res))
+                let res = sync_one(&item.channel.id, &client, image_index, download_thumbnails);
+                match res {
+                    Ok(synced) => {
+                        success.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                        item = synced;
+                    }
+                    Err(_) => {
+                        failed.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                        item.videos.clear()
+                    }
+                }
+                tx.send(item)
             });
         });
 
-        for res in rx {
-            match res {
-                (id, Some(videos)) => {
-                    self.0.insert(id, videos);
-                    success += 1;
-                }
-                (id, None) => {
-                    self.0.get_mut(&id).unwrap().clear();
-                    failed += 1;
-                }
+        for item in rx {
+            self.0.push(item);
+        }
+
+        self.0.sort();
+
+        let _ = self.save();
+
+        (
+            success.load(std::sync::atomic::Ordering::Relaxed),
+            failed.load(std::sync::atomic::Ordering::Relaxed),
+        )
+    }
+
+    pub fn sync_one(
+        &mut self,
+        id: &str,
+        client: &InvidiousClient,
+        image_index: usize,
+        download_thumbnails: bool,
+    ) -> Result<(), Box<dyn Error>> {
+        let synced = sync_one(id, client, image_index, download_thumbnails)?;
+        for item in self.0.iter_mut() {
+            if *item == synced {
+                *item = synced;
+                return Ok(());
             }
         }
 
-        (success, failed)
+        self.0.push(synced);
+        self.0.sort();
+
+        self.save()?;
+        Ok(())
+    }
+
+    pub fn remove_one(&mut self, id: &str) -> bool {
+        if let Some(i) = self.0.iter().position(|item| item.channel.id == id) {
+            self.0.remove(i);
+            return true;
+        }
+
+        false
     }
 }
 
@@ -48,8 +109,24 @@ fn sync_one(
     id: &str,
     client: &InvidiousClient,
     image_index: usize,
-) -> Result<Vec<MiniVideoItem>, Box<dyn Error>> {
-    Ok(client
+    download_thumbnails: bool,
+) -> Result<SubItem, Box<dyn Error>> {
+    let (tx, rx) = mpsc::sync_channel(1);
+
+    let client2 = client.clone();
+    let id2 = id.to_string();
+    thread::spawn(move || {
+        tx.send(
+            client2
+                .0
+                .channel(&id2, None)
+                .map(|channel| Item::from_full_channel(channel, image_index).into_fullchannel())
+                .ok(),
+        )
+        .unwrap();
+    });
+
+    let videos = client
         .0
         .channel_videos(id, None)?
         .videos
@@ -59,5 +136,134 @@ fn sync_one(
                 .into_minivideo()
                 .unwrap()
         })
-        .collect())
+        .collect::<Vec<_>>();
+
+    let channel = rx
+        .recv()
+        .unwrap()
+        .ok_or(Errors::StrError("failed to get channel info {id}"))??;
+
+    if download_thumbnails {
+        let thumbnails: Vec<Option<DownloadRequest>> = videos
+            .iter()
+            .map(|video| {
+                Some(DownloadRequest {
+                    url: video.thumbnail_url.clone(),
+                    id: video.id.clone(),
+                })
+            })
+            .chain(
+                [Some(DownloadRequest {
+                    url: channel.thumbnail_url.clone(),
+                    id: channel.id.clone(),
+                })]
+                .into_iter(),
+            )
+            .collect::<Vec<_>>();
+        thread::spawn(move || {
+            download_all_images(thumbnails);
+        });
+    }
+
+    Ok(SubItem { channel, videos })
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct SubItem {
+    pub channel: FullChannelItem,
+    pub videos: Vec<MiniVideoItem>,
+}
+
+impl Eq for SubItem {}
+impl Ord for SubItem {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+impl Display for SubItem {
+    fn fmt(&self, f: &mut __private::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.channel.name)
+    }
+}
+
+impl PartialEq for SubItem {
+    fn eq(&self, other: &Self) -> bool {
+        self.channel.id == other.channel.id
+    }
+}
+
+impl PartialOrd for SubItem {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.channel.name.partial_cmp(&other.channel.name)
+    }
+}
+
+impl CollectionItem for SubItem {
+    fn id(&self) -> Option<&str> {
+        Some(&self.channel.id)
+    }
+
+    fn children_ids(&self) -> Vec<&str> {
+        self.videos
+            .iter()
+            .map(|video| video.id.as_str())
+            .collect::<_>()
+    }
+}
+
+impl Collection<SubItem> for Subscriptions {
+    const INDEX_PATH: &'static str = ".local/share/youtube-tui/subscriptions.json";
+
+    fn items(&self) -> &Vec<SubItem> {
+        &self.0
+    }
+
+    fn items_mut(&mut self) -> &mut Vec<SubItem> {
+        &mut self.0
+    }
+
+    fn from_items(items: Vec<SubItem>) -> Self {
+        Self(items)
+    }
+
+    fn save(&self) -> Result<(), Box<dyn Error>> {
+        let mut file = OpenOptions::new()
+            .truncate(true)
+            .write(true)
+            .create(true)
+            .open(home_dir().unwrap().join(Self::INDEX_PATH))?;
+
+        let save_string = serde_json::to_string_pretty(self)?;
+        file.write_all(save_string.as_bytes())?;
+        Ok(())
+    }
+
+    fn push(&mut self, _: SubItem, _: Option<usize>) -> Result<(), Box<dyn Error>> {
+        unimplemented!("not in use");
+    }
+
+    fn load() -> Self {
+        let path = home_dir().unwrap().join(Self::INDEX_PATH);
+        let res = (|| -> Result<Self, Box<dyn Error>> {
+            let file_string = fs::read_to_string(&path)?;
+            let deserialized = serde_json::from_str(&file_string)?;
+            Ok(deserialized)
+        })();
+
+        // if res is err, then the file either doesn't exist of has be altered incorrectly, in
+        // which case returns Self::default()
+        if let Ok(subs) = res {
+            subs
+        } else {
+            // if the file does exist, back it up
+            // if it doesn't exist, it will throw an error but we dont care
+            let mut new_path = path.clone();
+            new_path.pop();
+            new_path.push(format!("index-{}.json", chrono::offset::Local::now(),));
+            let _ = fs::rename(&path, &new_path);
+
+            Self::default()
+        }
+    }
 }

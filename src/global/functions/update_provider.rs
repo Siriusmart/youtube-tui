@@ -66,7 +66,7 @@ pub fn update_provider(data: &mut FrameworkData) {
                 }
             },
         )],
-        Page::MainMenu(MainMenuPage::Subscriptions) => vec![(
+        Page::Subscriptions(_) => vec![(
             String::from("url"),
             match status.provider {
                 Provider::YouTube => String::from("https://www.youtube.com/feed/subscriptions"),

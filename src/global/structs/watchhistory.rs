@@ -9,7 +9,7 @@ impl Key for WatchHistory {
     type Value = Self;
 }
 
-impl Collection for WatchHistory {
+impl Collection<Item> for WatchHistory {
     const INDEX_PATH: &'static str = ".local/share/youtube-tui/watch_history.json";
 
     fn items(&self) -> &Vec<Item> {
@@ -18,5 +18,9 @@ impl Collection for WatchHistory {
 
     fn items_mut(&mut self) -> &mut Vec<Item> {
         &mut self.0
+    }
+
+    fn from_items(items: Vec<Item>) -> Self {
+        Self(items)
     }
 }

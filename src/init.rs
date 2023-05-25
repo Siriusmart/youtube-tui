@@ -42,11 +42,12 @@ pub fn init(
     framework
         .data
         .global
-        .insert::<WatchHistory>(WatchHistory(WatchHistory::load()));
+        .insert::<WatchHistory>(WatchHistory::load());
     framework
         .data
         .global
-        .insert::<Library>(Library(Library::load()));
+        .insert::<Subscriptions>(Subscriptions::load());
+    framework.data.global.insert::<Library>(Library::load());
     framework.data.global.insert::<Message>(Message::None);
     framework.data.global.insert::<Status>(Status {
         provider: framework.data.global.get::<MainConfig>().unwrap().provider,

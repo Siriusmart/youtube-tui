@@ -37,26 +37,20 @@ impl PageButton {
                 r#type: ChannelDisplayPageType::Playlists,
             }),
             Self::History => Page::MainMenu(MainMenuPage::History),
-            Self::Subscriptions => Page::MainMenu(MainMenuPage::Subscriptions),
+            Self::Subscriptions => Page::Subscriptions(None),
             Self::Library => Page::MainMenu(MainMenuPage::Library),
         }
     }
 
-    fn update_toggleable(&mut self, page: &Page) {
-        if *self == Self::Popular || *self == Self::Trending {
-            match page {
-                Page::MainMenu(MainMenuPage::Popular) => *self = Self::Popular,
-                Page::MainMenu(MainMenuPage::Trending) => *self = Self::Trending,
-                _ => {}
-            }
-        } else if *self == Self::Subscriptions || *self == Self::Library {
-            // match page {
-            //     Page::MainMenu(MainMenuPage::Subscriptions) => *self = Self::Subscriptions,
-            //     Page::MainMenu(MainMenuPage::Library) => *self = Self::Library,
-            //     _ => {}
-            // }
-        }
-    }
+    // fn update_toggleable(&mut self, page: &Page) {
+    //     if *self == Self::Popular || *self == Self::Trending {
+    //         match page {
+    //             Page::MainMenu(MainMenuPage::Popular) => *self = Self::Popular,
+    //             Page::MainMenu(MainMenuPage::Trending) => *self = Self::Trending,
+    //             _ => {}
+    //         }
+    //     }
+    // }
 }
 
 impl ToString for PageButton {
@@ -75,14 +69,15 @@ impl ToString for PageButton {
 }
 
 impl FrameworkItem for PageButton {
-    fn load_item(
-        &mut self,
-        framework: &mut tui_additions::framework::FrameworkClean,
-        _info: tui_additions::framework::ItemInfo,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        self.update_toggleable(framework.data.state.get::<Page>().unwrap());
-        Ok(())
-    }
+    // fn load_item(
+    //     &mut self,
+    //     framework: &mut tui_additions::framework::FrameworkClean,
+    //     _info: tui_additions::framework::ItemInfo,
+    // ) -> Result<(), Box<dyn std::error::Error>> {
+    //     self.update_toggleable(framework.data.state.get::<Page>().unwrap());
+    //     Ok(())
+    // }
+
     // it is basically a paragraph (text) with borders
     fn render(
         &mut self,
@@ -122,19 +117,12 @@ impl FrameworkItem for PageButton {
         let current_page = framework.data.state.get::<Page>().unwrap();
         let self_page = self.page(current_page);
 
-        if self_page == *current_page {
-            match self {
-                Self::Trending => *self = Self::Popular,
-                Self::Popular => *self = Self::Trending,
-                // Self::Subscriptions => *self = Self::Library,
-                // Self::Library => *self = Self::Subscriptions,
-                _ => {
-                    *framework.data.global.get_mut::<Message>().unwrap() =
-                        Message::Message(String::from("You are already on this page"));
-                    return false;
-                }
-            }
-        }
+        // if self_page == *current_page {
+        //     match self {
+        //         Self::Trending => *self = Self::Popular,
+        //         Self::Popular => *self = Self::Trending,
+        //     }
+        // }
 
         framework
             .data

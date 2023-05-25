@@ -1,4 +1,3 @@
-use crate::global::structs::Item;
 use home::home_dir;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
@@ -6,16 +5,23 @@ use std::{
     fs::{self, OpenOptions},
     io::Write,
 };
-use typemap::Key;
 
-pub trait Collection
+pub trait CollectionItem {
+    fn id(&self) -> Option<&str>;
+    fn children_ids(&self) -> Vec<&str>;
+}
+
+pub trait Collection<T>
 where
-    Self: Default + Clone + Serialize + DeserializeOwned + Key,
+    Self: Default + Clone + Serialize + DeserializeOwned,
+    T: Serialize + DeserializeOwned + CollectionItem,
 {
     const INDEX_PATH: &'static str;
 
-    fn items(&self) -> &Vec<Item>;
-    fn items_mut(&mut self) -> &mut Vec<Item>;
+    fn items(&self) -> &Vec<T>;
+    fn items_mut(&mut self) -> &mut Vec<T>;
+
+    fn from_items(items: Vec<T>) -> Self;
 
     /// saves the current state of watch history into a file
     fn save(&self) -> Result<(), Box<dyn Error>> {
@@ -41,7 +47,7 @@ where
     }
 
     /// add an item to watch history
-    fn push(&mut self, item: Item, max_length: Option<usize>) -> Result<(), Box<dyn Error>> {
+    fn push(&mut self, item: T, max_length: Option<usize>) -> Result<(), Box<dyn Error>> {
         let info = home_dir().unwrap().join(".cache/youtube-tui/info/");
 
         // removes duplicates and place them on top (if exists)
@@ -72,7 +78,7 @@ where
     }
 
     /// loads watch history from file
-    fn load() -> Vec<Item> {
+    fn load() -> Self {
         let path = home_dir().unwrap().join(Self::INDEX_PATH);
         let res = (|| -> Result<Vec<String>, Box<dyn Error>> {
             let file_string = fs::read_to_string(&path)?;
@@ -82,7 +88,7 @@ where
 
         // if res is err, then the file either doesn't exist of has be altered incorrectly, in
         // which case returns Self::default()
-        if let Ok(deserialized) = res {
+        let items = if let Ok(deserialized) = res {
             let info = home_dir().unwrap().join(".cache/youtube-tui/info/");
             deserialized
                 .into_iter()
@@ -98,7 +104,9 @@ where
             let _ = fs::rename(&path, &new_path);
 
             Vec::new()
-        }
+        };
+
+        Self::from_items(items)
     }
 
     /// moves thumbnails of videos in watch history from cache back to storage when exiting, so that thumbnails can be viewed offline
@@ -121,15 +129,12 @@ where
                 store_info_path.join(format!("{id}.json")),
             );
 
-            if let Item::FullPlaylist(fullplaylist) = item {
-                fullplaylist.videos.iter().for_each(|video| {
-                    let id = video.id().unwrap_or("invalid-dump");
-                    let _ = fs::rename(
-                        cache_thumbnails_path.join(id),
-                        store_thumbnails_path.join(id),
-                    );
-                })
-            }
+            item.children_ids().iter().for_each(|id| {
+                let _ = fs::rename(
+                    cache_thumbnails_path.join(id),
+                    store_thumbnails_path.join(id),
+                );
+            })
         })
     }
 

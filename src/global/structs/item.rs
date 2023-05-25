@@ -1,4 +1,4 @@
-use crate::global::functions::*;
+use crate::global::{functions::*, traits::CollectionItem};
 use invidious::{channel::Channel, hidden::*, universal::Playlist as FullPlaylist, video::Video};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
@@ -19,6 +19,24 @@ pub enum Item {
     FullChannel(FullChannelItem),
     Page(bool), // true: next false: prev
     Unknown(SearchItemTransition),
+}
+
+impl CollectionItem for Item {
+    fn id(&self) -> Option<&str> {
+        self.id()
+    }
+
+    fn children_ids(&self) -> Vec<&str> {
+        if let Self::FullPlaylist(playlist) = self {
+            playlist
+                .videos
+                .iter()
+                .map(|video| video.id().unwrap())
+                .collect::<Vec<_>>()
+        } else {
+            Vec::new()
+        }
+    }
 }
 
 /// stores information of a previewed video

@@ -15,3 +15,5 @@ mod singleitem;
 pub use singleitem::*;
 mod channeldisplay;
 pub use channeldisplay::*;
+mod channellist;
+pub use channellist::*;

@@ -56,7 +56,6 @@ impl TaskQueue {
                 RenderTask::Only(renders) => {
                     if !renders.contains(&(x, y)) {
                         renders.push((x, y));
-                        println!("{:?}", self.render);
                     }
                 }
                 RenderTask::None => self.render = RenderTask::Only(vec![(x, y)]),
