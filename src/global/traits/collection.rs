@@ -100,7 +100,11 @@ where
             // if it doesn't exist, it will throw an error but we dont care
             let mut new_path = path.clone();
             new_path.pop();
-            new_path.push(format!("index-{}.json", chrono::offset::Local::now(),));
+            new_path.push(format!(
+                "{}.{}.old",
+                Self::INDEX_PATH,
+                chrono::offset::Local::now()
+            ));
             let _ = fs::rename(&path, &new_path);
 
             Vec::new()

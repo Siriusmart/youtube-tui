@@ -336,17 +336,16 @@ impl FrameworkItem for ItemList {
             _ => unreachable!("item `ItemList` cannot be used in `{page:?}`"),
         }
 
+        // update the items in text list
+        self.textlist.set_items(&self.items).unwrap();
+        self.update(framework);
+
         let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
         let status = framework.data.global.get::<Status>().unwrap();
-
         if mainconfig.images.display() {
             // download thumbnails of all videos in the list
             download_all_images(self.items.iter().map(|item| item.into()).collect());
         }
-
-        // update the items in text list
-        self.textlist.set_items(&self.items).unwrap();
-        self.update();
 
         set_envs(
             self.infalte_item_update(mainconfig, status).into_iter(),
@@ -442,6 +441,7 @@ impl FrameworkItem for ItemList {
             return false;
         }
 
+        let previously_selected = self.textlist.selected;
         let y = (y - chunk.y) as usize + self.textlist.scroll;
 
         // clicking on already selected item
@@ -467,7 +467,11 @@ impl FrameworkItem for ItemList {
             self.textlist.selected = y - 2;
         }
 
-        self.update();
+        if self.textlist.selected == previously_selected {
+            return false;
+        }
+
+        self.update(framework);
         set_envs(
             self.infalte_item_update(
                 framework.data.global.get::<MainConfig>().unwrap(),
@@ -491,8 +495,21 @@ impl FrameworkItem for ItemList {
 
 impl ItemList {
     // change `self.item` to the currently selected item
-    pub fn update(&mut self) {
-        if self.items.is_empty() {
+    pub fn update(&mut self, framework: &mut FrameworkClean) {
+        if self.items.get(self.textlist.selected).is_none() {
+            framework
+                .data
+                .global
+                .get_mut::<Status>()
+                .unwrap()
+                .render_image = true;
+            framework
+                .data
+                .state
+                .get_mut::<Tasks>()
+                .unwrap()
+                .priority
+                .push(Task::ClearPage);
             self.info.item = None;
             return;
         }

@@ -1244,6 +1244,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1865806a559042e51ab5414598446a5871b561d21b6764f2eabb0dd481d880a6"
 
 [[package]]
+name = "urlencoding"
+version = "2.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8db7427f936968176eaa7cdf81b7f98b980b18495ec28f1b5791ac3bfe3eea9"
+
+[[package]]
 name = "vcpkg"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1546,7 +1552,7 @@ dependencies = [
 
 [[package]]
 name = "youtube-tui"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "chrono",
  "clipboard",
@@ -1560,6 +1566,7 @@ dependencies = [
  "tui",
  "tui-additions",
  "typemap",
+ "urlencoding",
  "viuer",
 ]
 

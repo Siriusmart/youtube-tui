@@ -15,7 +15,7 @@ pub enum PageButton {
     ChannelVideos,
     ChannelPlaylists,
     History,
-    Subscriptions,
+    Feed,
     Library,
 }
 
@@ -37,7 +37,7 @@ impl PageButton {
                 r#type: ChannelDisplayPageType::Playlists,
             }),
             Self::History => Page::MainMenu(MainMenuPage::History),
-            Self::Subscriptions => Page::Subscriptions(None),
+            Self::Feed => Page::Feed,
             Self::Library => Page::MainMenu(MainMenuPage::Library),
         }
     }
@@ -62,7 +62,7 @@ impl ToString for PageButton {
             Self::ChannelVideos => String::from("Videos"),
             Self::ChannelPlaylists => String::from("Playlists"),
             Self::History => String::from("History"),
-            Self::Subscriptions => String::from("Subscriptions"),
+            Self::Feed => String::from("Feed"),
             Self::Library => String::from("Library"),
         }
     }

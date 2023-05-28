@@ -12,6 +12,7 @@ use tui::{
     widgets::{Block, Borders},
 };
 use tui_additions::{framework::FrameworkItem, widgets::TextField};
+use urlencoding::encode;
 
 /// the search bar item
 #[derive(Clone, Default)]
@@ -137,7 +138,7 @@ impl FrameworkItem for SearchBar {
                 }
 
                 let mut search = framework.data.state.get_mut::<Search>().unwrap();
-                search.query = self.text_field.content.clone();
+                search.query = encode(&self.text_field.content).into_owned();
                 let search = search.clone();
                 let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
                 tasks.priority.push(Task::LoadPage(Page::Search(search)));

@@ -15,12 +15,9 @@ pub fn exit(framework: &Framework) -> Result<(), Box<dyn Error>> {
         .get::<WatchHistory>()
         .unwrap()
         .exit_move();
-    framework
-        .data
-        .global
-        .get::<Subscriptions>()
-        .unwrap()
-        .exit_move();
+    let subscriptions = framework.data.global.get::<Subscriptions>().unwrap();
+    subscriptions.exit_move();
+    subscriptions.save()?;
     framework.data.global.get::<Library>().unwrap().exit_move();
 
     let home_dir = home_dir().unwrap();

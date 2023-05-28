@@ -56,11 +56,13 @@ It also includes features like:
 - Mouse support
 - Extensible keybindings system
 - Offline library
+- Subscriptions
 
 ### What it doesn't have
 
-- Subscriptions (first priority)
-- Clipboard feature that does not depend on the `clipboard` feature
+- [URGENT] Replace the no-longer-going-to-compile `typemap` dependency with either a self implementation of it or a useable crate.
+- Strip down some libraries to reduce compile speed.
+- Add command section for channel main page (first priority)
 - Up arrow command history + Ctrl arrow keys move between words
 
 ## How to contribute

@@ -1,6 +1,6 @@
 [package]
 name = "youtube-tui"
-version = "0.7.1"
+version = "0.7.2"
 authors = ["Siriusmart <siriusmart@tuta.io>"]
 edition = "2021"
 description = "An aesthetically pleasing YouTube TUI written in Rust"
@@ -35,6 +35,10 @@ serde_yaml = {version = "0.9", default-features = false}
 dyn-clone = {version = "1.0", default-features = false}
 serde_json = {version = "1.0", default-features = false}
 clipboard = {version = "0.5", optional = true}
+urlencoding = "2.1"
 
 # tui-additions = {path = "../../Rust/Packages/tui-additions", default-features = false, features = ["framework", "widgets"]}
 # invidious = {path = "../../Rust/Packages/invidious"}
+
+[package.metadata.docs.rs]
+no-default-features = true

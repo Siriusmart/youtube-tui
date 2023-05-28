@@ -20,7 +20,7 @@
 
 - [How it works](explaination/how_it_works.md)
 	- [Framework](explaination/framework.md)
-	- [Event loop]()
+	- [Event loop](explaination/event-loop.md)
 	- [Invidious and loading videos]()
 	- [Caching and library]()
 

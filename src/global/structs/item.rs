@@ -40,7 +40,7 @@ impl CollectionItem for Item {
 }
 
 /// stores information of a previewed video
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Eq)]
 pub struct MiniVideoItem {
     pub title: String,
     pub id: String,
@@ -50,10 +50,30 @@ pub struct MiniVideoItem {
     pub channel: String,
     pub channel_id: String,
     pub published: Option<String>,
+    pub timestamp: Option<u64>,
     pub description: Option<String>,
 }
 
-unsafe impl Send for MiniVideoItem {}
+impl PartialOrd for MiniVideoItem {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        other.timestamp.partial_cmp(&self.timestamp)
+        // self.timestamp.partial_cmp(&other.timestamp)
+    }
+}
+
+impl Ord for MiniVideoItem {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.timestamp
+            .unwrap_or_default()
+            .cmp(&other.timestamp.unwrap_or_default())
+    }
+}
+
+impl PartialEq for MiniVideoItem {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
 
 /// stores information of a previewed playlist
 #[derive(Clone, Serialize, Deserialize)]
@@ -288,6 +308,7 @@ impl Item {
             views: Some(viewcount_text(original.views)),
             channel: original.author,
             channel_id: original.author_id,
+            timestamp: Some(original.published),
             published: Some(format!(
                 "{} [{}]",
                 original.published_text,
@@ -307,6 +328,7 @@ impl Item {
             views: Some(viewcount_text(original.views)),
             channel: original.author,
             channel_id: original.author_id,
+            timestamp: Some(original.published),
             published: Some(format!(
                 "{} [{}]",
                 original.published_text,
@@ -351,6 +373,7 @@ impl Item {
                 views: Some(viewcount_text(views)),
                 channel: author,
                 channel_id: author_id,
+                timestamp: Some(published),
                 published: Some(format!("{} [{}]", published_text, date_text(published))),
                 description: Some(description),
             }),
@@ -442,6 +465,7 @@ impl Item {
             views: None,
             channel: original.author,
             channel_id: original.author_id,
+            timestamp: None,
             published: None,
             description: None,
         })
@@ -472,6 +496,7 @@ impl Item {
             views: Some(viewcount_text(original.view_count)),
             channel: original.author,
             channel_id: original.author_id,
+            timestamp: Some(original.published),
             published: Some(format!(
                 "{} [{}]",
                 original.published_text,

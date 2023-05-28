@@ -111,6 +111,10 @@ fn video_default() -> Vec<HashMap<String, String>> {
             String::from("channel ${channel-id}"),
         )]),
         HashMap::from([(
+            String::from("Subscribe to channel"),
+            String::from("sync ${channel-id}"),
+        )]),
+        HashMap::from([(
             String::from("Open in browser"),
             String::from("parrun ${browser} '${url}'"),
         )]),
@@ -154,6 +158,10 @@ fn saved_video_default() -> Vec<HashMap<String, String>> {
         HashMap::from([(
             String::from("View channel"),
             String::from("channel ${channel-id}"),
+        )]),
+        HashMap::from([(
+            String::from("Subscribe to channel"),
+            String::from("sync ${channel-id}"),
         )]),
         HashMap::from([(
             String::from("Open in browser"),
@@ -202,6 +210,10 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
             String::from("channel ${channel-id}"),
         )]),
         HashMap::from([(
+            String::from("Subscribe to channel"),
+            String::from("sync ${channel-id}"),
+        )]),
+        HashMap::from([(
             String::from("Open in browser"),
             String::from("parrun ${browser} '${url}'"),
         )]),
@@ -246,6 +258,10 @@ fn saved_playlist_default() -> Vec<HashMap<String, String>> {
         HashMap::from([(
             String::from("View channel"),
             String::from("channel ${channel-id}"),
+        )]),
+        HashMap::from([(
+            String::from("Subscribe to channel"),
+            String::from("sync ${channel-id}"),
         )]),
         HashMap::from([(
             String::from("Open in browser"),

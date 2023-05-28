@@ -53,9 +53,12 @@ parrun [command]
 ## Library
 
 ```vim
-bookmark [id]
-unmark [id]
-togglemark [id]
+bookmark [id]                   Bookmark item with ID (item must be already loaded)
+unmark [id]                     Remove bookmark item with ID
+togglemark [id]                 Toggle bookmark status
+sub/sync [id or url]            Add channel to subscription, or sync an existing channel
+unsub [id or url]               Remove channel from subscription
+syncall                         Sync all subscriptions
 ```
 
 ## Text commands

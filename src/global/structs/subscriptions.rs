@@ -34,6 +34,7 @@ impl Subscriptions {
         let failed = Arc::new(AtomicU32::new(0));
         let success = Arc::new(AtomicU32::new(0));
 
+        let len = self.0.len();
         let (tx, rx) = mpsc::channel();
         let mut channels = Vec::new();
         std::mem::swap(&mut self.0, &mut channels);
@@ -59,7 +60,7 @@ impl Subscriptions {
             });
         });
 
-        for item in rx {
+        for item in rx.into_iter().take(len) {
             self.0.push(item);
         }
 
@@ -83,7 +84,11 @@ impl Subscriptions {
         let synced = sync_one(id, client, image_index, download_thumbnails)?;
         for item in self.0.iter_mut() {
             if *item == synced {
-                *item = synced;
+                *item = SubItem {
+                    // synced.has_new = !synced.videos.is_empty
+                    has_new: synced.has_new && synced.videos.first() != item.videos.first(),
+                    ..synced
+                };
                 return Ok(());
             }
         }
@@ -102,6 +107,20 @@ impl Subscriptions {
         }
 
         false
+    }
+
+    pub fn get_all_videos(&self) -> Vec<MiniVideoItem> {
+        let mut videos = self
+            .0
+            .iter()
+            .flat_map(|item| item.videos.clone())
+            .collect::<Vec<_>>();
+        videos.sort();
+        videos
+    }
+
+    pub fn get_channels(&self) -> Vec<FullChannelItem> {
+        self.0.iter().map(|item| item.channel.clone()).collect()
     }
 }
 
@@ -123,10 +142,8 @@ fn sync_one(
                 .map(|channel| Item::from_full_channel(channel, image_index).into_fullchannel())
                 .ok(),
         )
-        .unwrap();
     });
-
-    let videos = client
+    let mut videos = client
         .0
         .channel_videos(id, None)?
         .videos
@@ -137,6 +154,7 @@ fn sync_one(
                 .unwrap()
         })
         .collect::<Vec<_>>();
+    videos.sort();
 
     let channel = rx
         .recv()
@@ -165,13 +183,20 @@ fn sync_one(
         });
     }
 
-    Ok(SubItem { channel, videos })
+    Ok(SubItem {
+        channel,
+        has_new: !videos.is_empty(),
+        videos,
+        last_sync: chrono::Utc::now().timestamp() as u64,
+    })
 }
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct SubItem {
     pub channel: FullChannelItem,
     pub videos: Vec<MiniVideoItem>,
+    pub last_sync: u64,
+    pub has_new: bool,
 }
 
 impl Eq for SubItem {}
@@ -195,7 +220,11 @@ impl PartialEq for SubItem {
 
 impl PartialOrd for SubItem {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.channel.name.partial_cmp(&other.channel.name)
+        let get_timestamp = |item: &Self| match item.videos.first() {
+            Some(video) => video.timestamp.unwrap(),
+            None => 0,
+        };
+        get_timestamp(other).partial_cmp(&get_timestamp(self))
     }
 }
 
@@ -253,14 +282,19 @@ impl Collection<SubItem> for Subscriptions {
 
         // if res is err, then the file either doesn't exist of has be altered incorrectly, in
         // which case returns Self::default()
-        if let Ok(subs) = res {
+        if let Ok(mut subs) = res {
+            subs.0.sort();
             subs
         } else {
             // if the file does exist, back it up
             // if it doesn't exist, it will throw an error but we dont care
             let mut new_path = path.clone();
             new_path.pop();
-            new_path.push(format!("index-{}.json", chrono::offset::Local::now(),));
+            new_path.push(format!(
+                "{}.{}.old",
+                Self::INDEX_PATH,
+                chrono::offset::Local::now()
+            ));
             let _ = fs::rename(&path, &new_path);
 
             Self::default()

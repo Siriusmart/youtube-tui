@@ -124,7 +124,7 @@ pub fn run_single_command(
                 "popular" => Some(Page::MainMenu(MainMenuPage::Popular)),
                 "trending" => Some(Page::MainMenu(MainMenuPage::Trending)),
                 "watchhistory" => Some(Page::MainMenu(MainMenuPage::History)),
-                "subscriptions" | "subs" => Some(Page::Subscriptions(None)),
+                "feed" => Some(Page::Feed),
                 "library" => Some(Page::MainMenu(MainMenuPage::Library)),
                 "channel" => {
                     if command.len() == 2 {
@@ -212,9 +212,7 @@ pub fn run_single_command(
         ["popular"] => run_single_command(&["loadpage", "popular"], framework, terminal),
         ["trending"] => run_single_command(&["loadpage", "trending"], framework, terminal),
         ["watchhistory"] => run_single_command(&["loadpage", "watchhistory"], framework, terminal),
-        ["subscriptions"] | ["subs"] => {
-            run_single_command(&["loadpage", "subscriptions"], framework, terminal)
-        }
+        ["feed"] => run_single_command(&["loadpage", "feed"], framework, terminal),
         ["bookmarks"] => run_single_command(&["loadpage", "bookmarks"], framework, terminal),
         ["library"] => run_single_command(&["loadpage", "library"], framework, terminal),
         ["search"] => run_single_command(&["loadpage", "search"], framework, terminal),
@@ -345,7 +343,7 @@ pub fn run_single_command(
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Success(String::from("Copied to clipboad"));
         }
-        ["sub", identifier] => {
+        ["sub", identifier] | ["sync", identifier] => {
             let id = if identifier.len() == 24 {
                 identifier.to_string()
             } else {
@@ -376,7 +374,6 @@ pub fn run_single_command(
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Message(String::from("Syncing..."));
             terminal.draw(|frame| framework.render(frame)).unwrap();
-            framework.render(&mut terminal.get_frame());
 
             let subscriptions = framework.data.global.get_mut::<Subscriptions>().unwrap();
             match subscriptions.sync_one(&id, &client, image_index, download_thumbnails) {
@@ -389,6 +386,13 @@ pub fn run_single_command(
                         Message::Error(format!("Sync failed: {e}"));
                 }
             };
+            framework
+                .data
+                .state
+                .get_mut::<Tasks>()
+                .unwrap()
+                .priority
+                .push(Task::RenderAll);
         }
         ["unsub", identifier] => {
             let id = if identifier.len() == 24 {
@@ -421,6 +425,47 @@ pub fn run_single_command(
                 *framework.data.global.get_mut::<Message>().unwrap() =
                     Message::Error(String::from("Channel not found in subscriptions"));
             }
+            framework
+                .data
+                .state
+                .get_mut::<Tasks>()
+                .unwrap()
+                .priority
+                .push(Task::RenderAll);
+        }
+        ["syncall"] => {
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Message(String::from("Syncing..."));
+            terminal.draw(|frame| framework.render(frame)).unwrap();
+
+            let client = framework
+                .data
+                .global
+                .get::<InvidiousClient>()
+                .unwrap()
+                .clone();
+            let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
+            let image_index = mainconfig.image_index;
+            let download_thumbnails = mainconfig.images.display();
+
+            let (success, failed) = framework
+                .data
+                .global
+                .get_mut::<Subscriptions>()
+                .unwrap()
+                .sync(&client, image_index, download_thumbnails);
+
+            *framework.data.global.get_mut::<Message>().unwrap() = Message::Success(format!(
+                "Subscriptions synced: {success} success | {failed} fail"
+            ));
+
+            framework
+                .data
+                .state
+                .get_mut::<Tasks>()
+                .unwrap()
+                .priority
+                .push(Task::RenderAll);
         }
         _ => {
             *framework.data.global.get_mut::<Message>().unwrap() =
@@ -479,6 +524,7 @@ const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
     \x1b[33mloadpage subscriptions\x1b[0m          Loads the subscriptions page
     \x1b[33mloadpage bookmarks\x1b[0m              Loads the bookmarks page
     \x1b[33mloadpage library\x1b[0m                Loads the library (saved items) page
+    \x1b[33mloadpage feed\x1b[0m                   Loads the library (feed) page
     \x1b[33mloadpage search [query]\x1b[0m         Loads the search page with the given query
     \x1b[33mloadpage video [identifier]\x1b[0m     Loads the video item page
     \x1b[33mloadpage playlist [identifier]\x1b[0m  Loads the playlist item page
@@ -501,8 +547,9 @@ const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
     \x1b[33mbookmark [id]\x1b[0m                   Bookmark item with ID (item must be already loaded)
     \x1b[33munmark [id]\x1b[0m                     Remove bookmark item with ID
     \x1b[33mtogglemark [id]\x1b[0m                 Toggle bookmark status
-    \x1b[33msub [id or url]\x1b[0m                 Add channel to subscription
+    \x1b[33msub/sync [id or url]\x1b[0m            Add channel to subscription, or sync an existing channel
     \x1b[33munsub [id or url]\x1b[0m               Remove channel from subscription
+    \x1b[33msyncall\x1b[0m                         Sync all subscriptions
 
 \x1b[91mALT:\x1b[0m
 \x1b[37malts links back to the original command\x1b[30m
@@ -513,4 +560,4 @@ const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
     \x1b[33mq, exit, x\x1b[0m                      `quit`
     \x1b[33mcp [text]\x1b[0m                       `copy [text]`
 
-\x1b[37mOnly load page and informational commands can be used from command line, the rest can only be used in (`:`) command mode inside the TUI.\x1b[0m";
+\x1b[37mOnly load page and informational commands should be used from command line, the rest can only be used in (`:`) command mode inside the TUI.\x1b[0m";

@@ -36,13 +36,15 @@ Instead of using a `HashMap<(usize, usize)>`, using a 2D array ensures that all 
 
 ## Data
 
-There are 2 sets of data available - *global* and *state*.
+There are 2 pools of data available - *global* and *state*.
 
 **Global data** are global across all pages, this is mainly used to store config structs, as they are meant to be applied globally.
 
-**State data** are exclusive to each page, this is done to ensure that each page will get the correct data.
+**State data** are exclusive to each page, this is done to ensure that each page will get the correct data. 
 
 > For example, if state data is not used, the next page will overwrite data in the previous page, making going back in history impossible.
+
+[This](https://github.com/Siriusmart/tui-additions/blob/3087abbf8e121f26c0956cda5fb43efc7b862bc7/src/framework/framework.rs#LL39C4-L39C4) showed how state data stays with the history *snapshot* of the page, whereas global data does not.
 
 ## History
 

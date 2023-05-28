@@ -1,13 +1,24 @@
 # Changelogs
 
-## v0.7.1
+## v0.7.2
 
 ### Added
+
+- Feeds page, and the subscriptions system.
+- Reduced compile time needed by a lot.
+
+### Fixed
+
+- I remember fixing something but forgot what it was D:
+
+### v0.7.1
+
+#### Added
 
 - Options for config loading. (`write_config` in `main.yml`)
 - Parrallel/blocking commands `parrun`/`run`
 
-### Fixed
+#### Fixed
 
 - Fixed crashing when launching without permissions to write to config files (<a href="https://github.com/Siriusmart/youtube-tui/issues/29" target=_blank>issue 29</a>)
 

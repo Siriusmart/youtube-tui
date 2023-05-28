@@ -49,6 +49,12 @@ To apply search filters, select the button with 3 dots (`...`) to the right of t
 
 Press `Enter` to select a video or playlist from any lists, then move the cursor to the *bottom item* where you can play, download and open the webpage in browser.
 
+## Feeds
+
+Feeds allows you to view updates from subscribed channels, similar to how subscriptions works on YouTube.
+
+![](./images/feed-showcase.png)
+
 ## Command mode
 
 Command mode is like that of Vim, it can be started by pressing `:` when nothing is selected.

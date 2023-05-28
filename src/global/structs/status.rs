@@ -1,6 +1,6 @@
 use tui::layout::Rect;
 use tui_additions::widgets::TextField;
-use typemap::Key;
+use typemap::{CloneMap, Key, TypeMap};
 
 use crate::config::Provider;
 
@@ -23,6 +23,8 @@ pub struct Status {
     pub provider: Provider,
     /// if provider is updated, lasts for 1 event loop
     pub provider_updated: bool,
+    /// storage that is cleared every event loop
+    pub storage: CloneMap,
 }
 
 impl Key for Status {
@@ -40,6 +42,7 @@ impl Default for Status {
             prev_frame: None,
             provider: Provider::YouTube,
             provider_updated: false,
+            storage: TypeMap::custom(),
         }
     }
 }

@@ -23,6 +23,14 @@ pub fn run(
             continue;
         }
 
+        framework
+            .data
+            .global
+            .get_mut::<Status>()
+            .unwrap()
+            .storage
+            .clear();
+
         // exits the function is `.exit` is true - a way for items/commands to exit the program
         if framework.data.global.get::<Status>().unwrap().exit {
             break;
