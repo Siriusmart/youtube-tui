@@ -1,8 +1,9 @@
 use super::*;
-use crate::global::{
+use crate::{global::{
     functions::{download_all_images, DownloadRequest},
     traits::{Collection, CollectionItem},
-};
+}, config::SyncConfig};
+use chrono::Utc;
 use home::home_dir;
 use serde::*;
 use std::{
@@ -30,30 +31,52 @@ impl Subscriptions {
         client: &InvidiousClient,
         image_index: usize,
         download_thumbnails: bool,
-    ) -> (u32, u32) {
+        syncconfig: SyncConfig
+    ) -> (u32, u32, u32, u32) {
         let failed = Arc::new(AtomicU32::new(0));
         let success = Arc::new(AtomicU32::new(0));
+        let empty = Arc::new(AtomicU32::new(0));
+        let cached = Arc::new(AtomicU32::new(0));
 
         let len = self.0.len();
+        let now = chrono::Utc::now().timestamp() as u64;
         let (tx, rx) = mpsc::channel();
         let mut channels = Vec::new();
         std::mem::swap(&mut self.0, &mut channels);
 
         channels.into_iter().for_each(|mut item| {
+            if item.last_sync > now - syncconfig.sync_videos_cooldown_secs {
+                tx.send(item).unwrap();
+                cached.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                return;
+            }
             let tx = tx.clone();
             let client = client.clone();
             let success = success.clone();
             let failed = failed.clone();
+            let empty = empty.clone();
             thread::spawn(move || {
-                let res = sync_one(&item.channel.id, &client, image_index, download_thumbnails);
+                let res = sync_one(&item.channel.id, &client, image_index, download_thumbnails, syncconfig.sync_channel_info && syncconfig.sync_channel_cooldown_secs + item.last_sync_channel < now);
                 match res {
-                    Ok(synced) => {
-                        success.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                        item = synced;
+                    Ok((videos, _channel)) if videos.is_empty() => {
+                        empty.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                     }
-                    Err(_) => {
+                    Ok((videos, channel)) => {
+                        success.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                        // cannot just compare video publish timestamp to sync timestamp
+                        // because publish timestamp is hugely inaccurate seen here
+                        // https://github.com/iv-org/invidious/issues/570
+                item.has_new = !videos.is_empty() && (item.videos.is_empty() || videos[0].id != item.videos[0].id);
+                        item.videos = item.videos;
+                        item.last_sync = now;
+
+                        if let Some(channel) = channel {
+                            item.channel = channel;
+                            item.last_sync_channel = now;
+                        }
+                    }
+                    _ => {
                         failed.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                        item.videos.clear()
                     }
                 }
                 tx.send(item)
@@ -71,6 +94,8 @@ impl Subscriptions {
         (
             success.load(std::sync::atomic::Ordering::Relaxed),
             failed.load(std::sync::atomic::Ordering::Relaxed),
+            empty.load(std::sync::atomic::Ordering::Relaxed),
+            cached.load(std::sync::atomic::Ordering::Relaxed),
         )
     }
 
@@ -80,20 +105,28 @@ impl Subscriptions {
         client: &InvidiousClient,
         image_index: usize,
         download_thumbnails: bool,
+        syncconfig: &SyncConfig
     ) -> Result<(), Box<dyn Error>> {
-        let synced = sync_one(id, client, image_index, download_thumbnails)?;
-        for item in self.0.iter_mut() {
-            if *item == synced {
-                *item = SubItem {
-                    // synced.has_new = !synced.videos.is_empty
-                    has_new: synced.has_new && synced.videos.first() != item.videos.first(),
-                    ..synced
-                };
-                return Ok(());
+        let now = Utc::now().timestamp() as u64;
+        match self.0.iter_mut().find(|item| &item.channel.id == id) {
+            Some(item) => {
+                let (videos, channel) = sync_one(&id, &client, image_index, download_thumbnails, syncconfig.sync_channel_info && syncconfig.sync_channel_cooldown_secs + item.last_sync_channel < now)?;
+
+                item.has_new = !videos.is_empty() && (item.videos.is_empty() || videos[0].id != item.videos[0].id);
+                item.videos = videos;
+                item.last_sync = now;
+                if let Some(channel) = channel {
+                    item.channel = channel;
+                    item.last_sync_channel = now;
+                }
+            }
+            None => {
+                let (videos, channel) = sync_one(&id, &client, image_index, download_thumbnails, true)?;
+                self.0.push(SubItem { channel: channel.unwrap(), videos, last_sync: now, last_sync_channel: now, has_new: true })
+
             }
         }
 
-        self.0.push(synced);
         self.0.sort();
 
         self.save()?;
@@ -129,9 +162,11 @@ fn sync_one(
     client: &InvidiousClient,
     image_index: usize,
     download_thumbnails: bool,
-) -> Result<SubItem, Box<dyn Error>> {
-    let (tx, rx) = mpsc::sync_channel(1);
+    sync_channel_info: bool,
+) -> Result<(Vec<MiniVideoItem>, Option<FullChannelItem>), Box<dyn Error>> {
+    let (tx, rx) = mpsc::channel();
 
+    if sync_channel_info {
     let client2 = client.clone();
     let id2 = id.to_string();
     thread::spawn(move || {
@@ -143,6 +178,7 @@ fn sync_one(
                 .ok(),
         )
     });
+    }
     let mut videos = client
         .0
         .channel_videos(id, None)?
@@ -156,10 +192,16 @@ fn sync_one(
         .collect::<Vec<_>>();
     videos.sort();
 
-    let channel = rx
+    let channel =
+
+    if sync_channel_info {
+        Some(rx
         .recv()
         .unwrap()
-        .ok_or(Errors::StrError("failed to get channel info {id}"))??;
+        .ok_or(Errors::StrError("failed to get channel info {id}"))??)
+    } else {
+        None
+    };
 
     if download_thumbnails {
         let thumbnails: Vec<Option<DownloadRequest>> = videos
@@ -170,25 +212,19 @@ fn sync_one(
                     id: video.id.clone(),
                 })
             })
-            .chain(
-                [Some(DownloadRequest {
-                    url: channel.thumbnail_url.clone(),
-                    id: channel.id.clone(),
-                })]
-                .into_iter(),
-            )
             .collect::<Vec<_>>();
         thread::spawn(move || {
             download_all_images(thumbnails);
         });
+        if let Some(channel) = &channel {
+            download_all_images(vec![Some(DownloadRequest { url: channel.thumbnail_url.clone(), id: channel.id.clone()})]);
+        }
     }
 
-    Ok(SubItem {
-        channel,
-        has_new: !videos.is_empty(),
+    Ok((
         videos,
-        last_sync: chrono::Utc::now().timestamp() as u64,
-    })
+        channel
+    ))
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -196,6 +232,7 @@ pub struct SubItem {
     pub channel: FullChannelItem,
     pub videos: Vec<MiniVideoItem>,
     pub last_sync: u64,
+    pub last_sync_channel: u64,
     pub has_new: bool,
 }
 

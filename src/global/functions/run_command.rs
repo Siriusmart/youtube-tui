@@ -361,9 +361,6 @@ pub fn run_single_command(
                 }
             };
 
-            let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
-            let image_index = mainconfig.image_index;
-            let download_thumbnails = mainconfig.images.display();
             let client = framework
                 .data
                 .global
@@ -375,8 +372,13 @@ pub fn run_single_command(
                 Message::Message(String::from("Syncing..."));
             terminal.draw(|frame| framework.render(frame)).unwrap();
 
+            let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
+            let image_index = mainconfig.image_index;
+            let download_thumbnails = mainconfig.images.display();
+            let syncing = mainconfig.syncing;
+
             let subscriptions = framework.data.global.get_mut::<Subscriptions>().unwrap();
-            match subscriptions.sync_one(&id, &client, image_index, download_thumbnails) {
+            match subscriptions.sync_one(&id, &client, image_index, download_thumbnails, &syncing) {
                 Ok(()) => {
                     *framework.data.global.get_mut::<Message>().unwrap() =
                         Message::Success(String::from("Channel synced"));
@@ -447,16 +449,22 @@ pub fn run_single_command(
             let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
             let image_index = mainconfig.image_index;
             let download_thumbnails = mainconfig.images.display();
+            let syncing = mainconfig.syncing;
 
-            let (success, failed) = framework
+            let (success, failed, empty, cached) = framework
                 .data
                 .global
                 .get_mut::<Subscriptions>()
                 .unwrap()
-                .sync(&client, image_index, download_thumbnails);
+                .sync(&client, image_index, download_thumbnails, syncing);
 
             *framework.data.global.get_mut::<Message>().unwrap() = Message::Success(format!(
-                "Subscriptions synced: {success} success | {failed} fail"
+                "Subscriptions synced: {success} success{} | {failed} fail | {cached} cached",
+                if empty != 0 {
+                    format!(" (which {empty} empty)")
+                } else {
+                    String::new()
+                }
             ));
 
             framework

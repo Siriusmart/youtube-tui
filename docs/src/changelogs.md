@@ -1,6 +1,17 @@
 # Changelogs
 
-## v0.7.2
+### v0.7.3 (latest unstable on git)
+
+#### Added
+
+- Lazy feed syncing (configurable), so you are not actively ddosing the Invidious instance.
+
+#### Fixed
+
+- Search bar no longer shows escaped search query: the original text string is displayed instead.
+- Fixed something about labeling channels with * although no new video is published.
+
+## v0.7.2 (latest stable crates.io)
 
 ### Added
 
@@ -9,7 +20,7 @@
 
 ### Fixed
 
-- Search url not escaped, so searches with symbols or spaces are not working.
+- Search url not escaped, so searches with symbols or spaces are now working.
 
 ### v0.7.1
 

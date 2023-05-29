@@ -5,6 +5,8 @@
 [![](https://img.shields.io/aur/version/youtube-tui)](https://aur.archlinux.org/packages/youtube-tui)
 ![](https://shields.io/github/stars/siriusmart/youtube-tui?style=social)
 
+***Read more in the [user manual](https://siriusmart.github.io/youtube-tui) (including installation guide and documentation).***
+
 # Overview
 
 Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal.

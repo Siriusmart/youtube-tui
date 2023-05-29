@@ -22,6 +22,7 @@ pub struct MainConfig {
     pub images: Images,
     #[serde(default = "refresh_after_modifying_search_filters_default")]
     pub refresh_after_modifying_search_filters: bool,
+    pub syncing: SyncConfig,
     #[serde(default = "image_index_default")]
     // The image to download from the array of images provided by the invidious api
     // 0 is usually `maxres` and 3 (default) is good enough for normal uses without having huge files sizes
@@ -52,6 +53,7 @@ impl Default for MainConfig {
             image_index: image_index_default(),
             refresh_after_modifying_search_filters: refresh_after_modifying_search_filters_default(
             ),
+            syncing: sync_config_default(),
             provider: provider_default(),
             shell: shell_default(),
 
@@ -62,6 +64,22 @@ impl Default for MainConfig {
 
 impl ConfigTrait for MainConfig {
     const LABEL: &'static str = "main";
+}
+
+#[derive(Clone, Copy, Serialize, Deserialize)]
+pub struct SyncConfig {
+    #[serde(default = "download_images_default")]
+    pub download_images: bool,
+    #[serde(default = "sync_channel_info_default")]
+    pub sync_channel_info: bool,
+    #[serde(default = "sync_channel_cooldown_secs_default")]
+    pub sync_channel_cooldown_secs: u64,
+    #[serde(default = "sync_videos_cooldown_secs_default")]
+    pub sync_videos_cooldown_secs: u64,
+}
+
+const fn sync_config_default() -> SyncConfig {
+    SyncConfig { download_images: download_images_default(), sync_channel_info: sync_channel_info_default(), sync_channel_cooldown_secs: sync_channel_cooldown_secs_default(), sync_videos_cooldown_secs: sync_videos_cooldown_secs_default() }
 }
 
 /// how images are handled/displayed
@@ -175,4 +193,20 @@ fn default_env() -> HashMap<String, String> {
 
 fn shell_default() -> String {
     String::from("sh")
+}
+
+const fn download_images_default() -> bool {
+    true
+}
+
+const fn sync_channel_info_default() -> bool {
+    true
+}
+
+const fn sync_channel_cooldown_secs_default() -> u64 {
+    86400
+}
+
+const fn sync_videos_cooldown_secs_default() -> u64 {
+    600
 }
