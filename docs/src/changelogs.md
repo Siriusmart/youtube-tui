@@ -9,7 +9,7 @@
 
 ### Fixed
 
-- I remember fixing something but forgot what it was D:
+- Search url not escaped, so searches with symbols or spaces are not working.
 
 ### v0.7.1
 

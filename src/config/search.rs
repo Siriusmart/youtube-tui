@@ -1,6 +1,7 @@
 use crate::global::{structs::Message, traits::*};
 use serde::{Deserialize, Serialize};
 use typemap::Key;
+use urlencoding::encode;
 
 // can be turned into URL Params for the search term with filters
 /// Search query & filters
@@ -34,7 +35,7 @@ impl ToString for Search {
         format!(
             "{}&page={}",
             vec![
-                format!("q={}", self.query),
+                format!("q={}", encode(&self.query)),
                 self.filters.sort.as_url_string(),
                 self.filters.date.as_url_string(),
                 self.filters.duration.as_url_string(),
