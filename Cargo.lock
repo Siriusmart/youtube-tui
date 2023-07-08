@@ -1164,7 +1164,9 @@ checksum = "efd1f82c56340fdf16f2a953d7bda4f8fdffba13d93b00844c25572110b26079"
 
 [[package]]
 name = "tui-additions"
-version = "0.1.12"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e7718181edae897f9e740d9e38c6b4d6961b2172a90bd7ba5d0a0c206a040b5"
 dependencies = [
  "crossterm 0.26.1",
  "dyn-clone",
@@ -1518,7 +1520,7 @@ dependencies = [
 
 [[package]]
 name = "youtube-tui"
-version = "0.7.2"
+version = "0.7.3"
 dependencies = [
  "chrono",
  "clipboard",

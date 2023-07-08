@@ -7,6 +7,13 @@
 
 ***Read more in the [user manual](https://siriusmart.github.io/youtube-tui) (including installation guide and documentation).***
 
+> "May Invidious live and prosper, with, or without us."
+>
+> ~ The Invidious team on [YouTube trying to take them down](https://github.com/iv-org/invidious/issues/3872).
+
+Go show them some support by [donating](https://invidious.io/donate/) and starring their
+[GitHub repos](https://github.com/iv-org)!
+
 # Overview
 
 Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal.
