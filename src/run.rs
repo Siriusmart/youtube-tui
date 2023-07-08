@@ -1,6 +1,6 @@
 use crossterm::event::{self, Event, MouseButton, MouseEventKind};
+use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{error::Error, io::Stdout};
-use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::{
     framework::{Framework, FrameworkDirection},
     widgets::TextField,
@@ -62,7 +62,7 @@ pub fn run(
                     for row in state.0.iter_mut() {
                         for item in row.items.iter_mut() {
                             if item.item.r#type()
-                                == "youtube_tui::items::searchfilters::SearchFilter"
+                                == "youtube_ratatui::items::searchfilters::SearchFilter"
                                 && item.item.mouse_event(
                                     &mut frameworkclean,
                                     0,

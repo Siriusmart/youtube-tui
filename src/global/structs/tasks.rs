@@ -3,15 +3,15 @@ use crate::{
     global::{functions::*, structs::*},
 };
 
-use std::{error::Error, io::Stdout, mem};
-use tui::{
+use ratatui::{
     backend::CrosstermBackend, layout::Alignment, style::Style, widgets::Paragraph, Frame, Terminal,
 };
+use std::{error::Error, io::Stdout, mem};
 use tui_additions::framework::{CursorState, Framework};
 use typemap::Key;
 
 /// tasks to be put on taskqueues
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Task {
     RenderAll,
     Reload,
@@ -23,7 +23,7 @@ pub enum Task {
 }
 
 /// multiple tasks joined together, with duplicates removed
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct TaskQueue {
     pub render: RenderTask,
     pub reload: bool,

@@ -23,21 +23,22 @@ clipboard = ["dep:clipboard"]
 
 [dependencies]
 serde = {version = "1.0", default-features = false, features = ["derive"]}
-tui = {version = "0.19", default-features = false, features = ["serde"]}
+# tui = {version = "0.19", default-features = false, features = ["serde"]}
 crossterm = {version = "0.26", default-features = false, features = ["serde"]}
 viuer = {version = "0.6", default-features = false, optional = true}
 home = "0.5"
 chrono = {version = "0.4", default-features = false, features = ["clock"]}
 typemap = {version = "0.3", default-features = false}
-tui-additions = {version = "0.1.13", default-features = false, features = ["framework", "widgets"]}
+# tui-additions = {version = "0.1.13", default-features = false, features = ["framework", "widgets"]}
 invidious = {version = "0.5"}
 serde_yaml = {version = "0.9", default-features = false}
 dyn-clone = {version = "1.0", default-features = false}
 serde_json = {version = "1.0", default-features = false}
 clipboard = {version = "0.5", optional = true}
 urlencoding = "2.1"
+ratatui = {version = "0.21", default-features = false, features = ["serde"]}
 
-# tui-additions = {path = "../../Rust/Packages/tui-additions", default-features = false, features = ["framework", "widgets"]}
+tui-additions = {path = "../../Rust/Packages/tui-additions", default-features = false, features = ["framework", "widgets"]}
 # invidious = {path = "../../Rust/Packages/invidious"}
 
 [package.metadata.docs.rs]

@@ -4,6 +4,7 @@ use crate::{
     load_configs,
 };
 use home::home_dir;
+use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{
     env,
     error::Error,
@@ -11,7 +12,6 @@ use std::{
     io::Stdout,
     process::{Command, Stdio},
 };
-use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::framework::Framework;
 
 /// runs text command - command from the command line (not TUI) which response is just a string

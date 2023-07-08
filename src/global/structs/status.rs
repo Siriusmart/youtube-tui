@@ -1,4 +1,4 @@
-use tui::layout::Rect;
+use ratatui::layout::Rect;
 use tui_additions::widgets::TextField;
 use typemap::{CloneMap, Key, TypeMap};
 

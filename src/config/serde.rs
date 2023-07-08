@@ -1,7 +1,7 @@
 //! Structs that impl `Into<T>` because `T` does not impl Serde but is used in config files
 use crossterm::event::KeyCode;
+use ratatui::{style::Color, widgets::BorderType};
 use serde::{Deserialize, Serialize};
-use tui::{style::Color, widgets::BorderType};
 
 /// `BorderType` but impl `serde`
 #[derive(Serialize, Deserialize, Clone, Copy)]

@@ -79,7 +79,12 @@ pub struct SyncConfig {
 }
 
 const fn sync_config_default() -> SyncConfig {
-    SyncConfig { download_images: download_images_default(), sync_channel_info: sync_channel_info_default(), sync_channel_cooldown_secs: sync_channel_cooldown_secs_default(), sync_videos_cooldown_secs: sync_videos_cooldown_secs_default() }
+    SyncConfig {
+        download_images: download_images_default(),
+        sync_channel_info: sync_channel_info_default(),
+        sync_channel_cooldown_secs: sync_channel_cooldown_secs_default(),
+        sync_videos_cooldown_secs: sync_videos_cooldown_secs_default(),
+    }
 }
 
 /// how images are handled/displayed

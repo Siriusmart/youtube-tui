@@ -1,4 +1,4 @@
-use tui::{
+use ratatui::{
     layout::Rect,
     style::Style,
     widgets::{Paragraph, Wrap},
@@ -19,9 +19,9 @@ pub struct ItemInfo {
 impl FrameworkItem for ItemInfo {
     fn render(
         &mut self,
-        frame: &mut tui::Frame<tui::backend::CrosstermBackend<std::io::Stdout>>,
+        frame: &mut ratatui::Frame<ratatui::backend::CrosstermBackend<std::io::Stdout>>,
         framework: &mut tui_additions::framework::FrameworkClean,
-        area: tui::layout::Rect,
+        area: ratatui::layout::Rect,
         popup_render: bool,
         _info: tui_additions::framework::ItemInfo,
     ) {

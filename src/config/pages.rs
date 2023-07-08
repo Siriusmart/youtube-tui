@@ -1,7 +1,7 @@
 use crate::{global::traits::ConfigTrait, items::*};
+use ratatui::layout::Constraint;
 use serde::{Deserialize, Serialize};
 use std::slice;
-use tui::layout::Constraint;
 use tui_additions::framework::*;
 use typemap::Key;
 

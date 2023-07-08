@@ -3,8 +3,8 @@ use crate::{
     global::{functions::*, structs::*, traits::*},
 };
 use home::home_dir;
+use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{error::Error, fs, io::Stdout};
-use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::framework::{Framework, FrameworkClean};
 
 /// app to run before the app starts

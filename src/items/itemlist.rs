@@ -6,7 +6,7 @@ use crate::{
     items::ItemInfo,
 };
 use home::home_dir;
-use tui::{
+use ratatui::{
     layout::{Constraint, Rect},
     style::Style,
 };
@@ -225,9 +225,9 @@ impl Default for ItemList {
 impl FrameworkItem for ItemList {
     fn render(
         &mut self,
-        frame: &mut tui::Frame<tui::backend::CrosstermBackend<std::io::Stdout>>,
+        frame: &mut ratatui::Frame<ratatui::backend::CrosstermBackend<std::io::Stdout>>,
         framework: &mut tui_additions::framework::FrameworkClean,
-        area: tui::layout::Rect,
+        area: ratatui::layout::Rect,
         popup_render: bool,
         info: tui_additions::framework::ItemInfo,
     ) {
@@ -389,6 +389,7 @@ impl FrameworkItem for ItemList {
 
         // only create a render task if the key event actually changed something
         if updated {
+            self.update(framework);
             set_envs(
                 self.infalte_item_update(
                     framework.data.global.get::<MainConfig>().unwrap(),
@@ -496,7 +497,13 @@ impl FrameworkItem for ItemList {
 impl ItemList {
     // change `self.item` to the currently selected item
     pub fn update(&mut self, framework: &mut FrameworkClean) {
-        if self.items.get(self.textlist.selected).is_none() {
+        let selected = self.items.get(self.textlist.selected);
+
+        if selected.is_none() {
+            return;
+        }
+
+        if matches!(selected, Some(Item::Page(_)) | Some(Item::Unknown(_))) {
             framework
                 .data
                 .global

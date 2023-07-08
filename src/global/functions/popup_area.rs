@@ -1,4 +1,4 @@
-use tui::layout::Rect;
+use ratatui::layout::Rect;
 
 /// Tries to create a centered area for popup, returns `Err` if not enough space is given
 pub fn popup_area(

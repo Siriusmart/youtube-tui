@@ -1,12 +1,12 @@
 use crate::{config::serde::*, global::traits::*};
 use home::home_dir;
+use ratatui::{style::Color, widgets::BorderType};
 use serde::{Deserialize, Serialize};
 use std::{
     error::Error,
     fs::{self, OpenOptions},
     io::Write,
 };
-use tui::{style::Color, widgets::BorderType};
 use typemap::Key;
 
 use super::WriteConfig;

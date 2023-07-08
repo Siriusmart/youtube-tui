@@ -1,5 +1,5 @@
 use crossterm::event::KeyCode;
-use tui::{
+use ratatui::{
     layout::{Constraint, Rect},
     style::Style,
     widgets::Paragraph,
@@ -147,9 +147,9 @@ impl FrameworkItem for ChannelList {
 
     fn render(
         &mut self,
-        frame: &mut tui::Frame<tui::backend::CrosstermBackend<std::io::Stdout>>,
+        frame: &mut ratatui::Frame<ratatui::backend::CrosstermBackend<std::io::Stdout>>,
         framework: &mut tui_additions::framework::FrameworkClean,
-        area: tui::layout::Rect,
+        area: ratatui::layout::Rect,
         popup_render: bool,
         info: tui_additions::framework::ItemInfo,
     ) {
@@ -167,7 +167,7 @@ impl FrameworkItem for ChannelList {
 
         if self.selector.items.len() == 1 {
             frame.render_widget(
-                Paragraph::new("Subscribe to some channels first, come back later\n\nHey, Siriusmart here. I originally planned to add a commands textlist at channel main pages so that you can subscribe to channels, but the complexity of this update is starting to get out of hand, as it requires the two items (channel and video list) to communicate with each other somehow. So for now the only ways you can subscribe to channels in single item page (videos or playlists), or run `youtube-tui help` to check out the related commands.\n\nThe rest will come in a few git commits.").wrap(tui::widgets::Wrap { trim: true }),
+                Paragraph::new("Subscribe to some channels first, come back later\n\nHey, Siriusmart here. I originally planned to add a commands textlist at channel main pages so that you can subscribe to channels, but the complexity of this update is starting to get out of hand, as it requires the two items (channel and video list) to communicate with each other somehow. So for now the only ways you can subscribe to channels in single item page (videos or playlists), or run `youtube-tui help` to check out the related commands.\n\nThe rest will come in a few git commits.").wrap(ratatui::widgets::Wrap { trim: true }),
                 chunks[0],
             );
             return;

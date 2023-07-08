@@ -3,8 +3,8 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{env, error::Error, io};
-use tui::{backend::CrosstermBackend, Terminal};
 use tui_additions::framework::{Framework, State};
 use youtube_tui::{exit, global::functions::text_command, init, run};
 

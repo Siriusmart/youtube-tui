@@ -6,7 +6,7 @@ use crate::{config::*, global::structs::*};
 use crate::global::functions::*;
 
 use crossterm::event::KeyCode;
-use tui::{
+use ratatui::{
     layout::Alignment,
     style::Style,
     widgets::{Block, Borders},
@@ -23,9 +23,9 @@ impl FrameworkItem for SearchBar {
     // basically is a TextField with borders
     fn render(
         &mut self,
-        frame: &mut tui::Frame<tui::backend::CrosstermBackend<std::io::Stdout>>,
+        frame: &mut ratatui::Frame<ratatui::backend::CrosstermBackend<std::io::Stdout>>,
         framework: &mut tui_additions::framework::FrameworkClean,
-        area: tui::layout::Rect,
+        area: ratatui::layout::Rect,
         popup_render: bool,
         info: tui_additions::framework::ItemInfo,
     ) {
