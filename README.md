@@ -77,9 +77,9 @@ It also includes features like:
 ### What it doesn't have
 
 - [URGENT] Replace the no-longer-going-to-compile `typemap` dependency with either a self implementation of it or a useable crate.
-- Strip down some libraries to reduce compile speed.
+- Strip down some libraries to reduce compile speed, specifically removing.
 - Add command section for channel main page (first priority)
-- Up arrow command history + Ctrl arrow keys move between words
+- Add NewPipe as a source alongside Invidious
 
 ## How to contribute
 

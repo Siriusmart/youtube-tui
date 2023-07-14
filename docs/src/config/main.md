@@ -82,6 +82,30 @@ Whether to refresh the current search page after search filters are modified
 
 *Accept: `true`/`false`*
 
+### download_images
+
+Whether to download images for all subscription videos
+
+*Accept: `true`/`false`*
+
+### sync_channel_info
+
+Whether to also request an updated version of the channel info when syncing feeds. Disabling this halves the number of requests sent to Invidious, but channel info will not be updated (the videos will).
+
+*Accept: `true`/`false`*
+
+### sync_channel_cooldown_secs
+
+Sync all do not sync channel info if it has been synced in the past *n* seconds.
+
+*Accept: integer value seconds*
+
+### sync_videos_cooldown_secs
+
+Sync all do not sync videos from channel if it has been synced in the past *n* seconds.
+
+*Accept: integer value seconds*
+
 ### image_index
 
 The index in the array of thumbnail qualities you want to download
@@ -104,13 +128,23 @@ Usually you don't want to use the max resolution as it will create a large gap b
 
 *Accept: integer that is a valid index*
 
-### Provider
+### provider
 
 This changes the `${url}` and `${embed-url}` of videos, allowing you to watch videos from Invidious if it is restricted on YouTube.
 
 (Don't always use Invidious if YouTube is working, because first of all the load time if gonna be much slower, and secondly you will be DDoSing Invidious)
 
 *Accept: `YouTube`/`Invidious`*
+
+### shell
+
+Shell used to run commands, such as `sh` (default), `bash` or even `zsh`.
+
+*Accept: any valid path to a shell binary*
+
+### legacy_input_handling
+
+Switch back the old key input handling where the selected item captures all input (except escape).
 
 ### env
 

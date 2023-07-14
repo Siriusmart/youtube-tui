@@ -124,6 +124,28 @@ impl FrameworkItem for SearchBar {
                     .push(Task::RenderAll);
                 return Ok(());
             }
+            Some(KeyAction::PreviousWord) => {
+                previous_word(&mut self.text_field);
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::RenderAll);
+                return Ok(());
+            }
+            Some(KeyAction::NextWord) => {
+                next_word(&mut self.text_field);
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::RenderAll);
+                return Ok(());
+            }
             Some(KeyAction::ClearLine) => {
                 self.text_field.content.clear();
                 self.text_field.scroll = 0;

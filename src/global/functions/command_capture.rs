@@ -66,6 +66,46 @@ pub fn command_capture(framework: &mut FrameworkClean, key: KeyEvent) -> bool {
                 .clear();
             return true;
         }
+        Some(KeyAction::PreviousWord) => {
+            previous_word(
+                framework
+                    .data
+                    .global
+                    .get_mut::<Status>()
+                    .unwrap()
+                    .command_capture
+                    .as_mut()
+                    .unwrap(),
+            );
+            framework
+                .data
+                .state
+                .get_mut::<Tasks>()
+                .unwrap()
+                .priority
+                .push(Task::RenderAll);
+            return true;
+        }
+        Some(KeyAction::NextWord) => {
+            next_word(
+                framework
+                    .data
+                    .global
+                    .get_mut::<Status>()
+                    .unwrap()
+                    .command_capture
+                    .as_mut()
+                    .unwrap(),
+            );
+            framework
+                .data
+                .state
+                .get_mut::<Tasks>()
+                .unwrap()
+                .priority
+                .push(Task::RenderAll);
+            return true;
+        }
         _ => {}
     }
 

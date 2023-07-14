@@ -58,9 +58,9 @@ Each modifier has its own code, for instance `Shift` would be `1` and `Ctrl` wou
 
 All possible keys can be found <a href="https://docs.rs/crossterm/latest/crossterm/event/enum.KeyCode.html" target=_blank>*here*</a>.
 
-> Enums are represented using the character `!`, for example the `q` key would be `!Char 'q'`
->
-> `Shift + Q` however would be `!Char 'Q'` with `0` as modifier code as `Shift` turns `q` into an upper case character.
+### Key actions
+
+All key actions can be found in [`KeyAction`](https://docs.rs/youtube-tui/latest/youtube_tui/global/structs/enum.KeyAction.html) under [`/src/global/structs/keyaction.rs`](https://github.com/Siriusmart/youtube-tui/blob/master/src/global/structs/keyaction.rs).
 
 ### Modifiers reference
 

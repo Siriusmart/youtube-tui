@@ -123,7 +123,7 @@ fn from_hex_digit(d: &str) -> Option<u8> {
 }
 
 /// serde version of a single key code
-#[derive(Serialize, Deserialize, Clone, Hash, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Hash, PartialEq, Eq, Debug)]
 #[serde(untagged)]
 pub enum KeyCodeSerde {
     Char(char),
@@ -132,7 +132,7 @@ pub enum KeyCodeSerde {
 }
 
 /// values of all default keys (excluding chars and function keys)
-#[derive(Serialize, Deserialize, Clone, Hash, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Hash, PartialEq, Eq, Debug)]
 pub enum KeyVariantsSerde {
     Backspace,
     Enter,

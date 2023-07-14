@@ -141,6 +141,7 @@ impl TaskQueue {
             status.provider_updated = true;
             status.render_image = true;
             self.render = RenderTask::All;
+            run_command(&page_config.command, framework, terminal);
         }
 
         if self.reload {

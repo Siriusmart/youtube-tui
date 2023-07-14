@@ -42,6 +42,7 @@ flush
 quit (alt `q`, `exit`, `x`)
 run [command]
 parrun [command]
+key [keycode] [keymodifier]
 ```
 
 > The `flush` command is used to run all tasks in queue immediately, this is usually done automatically.
@@ -49,6 +50,10 @@ parrun [command]
 > But for when tasks are stacked up in the *same* event loop and the order of which they are executed matters, this command can be used to force the already stacked up commands to be ran first.
 
 > `run` is used for running *blocking commands*, while `parrun` is non-blocking.
+
+> Valid keycodes are the same as in [`keybindings.yml`](./config/keybindings.md) and [`commandbindings.yml`](./config/commandbindings.md). For a full list of keys, check out [`KeyCodeSerde`](https://docs.rs/youtube-tui/latest/youtube_tui/config/serde/enum.KeyCodeSerde.html) in [`/src/config/serde.rs`](https://github.com/Siriusmart/youtube-tui/blob/master/src/config/serde.rs).
+>
+> More about keymodifiers can be found in the doc page for [`keybindings.yml`](./config/keybindings.md)
 
 ## Library
 

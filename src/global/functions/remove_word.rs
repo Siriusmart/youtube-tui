@@ -17,3 +17,32 @@ pub fn remove_word(field: &mut TextField) {
     field.content = format!("{}{}", before, &field.content[field.cursor..]);
     field.cursor = before.len();
 }
+
+pub fn previous_word(field: &mut TextField) {
+    let bytes = field.content.as_bytes();
+    while field.cursor != 0 {
+        field.cursor -= 1;
+        if bytes[field.cursor].is_ascii_whitespace() {
+            return;
+        }
+    }
+
+    field.cursor = 0;
+}
+
+pub fn next_word(field: &mut TextField) {
+    let bytes = field.content.as_bytes();
+    for (i, c) in bytes
+        .iter()
+        .enumerate()
+        .take(field.content.len())
+        .skip(field.cursor + 1)
+    {
+        if c.is_ascii_whitespace() {
+            field.cursor = i;
+            return;
+        }
+    }
+
+    field.cursor = field.content.len();
+}

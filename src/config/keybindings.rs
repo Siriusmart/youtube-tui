@@ -39,14 +39,19 @@ impl ConfigTrait for KeyBindingsConfigSerde {
 impl Default for KeyBindingsConfigSerde {
     fn default() -> Self {
         Self(HashMap::from([
-            // movement keys                                            // Alt left should be back
+            // movement keys
+            // Alt left should be back
             (
                 KeyCodeSerde::KeyVariants(KeyVariantsSerde::Left),
-                HashMap::from([(0, KeyAction::MoveLeft), (4, KeyAction::Back)]),
+                HashMap::from([
+                    (0, KeyAction::MoveLeft),
+                    (2, KeyAction::PreviousWord),
+                    (4, KeyAction::Back),
+                ]),
             ),
             (
                 KeyCodeSerde::KeyVariants(KeyVariantsSerde::Right),
-                HashMap::from([(0, KeyAction::MoveRight)]),
+                HashMap::from([(0, KeyAction::MoveRight), (2, KeyAction::NextWord)]),
             ),
             (
                 KeyCodeSerde::KeyVariants(KeyVariantsSerde::Up),

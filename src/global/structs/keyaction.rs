@@ -34,4 +34,8 @@ pub enum KeyAction {
     RemoveWord,
     /// removes all content in textfield
     ClearLine,
+    /// move cursor to previous word in textfield
+    PreviousWord,
+    /// move cursor to next word in textfield
+    NextWord,
 }

@@ -1,8 +1,9 @@
 use crate::{
-    config::*,
+    config::{serde::KeyCodeSerde, *},
     global::{functions::*, structs::*, traits::*},
     load_configs,
 };
+use crossterm::event::{KeyEvent, KeyModifiers};
 use home::home_dir;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{
@@ -475,6 +476,29 @@ pub fn run_single_command(
                 .priority
                 .push(Task::RenderAll);
         }
+        ["key", keycode, modifier] => {
+            let (keycodeserde, modifier) =
+                match (|| -> Result<(KeyCodeSerde, u8), Box<dyn Error>> {
+                    Ok((serde_yaml::from_str(keycode)?, modifier.parse()?))
+                })() {
+                    Ok(stuff) => stuff,
+                    Err(e) => {
+                        *framework.data.global.get_mut::<Message>().unwrap() =
+                            Message::Error(format!("Cannot parse keycode: `{e}`"));
+                        return;
+                    }
+                };
+            let keycode = match keycodeserde.to_keycode() {
+                Some(code) => code,
+                None => {
+                    *framework.data.global.get_mut::<Message>().unwrap() =
+                        Message::Error("Unknown keycode".to_string());
+                    return;
+                }
+            };
+            let keymodifier = KeyModifiers::from_bits_truncate(modifier);
+            key_input(KeyEvent::new(keycode, keymodifier), framework, terminal)
+        }
         _ => {
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Error(format!("Unknown command: `{}`", command.join(" ")));
@@ -550,6 +574,7 @@ const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
     \x1b[33mrun [command]\x1b[0m                   Runs a system command (e.g. `run rm -rf / --no-preserve-root`)
     \x1b[33mparrun [command]\x1b[0m                Runs a system command non blocking (e.g. `run firefox example.com`)
     \x1b[33mcopy [text]\x1b[0m                     Copies text to clipboard
+    \x1b[33mkey [keycode] [keymodifier]\x1b[0m     Create a key input event
 
 \x1b[91mLIBRARY:\x1b[0m
     \x1b[33mbookmark [id]\x1b[0m                   Bookmark item with ID (item must be already loaded)

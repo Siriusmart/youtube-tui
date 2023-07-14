@@ -31,3 +31,5 @@ mod singleitem_load;
 pub use singleitem_load::*;
 mod remove_word;
 pub use remove_word::*;
+mod key_input;
+pub use key_input::*;

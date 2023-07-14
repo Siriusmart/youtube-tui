@@ -23,6 +23,7 @@ main_menu:
     items:
     - MessageBar
   message: Loading main menu...
+  command: key Esc 0 ;; key Up 0 ;; key Left 0 ;; key Enter 0 # this focuses on the search bar
 
 # and much more ...
 ```
@@ -42,6 +43,10 @@ Each item are ordered from left to right.
 ## Message
 
 The message to display when loading the page.
+
+## Command
+
+Command to run when the page loads, you can use the `key` command to select an item on load.
 
 ### Items reference
 
