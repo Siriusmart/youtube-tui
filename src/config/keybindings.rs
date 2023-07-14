@@ -111,10 +111,18 @@ impl Default for KeyBindingsConfigSerde {
                 KeyCodeSerde::KeyVariants(KeyVariantsSerde::Home),
                 HashMap::from([(0, KeyAction::FirstHistory)]),
             ),
-            // clipboard
+            // text editing
             (
                 KeyCodeSerde::Char('v'),
                 HashMap::from([(2, KeyAction::Paste)]),
+            ),
+            (
+                KeyCodeSerde::Char('w'),
+                HashMap::from([(2, KeyAction::RemoveWord)]),
+            ),
+            (
+                KeyCodeSerde::Char('u'),
+                HashMap::from([(2, KeyAction::ClearLine)]),
             ),
         ]))
     }

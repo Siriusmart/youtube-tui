@@ -30,4 +30,8 @@ pub enum KeyAction {
     StartCommandCapture,
     /// paste text
     Paste,
+    /// remove a word
+    RemoveWord,
+    /// removes all content in textfield
+    ClearLine,
 }

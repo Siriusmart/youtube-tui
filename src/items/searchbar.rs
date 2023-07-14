@@ -77,20 +77,33 @@ impl FrameworkItem for SearchBar {
         key: crossterm::event::KeyEvent,
         _info: tui_additions::framework::ItemInfo,
     ) -> Result<(), Box<dyn Error>> {
-        // pasting clipboard content
-        #[cfg(feature = "clipboard")]
-        if framework
+        match framework
             .data
             .global
             .get::<KeyBindingsConfig>()
             .unwrap()
             .get(key)
-            == Some(KeyAction::Paste)
         {
-            let content = get_clipboard();
-            if content.is_empty() {
-                *framework.data.global.get_mut::<Message>().unwrap() =
-                    Message::Error(String::from("Clipboard empty"));
+            #[cfg(feature = "clipboard")]
+            Some(KeyAction::Paste) => {
+                let content = get_clipboard();
+                if content.is_empty() {
+                    *framework.data.global.get_mut::<Message>().unwrap() =
+                        Message::Error(String::from("Clipboard empty"));
+                    framework
+                        .data
+                        .state
+                        .get_mut::<Tasks>()
+                        .unwrap()
+                        .priority
+                        .push(Task::RenderAll);
+                    return Ok(());
+                }
+
+                // push all characters at cursor location
+                content.chars().for_each(|c| {
+                    let _ = self.text_field.push(c);
+                });
                 framework
                     .data
                     .state
@@ -100,20 +113,33 @@ impl FrameworkItem for SearchBar {
                     .push(Task::RenderAll);
                 return Ok(());
             }
-
-            // push all characters at cursor location
-            content.chars().for_each(|c| {
-                let _ = self.text_field.push(c);
-            });
-            framework
-                .data
-                .state
-                .get_mut::<Tasks>()
-                .unwrap()
-                .priority
-                .push(Task::RenderAll);
-            return Ok(());
+            Some(KeyAction::RemoveWord) => {
+                remove_word(&mut self.text_field);
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::RenderAll);
+                return Ok(());
+            }
+            Some(KeyAction::ClearLine) => {
+                self.text_field.content.clear();
+                self.text_field.scroll = 0;
+                self.text_field.cursor = 0;
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::RenderAll);
+                return Ok(());
+            }
+            _ => {}
         }
+        // pasting clipboard content
 
         let updated = match key.code {
             KeyCode::Backspace => self.text_field.remove(self.text_field.cursor).is_ok(),

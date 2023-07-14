@@ -29,3 +29,5 @@ mod init_move;
 pub use init_move::*;
 mod singleitem_load;
 pub use singleitem_load::*;
+mod remove_word;
+pub use remove_word::*;
