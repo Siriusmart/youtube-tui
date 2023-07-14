@@ -1,5 +1,16 @@
 # Changelogs
 
+### v0.7.4 (latest unstable on git)
+
+#### Added
+
+- `Ctrl + w` and `Ctrl + u` in search bar and command mode.
+- Keybindings works even when an item is selected (`legacy_input_handling: false` in `main.yml`).
+
+#### Fixed
+
+- Search filters popup closing when you click on it.
+
 ## v0.7.3 (latest stable on crates.io)
  
 ### Added

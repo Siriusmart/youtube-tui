@@ -1,6 +1,6 @@
 use crossterm::event::{self, Event, MouseButton, MouseEventKind};
 use ratatui::{backend::CrosstermBackend, Terminal};
-use std::{error::Error, io::Stdout};
+use std::{any::TypeId, error::Error, io::Stdout};
 use tui_additions::{
     framework::{Framework, FrameworkDirection},
     widgets::TextField,
@@ -9,6 +9,7 @@ use tui_additions::{
 use crate::{
     config::*,
     global::{functions::*, structs::*},
+    items::{SearchBar, SearchFilter},
 };
 
 /// the main event loop of the program
@@ -61,8 +62,7 @@ pub fn run(
                     let (mut frameworkclean, state) = framework.split_clean();
                     for row in state.0.iter_mut() {
                         for item in row.items.iter_mut() {
-                            if item.item.r#type()
-                                == "youtube_ratatui::items::searchfilters::SearchFilter"
+                            if item.item.type_id() == TypeId::of::<SearchFilter>()
                                 && item.item.mouse_event(
                                     &mut frameworkclean,
                                     0,
@@ -147,17 +147,6 @@ pub fn run(
                     continue;
                 }
 
-                // if something is selected, pass the key input into that item
-                // if nothing is selected, the following big chunk of code handles to movement of
-                // cursor and stuff
-                if framework.is_selected() {
-                    if let Err(e) = framework.key_input(key) {
-                        *framework.data.global.get_mut::<Message>().unwrap() =
-                            Message::Error(e.to_string());
-                    };
-                    continue;
-                }
-
                 // the first part check for if the keys should be captured for entering commands
                 if framework
                     .data
@@ -180,6 +169,29 @@ pub fn run(
                     continue;
                 }
 
+                // if something is selected, pass the key input into that item
+                // if nothing is selected, the following big chunk of code handles to movement of
+                // cursor and stuff
+                if framework.is_selected() {
+                    let (x, y) = framework.cursor.selected(&framework.selectables).unwrap();
+                    if let Err(e) = framework.key_input(key) {
+                        *framework.data.global.get_mut::<Message>().unwrap() =
+                            Message::Error(e.to_string());
+                    };
+
+                    let selected = framework.state.get_mut(x, y);
+                    if framework
+                        .data
+                        .global
+                        .get::<MainConfig>()
+                        .unwrap()
+                        .legacy_input_handling
+                        || (*selected).type_id() == TypeId::of::<SearchBar>()
+                    {
+                        continue;
+                    }
+                }
+
                 if let Some(action) = action {
                     let mut render = true;
                     match action {
@@ -192,10 +204,18 @@ pub fn run(
                                 .command_capture = Some(TextField::default());
                         }
                         KeyAction::Exit => break,
-                        KeyAction::MoveUp => framework.r#move(FrameworkDirection::Up)?,
-                        KeyAction::MoveDown => framework.r#move(FrameworkDirection::Down)?,
-                        KeyAction::MoveLeft => framework.r#move(FrameworkDirection::Left)?,
-                        KeyAction::MoveRight => framework.r#move(FrameworkDirection::Right)?,
+                        KeyAction::MoveUp if !framework.is_selected() => {
+                            framework.r#move(FrameworkDirection::Up)?
+                        }
+                        KeyAction::MoveDown if !framework.is_selected() => {
+                            framework.r#move(FrameworkDirection::Down)?
+                        }
+                        KeyAction::MoveLeft if !framework.is_selected() => {
+                            framework.r#move(FrameworkDirection::Left)?
+                        }
+                        KeyAction::MoveRight if !framework.is_selected() => {
+                            framework.r#move(FrameworkDirection::Right)?
+                        }
                         KeyAction::Reload => framework
                             .data
                             .state
@@ -263,7 +283,7 @@ pub fn run(
                                     Message::Success(String::from("History cleared!"))
                             }
                         }
-                        KeyAction::Select => {
+                        KeyAction::Select if !framework.is_selected() => {
                             let _ = framework.select();
                         }
                         _ => render = false,

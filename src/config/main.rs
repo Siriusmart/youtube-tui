@@ -32,6 +32,8 @@ pub struct MainConfig {
     pub provider: Provider,
     #[serde(default = "shell_default")]
     pub shell: String,
+    #[serde(default = "legacy_input_handling_default")]
+    pub legacy_input_handling: bool,
     #[serde(default = "default_env")]
     pub env: HashMap<String, String>,
 }
@@ -56,6 +58,7 @@ impl Default for MainConfig {
             syncing: sync_config_default(),
             provider: provider_default(),
             shell: shell_default(),
+            legacy_input_handling: legacy_input_handling_default(),
 
             env: default_env(),
         }
@@ -214,4 +217,8 @@ const fn sync_channel_cooldown_secs_default() -> u64 {
 
 const fn sync_videos_cooldown_secs_default() -> u64 {
     600
+}
+
+const fn legacy_input_handling_default() -> bool {
+    false
 }
