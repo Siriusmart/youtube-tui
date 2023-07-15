@@ -38,4 +38,8 @@ pub enum KeyAction {
     PreviousWord,
     /// move cursor to next word in textfield
     NextWord,
+    /// move cursor to the first position
+    First,
+    /// move cursor to the last position
+    End,
 }

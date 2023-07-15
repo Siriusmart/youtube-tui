@@ -77,6 +77,7 @@ impl FrameworkItem for SearchBar {
         key: crossterm::event::KeyEvent,
         _info: tui_additions::framework::ItemInfo,
     ) -> Result<(), Box<dyn Error>> {
+        let mut render = true;
         match framework
             .data
             .global
@@ -90,76 +91,37 @@ impl FrameworkItem for SearchBar {
                 if content.is_empty() {
                     *framework.data.global.get_mut::<Message>().unwrap() =
                         Message::Error(String::from("Clipboard empty"));
-                    framework
-                        .data
-                        .state
-                        .get_mut::<Tasks>()
-                        .unwrap()
-                        .priority
-                        .push(Task::RenderAll);
-                    return Ok(());
                 }
 
                 // push all characters at cursor location
                 content.chars().for_each(|c| {
                     let _ = self.text_field.push(c);
                 });
-                framework
-                    .data
-                    .state
-                    .get_mut::<Tasks>()
-                    .unwrap()
-                    .priority
-                    .push(Task::RenderAll);
-                return Ok(());
             }
-            Some(KeyAction::RemoveWord) => {
-                remove_word(&mut self.text_field);
-                framework
-                    .data
-                    .state
-                    .get_mut::<Tasks>()
-                    .unwrap()
-                    .priority
-                    .push(Task::RenderAll);
-                return Ok(());
-            }
-            Some(KeyAction::PreviousWord) => {
-                previous_word(&mut self.text_field);
-                framework
-                    .data
-                    .state
-                    .get_mut::<Tasks>()
-                    .unwrap()
-                    .priority
-                    .push(Task::RenderAll);
-                return Ok(());
-            }
-            Some(KeyAction::NextWord) => {
-                next_word(&mut self.text_field);
-                framework
-                    .data
-                    .state
-                    .get_mut::<Tasks>()
-                    .unwrap()
-                    .priority
-                    .push(Task::RenderAll);
-                return Ok(());
-            }
+            Some(KeyAction::RemoveWord) => remove_word(&mut self.text_field),
+            Some(KeyAction::PreviousWord) => previous_word(&mut self.text_field),
+            Some(KeyAction::NextWord) => next_word(&mut self.text_field),
             Some(KeyAction::ClearLine) => {
                 self.text_field.content.clear();
                 self.text_field.scroll = 0;
                 self.text_field.cursor = 0;
-                framework
-                    .data
-                    .state
-                    .get_mut::<Tasks>()
-                    .unwrap()
-                    .priority
-                    .push(Task::RenderAll);
-                return Ok(());
             }
-            _ => {}
+            Some(KeyAction::First | KeyAction::MoveUp) => self.text_field.cursor = 0,
+            Some(KeyAction::End | KeyAction::MoveDown) => {
+                self.text_field.cursor = self.text_field.content.len()
+            }
+            _ => render = false,
+        }
+
+        if render {
+            framework
+                .data
+                .state
+                .get_mut::<Tasks>()
+                .unwrap()
+                .priority
+                .push(Task::RenderAll);
+            return Ok(());
         }
         // pasting clipboard content
 

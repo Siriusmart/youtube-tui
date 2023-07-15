@@ -378,8 +378,8 @@ impl FrameworkItem for ItemList {
         let updated = match action {
             KeyAction::MoveUp => self.textlist.up().is_ok(),
             KeyAction::MoveDown => self.textlist.down().is_ok(),
-            KeyAction::MoveLeft => self.textlist.first().is_ok(),
-            KeyAction::MoveRight => self.textlist.last().is_ok(),
+            KeyAction::MoveLeft | KeyAction::First => self.textlist.first().is_ok(),
+            KeyAction::MoveRight | KeyAction::End => self.textlist.last().is_ok(),
             KeyAction::Select => {
                 self.select_at_cursor(framework);
                 false

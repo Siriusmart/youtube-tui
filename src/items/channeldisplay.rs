@@ -51,32 +51,44 @@ impl ChannelDisplay {
         match self {
             ChannelDisplay::Videos {
                 videos, textlist, ..
-            } => vec![(
-                String::from("hover-url"),
-                format!(
-                    "{}/watch?v={}",
-                    match status.provider {
-                        Provider::YouTube => "https://youtube.com",
-                        Provider::Invidious => &mainconfig.invidious_instance,
-                    },
-                    videos[textlist.selected].id().unwrap_or_default()
-                ),
-            )],
+            } => {
+                if textlist.items.is_empty() {
+                    vec![(String::from("hover-url"), "no-videos".to_string())]
+                } else {
+                    vec![(
+                        String::from("hover-url"),
+                        format!(
+                            "{}/watch?v={}",
+                            match status.provider {
+                                Provider::YouTube => "https://youtube.com",
+                                Provider::Invidious => &mainconfig.invidious_instance,
+                            },
+                            videos[textlist.selected].id().unwrap_or_default()
+                        ),
+                    )]
+                }
+            }
             ChannelDisplay::Playlists {
                 playlists,
                 textlist,
                 ..
-            } => vec![(
-                String::from("hover-url"),
-                format!(
-                    "{}/playlist?list={}",
-                    match status.provider {
-                        Provider::YouTube => "https://youtube.com",
-                        Provider::Invidious => &mainconfig.invidious_instance,
-                    },
-                    playlists[textlist.selected].id().unwrap_or_default()
-                ),
-            )],
+            } => {
+                if textlist.items.is_empty() {
+                    vec![(String::from("hover-url"), "no-videos".to_string())]
+                } else {
+                    vec![(
+                        String::from("hover-url"),
+                        format!(
+                            "{}/playlist?list={}",
+                            match status.provider {
+                                Provider::YouTube => "https://youtube.com",
+                                Provider::Invidious => &mainconfig.invidious_instance,
+                            },
+                            playlists[textlist.selected].id().unwrap_or_default()
+                        ),
+                    )]
+                }
+            }
             _ => Vec::new(),
         }
     }
@@ -308,8 +320,8 @@ impl FrameworkItem for ChannelDisplay {
                 let updated = match action {
                     KeyAction::MoveUp => textlist.up().is_ok(),
                     KeyAction::MoveDown => textlist.down().is_ok(),
-                    KeyAction::MoveLeft => textlist.first().is_ok(),
-                    KeyAction::MoveRight => textlist.last().is_ok(),
+                    KeyAction::MoveLeft | KeyAction::First => textlist.first().is_ok(),
+                    KeyAction::MoveRight | KeyAction::End => textlist.last().is_ok(),
                     KeyAction::Select => {
                         self.select_at_cursor(framework);
                         return Ok(());

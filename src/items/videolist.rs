@@ -1,4 +1,4 @@
-use crossterm::event::KeyCode;
+
 use ratatui::{
     layout::{Constraint, Rect},
     style::Style,
@@ -10,12 +10,12 @@ use tui_additions::{
 use typemap::Key;
 
 use crate::{
-    config::{AppearanceConfig, MainConfig, Provider},
+    config::{AppearanceConfig, KeyBindingsConfig, MainConfig, Provider},
     global::{
         functions::set_envs,
         structs::{
-            ChannelDisplayPage, ChannelDisplayPageType, Item, MiniVideoItem, Page, StateEnvs,
-            Status, Subscriptions, Task, Tasks,
+            ChannelDisplayPage, ChannelDisplayPageType, Item, KeyAction, MiniVideoItem, Page,
+            StateEnvs, Status, Subscriptions, Task, Tasks,
         },
     },
 };
@@ -333,12 +333,34 @@ impl FrameworkItem for VideoList {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
         let previously_selected = self.selector.selected;
-        match key.code {
-            KeyCode::Down if self.selector.down().is_ok() => tasks.priority.push(Task::RenderAll),
-            KeyCode::Up if self.selector.up().is_ok() => tasks.priority.push(Task::RenderAll),
-            KeyCode::Left if self.selector.first().is_ok() => tasks.priority.push(Task::RenderAll),
-            KeyCode::Right if self.selector.last().is_ok() => tasks.priority.push(Task::RenderAll),
-            KeyCode::Enter => {
+
+        let action = if let Some(action) = framework
+            .data
+            .global
+            .get::<KeyBindingsConfig>()
+            .unwrap()
+            .get(key)
+        {
+            action
+        } else {
+            return Ok(());
+        };
+        match action {
+            KeyAction::MoveDown if self.selector.down().is_ok() => {
+                tasks.priority.push(Task::RenderAll)
+            }
+            KeyAction::MoveUp if self.selector.up().is_ok() => tasks.priority.push(Task::RenderAll),
+            KeyAction::MoveLeft | KeyAction::First => {
+                if self.selector.first().is_ok() {
+                    tasks.priority.push(Task::RenderAll)
+                }
+            }
+            KeyAction::MoveRight | KeyAction::End => {
+                if self.selector.last().is_ok() {
+                    tasks.priority.push(Task::RenderAll)
+                }
+            }
+            KeyAction::Select => {
                 self.select_at_cursor(framework);
                 return Ok(());
             }

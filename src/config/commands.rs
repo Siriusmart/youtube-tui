@@ -83,7 +83,9 @@ impl Default for CommandsConfigSerde {
 // Different pages may contain different `env`s (for example `url` is different in each page)
 
 fn launch_command_default() -> String {
-    String::from("loadpage library ;; flush ;; history clear")
+    String::from(
+        "loadpage library ;; flush ;; history clear ;; key Esc 0 ;; key Up 0 ;; key Up 0 ;; key Left 0 ;; key Enter 0",
+    )
 }
 
 fn video_default() -> Vec<HashMap<String, String>> {

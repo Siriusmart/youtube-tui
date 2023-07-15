@@ -288,8 +288,8 @@ impl FrameworkItem for SearchFilter {
             }
             KeyAction::MoveUp => hovered_textlist.up().is_ok(),
             KeyAction::MoveDown => hovered_textlist.down().is_ok(),
-            KeyAction::MoveLeft => hovered_textlist.first().is_ok(),
-            KeyAction::MoveRight => hovered_textlist.last().is_ok(),
+            KeyAction::MoveLeft | KeyAction::First => hovered_textlist.first().is_ok(),
+            KeyAction::MoveRight | KeyAction::End => hovered_textlist.last().is_ok(),
             _ => false,
         };
 

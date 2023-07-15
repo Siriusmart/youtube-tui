@@ -291,7 +291,7 @@ fn main_menu_default() -> PageConfig {
             PageRow::from_vec(vec![PageItems::MessageBar], false),
         ],
         message: String::from("Loading main menu..."),
-        command: String::from("key Esc 0 ;; key Up 0 ;; key Left 0 ;; key Enter 0"),
+        command: String::from("key Esc 0 ;; key Down 0 ;; key Down 0 ;; key Enter 0"),
     }
 }
 
@@ -335,7 +335,7 @@ fn channeldisplay_default() -> PageConfig {
             PageRow::from_vec(vec![PageItems::MessageBar], false),
         ],
         message: String::from("Loading channel details..."),
-        command: String::from("key Esc 0 ;; key Down 0 ;; key Enter 0"),
+        command: String::from("key Esc 0 ;; key Down 0 ;; key Enter 0 ;; key Up 0"),
     }
 }
 

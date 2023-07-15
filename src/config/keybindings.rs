@@ -129,6 +129,14 @@ impl Default for KeyBindingsConfigSerde {
                 KeyCodeSerde::Char('u'),
                 HashMap::from([(2, KeyAction::ClearLine)]),
             ),
+            (
+                KeyCodeSerde::Char('a'),
+                HashMap::from([(2, KeyAction::First)]),
+            ),
+            (
+                KeyCodeSerde::Char('e'),
+                HashMap::from([(2, KeyAction::End)]),
+            ),
         ]))
     }
 }

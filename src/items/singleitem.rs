@@ -791,8 +791,8 @@ impl FrameworkItem for SingleItem {
                 // move the cursor in the textlist, only update the screen if it is changed
                 KeyAction::MoveUp => singlevideoitem.textlist.up().is_ok(),
                 KeyAction::MoveDown => singlevideoitem.textlist.down().is_ok(),
-                KeyAction::MoveLeft => singlevideoitem.textlist.first().is_ok(),
-                KeyAction::MoveRight => singlevideoitem.textlist.last().is_ok(),
+                KeyAction::MoveLeft | KeyAction::First => singlevideoitem.textlist.first().is_ok(),
+                KeyAction::MoveRight | KeyAction::End => singlevideoitem.textlist.last().is_ok(),
                 KeyAction::Select => {
                     self.select_at_cursor(framework);
                     return Ok(());
@@ -806,8 +806,12 @@ impl FrameworkItem for SingleItem {
                     match action {
                         KeyAction::MoveUp => singleplaylistitem.commands_view.up().is_ok(),
                         KeyAction::MoveDown => singleplaylistitem.commands_view.down().is_ok(),
-                        KeyAction::MoveLeft => singleplaylistitem.commands_view.first().is_ok(),
-                        KeyAction::MoveRight => singleplaylistitem.commands_view.last().is_ok(),
+                        KeyAction::MoveLeft | KeyAction::First => {
+                            singleplaylistitem.commands_view.first().is_ok()
+                        }
+                        KeyAction::MoveRight | KeyAction::End => {
+                            singleplaylistitem.commands_view.last().is_ok()
+                        }
                         KeyAction::Select => {
                             self.select_at_cursor(framework);
                             return Ok(());
