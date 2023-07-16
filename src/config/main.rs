@@ -140,7 +140,7 @@ impl Provider {
 // default functions
 
 fn invidious_instance_default() -> String {
-    String::from("https://y.com.sb")
+    String::from("https://vid.puffyan.us")
 }
 
 fn message_bar_default_default() -> String {

@@ -3,7 +3,8 @@ use std::error::Error;
 use crate::{config::*, global::structs::*};
 
 #[cfg(feature = "clipboard")]
-use crate::global::functions::*;
+use crate::global::functions::get_clipboard;
+use crate::global::functions::{next_word, previous_word, remove_word};
 
 use crossterm::event::KeyCode;
 use ratatui::{

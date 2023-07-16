@@ -3,6 +3,7 @@
 - [Overview](README.md)
 - [Installation](installation.md)
 - [Basic usage](basic_usage.md)
+- [Invidious](invidious.md)
 - [Commands](commands.md)
 
 # Customisation guide

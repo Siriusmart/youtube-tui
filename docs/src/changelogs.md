@@ -1,23 +1,26 @@
 # Changelogs
 
-### v0.7.4 (latest unstable on git)
+## v0.7.4 (latest stable on crates.io)
 
-#### Added
+### Added
 
 - `Ctrl + w` and `Ctrl + u` in search bar and command mode.
 - Keybindings works even when an item is selected (`legacy_input_handling: false` in `main.yml`).
+- Creating fake key input using `:key`
 
-#### Fixed
+### Fixed
 
 - Search filters popup closing when you click on it.
+- Configured keybindings in all items.
+- Fixed multiple issues in [#35](https://github.com/Siriusmart/youtube-tui/issues/35)
 
-## v0.7.3 (latest stable on crates.io)
+### v0.7.3
  
-### Added
+#### Added
  
 - Lazy feed syncing (configurable), so you are not actively ddosing the Invidious instance as badly.
  
-### Fixed
+#### Fixed
  
 - Search bar no longer shows escaped search query: the original text string is displayed instead.
 - Fixed something about labeling channels with * although no new video is published.

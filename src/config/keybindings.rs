@@ -96,6 +96,10 @@ impl Default for KeyBindingsConfigSerde {
                 HashMap::from([(0, KeyAction::Exit)]),
             ),
             (
+                KeyCodeSerde::F("F5".to_string()),
+                HashMap::from([(0, KeyAction::Reload)]),
+            ),
+            (
                 KeyCodeSerde::Char('r'),
                 HashMap::from([(2, KeyAction::Reload)]),
             ),
@@ -104,6 +108,10 @@ impl Default for KeyBindingsConfigSerde {
                 HashMap::from([(0, KeyAction::StartCommandCapture)]),
             ),
             // history
+            (
+                KeyCodeSerde::Char('d'),
+                HashMap::from([(0, KeyAction::ClearHistory), (4, KeyAction::RemoveWord)]),
+            ),
             (
                 KeyCodeSerde::KeyVariants(KeyVariantsSerde::Backspace),
                 HashMap::from([(0, KeyAction::Back)]),
