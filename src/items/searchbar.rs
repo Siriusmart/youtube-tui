@@ -86,6 +86,7 @@ impl FrameworkItem for SearchBar {
             .unwrap()
             .get(key)
         {
+            _ if matches!(key.code, KeyCode::Char(_)) && key.modifiers.bits() < 2 => render = false,
             #[cfg(feature = "clipboard")]
             Some(KeyAction::Paste) => {
                 let content = get_clipboard();
