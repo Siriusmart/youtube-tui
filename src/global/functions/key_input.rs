@@ -16,24 +16,6 @@ pub fn key_input(
     framework: &mut Framework,
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
 ) {
-    // check if key binds to any commands
-    let command_to_run = framework
-        .data
-        .global
-        .get::<CommandBindings>()
-        .unwrap()
-        .get_command(&key, framework.data.state.get::<Page>().unwrap());
-    if !command_to_run.is_empty() {
-        run_command(&apply_envs(command_to_run), framework, terminal);
-        framework
-            .data
-            .state
-            .get_mut::<Tasks>()
-            .unwrap()
-            .priority
-            .push(Task::RenderAll);
-    }
-
     // 1. get the corresponding action
     // 2. check if action is deselect, if yes, deselect
     // 3. check is anything is selected, if yes, run `.key_event()` with the key
@@ -106,6 +88,24 @@ pub fn key_input(
         {
             return;
         }
+    }
+
+    // check if key binds to any commands
+    let command_to_run = framework
+        .data
+        .global
+        .get::<CommandBindings>()
+        .unwrap()
+        .get_command(&key, framework.data.state.get::<Page>().unwrap());
+    if !command_to_run.is_empty() {
+        run_command(&apply_envs(command_to_run), framework, terminal);
+        framework
+            .data
+            .state
+            .get_mut::<Tasks>()
+            .unwrap()
+            .priority
+            .push(Task::RenderAll);
     }
 
     if let Some(action) = action {
