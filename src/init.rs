@@ -6,8 +6,8 @@ use home::home_dir;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{
     error::Error,
-    fs::{self, OpenOptions},
-    io::{Stdout, Write},
+    fs::{self},
+    io::Stdout,
 };
 use tui_additions::framework::{Framework, FrameworkClean};
 

@@ -45,7 +45,7 @@ impl FrameworkItem for MessageBar {
                     Message::None => appearance.colors.outline,
                     Message::Success(_) => appearance.colors.message_success_outline,
                     Message::Error(_) => appearance.colors.message_error_outline,
-                    Message::Message(_) => appearance.colors.message_outline,
+                    Message::Message(_) | Message::Mpv(_) => appearance.colors.message_outline,
                 }
             }));
 

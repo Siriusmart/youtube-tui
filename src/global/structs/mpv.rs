@@ -5,7 +5,7 @@ use typemap::Key;
 
 pub struct MpvWrapper {
     pub sender: mpsc::Sender<MpvAction>,
-    pub copier: mpsc::Receiver<MpvResponse>,
+    // pub copier: mpsc::Receiver<MpvResponse>,
 }
 
 impl Clone for MpvWrapper {
@@ -23,7 +23,7 @@ impl Clone for MpvWrapper {
 impl MpvWrapper {
     pub fn spawn() -> Self {
         let (sender, receiver) = mpsc::channel();
-        let (responder, copier) = mpsc::channel();
+        // let (responder, copier) = mpsc::channel();
         thread::spawn(move || {
             let mpv = Mpv::new().unwrap();
             mpv.set_property("video", "no").unwrap();
@@ -33,31 +33,101 @@ impl MpvWrapper {
                     Err(_) => continue,
                 };
                 match action {
-                    MpvAction::Command { name, args } => match mpv
+                    MpvAction::Command {
+                        name,
+                        args,
+                        responder,
+                    } => match mpv
                         .command(&name, &args.iter().map(|s| s.as_str()).collect::<Vec<_>>())
                     {
                         Ok(_) => responder.send(MpvResponse::Copy).unwrap(),
                         Err(e) => responder.send(MpvResponse::Error(e.to_string())).unwrap(),
                     },
-                    MpvAction::RequestI64 { name } => responder
-                        .send(MpvResponse::I64(mpv.get_property::<i64>(&name).ok()))
+                    MpvAction::GetProperty { name, responder } => responder
+                        .send(MpvResponse::Property(
+                            mpv.get_property::<String>(&name).ok(),
+                        ))
+                        .unwrap(),
+                    MpvAction::SetProperty {
+                        name,
+                        value,
+                        responder,
+                    } => responder
+                        .send(match mpv.set_property(&name, value) {
+                            Ok(_) => MpvResponse::Copy,
+                            Err(e) => MpvResponse::Error(e.to_string()),
+                        })
                         .unwrap(),
                 }
             }
         });
-        Self { sender, copier }
+        Self { sender }
+    }
+
+    pub fn command(&self, name: String, args: Vec<String>) -> MpvResponse {
+        let (tx, rx) = mpsc::channel();
+        self.sender
+            .send(MpvAction::Command {
+                name,
+                args,
+                responder: tx,
+            })
+            .unwrap();
+
+        rx.recv().unwrap()
+    }
+
+    pub fn property(&self, prop: String) -> Option<String> {
+        let (tx, rx) = mpsc::channel();
+        self.sender
+            .send(MpvAction::GetProperty {
+                name: prop,
+                responder: tx,
+            })
+            .unwrap();
+
+        if let MpvResponse::Property(p) = rx.recv().unwrap() {
+            p
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn set_property(&self, name: String, value: String) -> MpvResponse {
+        let (tx, rx) = mpsc::channel();
+        self.sender
+            .send(MpvAction::SetProperty {
+                name,
+                value,
+                responder: tx,
+            })
+            .unwrap();
+
+        rx.recv().unwrap()
     }
 }
 
 #[derive(Debug)]
 pub enum MpvAction {
-    Command { name: String, args: Vec<String> },
-    RequestI64 { name: String },
+    Command {
+        name: String,
+        args: Vec<String>,
+        responder: mpsc::Sender<MpvResponse>,
+    },
+    GetProperty {
+        name: String,
+        responder: mpsc::Sender<MpvResponse>,
+    },
+    SetProperty {
+        name: String,
+        value: String,
+        responder: mpsc::Sender<MpvResponse>,
+    },
 }
 
 pub enum MpvResponse {
     Copy,
-    I64(Option<i64>),
+    Property(Option<String>),
     Error(String),
 }
 
