@@ -1,5 +1,11 @@
 # Changelogs
 
+### v0.8.0 (latest unstable on Github)
+
+#### Added
+
+- Build in MPV player, controlled by command `mpv [libmpv command] [args...]`
+
 ## v0.7.4 (latest stable on crates.io)
 
 ### Added

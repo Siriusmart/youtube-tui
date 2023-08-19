@@ -1,6 +1,6 @@
 [package]
 name = "youtube-tui"
-version = "0.7.5"
+version = "0.8.0"
 authors = ["Siriusmart <siriusmart@tuta.io>"]
 edition = "2021"
 description = "An aesthetically pleasing YouTube TUI written in Rust"
@@ -16,10 +16,11 @@ exclude = ["/docs", "/LICENSE", "/threadcounter.sh", "/PKGBUILD"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["sixel", "halfblock", "clipboard"]
+default = ["sixel", "halfblock", "clipboard", "mpv"]
 sixel = ["viuer/sixel"]
 halfblock = ["viuer"]
 clipboard = ["dep:clipboard"]
+mpv = ["dep:libmpv"]
 
 [dependencies]
 serde = {version = "1.0", default-features = false, features = ["derive"]}
@@ -36,6 +37,7 @@ serde_json = {version = "1.0", default-features = false}
 clipboard = {version = "0.5", optional = true}
 urlencoding = "2.1"
 ratatui = {version = "0.21", default-features = false, features = ["serde"]}
+libmpv = { git = "https://github.com/sudipghimire533/libmpv-rs", optional = true }
 
 # tui-additions = {path = "../../Rust/Packages/tui-additions", default-features = false, features = ["framework", "widgets"]}
 # invidious = {path = "../../Rust/Packages/invidious"}

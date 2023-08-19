@@ -499,6 +499,29 @@ pub fn run_single_command(
             let keymodifier = KeyModifiers::from_bits_truncate(modifier);
             key_input(KeyEvent::new(keycode, keymodifier), framework, terminal)
         }
+        // #[cfg(feature = "mpv")]
+        // ["queueplay", ..] => {
+        //     if let Err(e) = framework.data.global.get::<Status>().unwrap().mpv.queue_play(command[1..].into_iter().map(|path| path.trim_matches('\'')).collect::<Vec<_>>().as_slice()) {
+        //         *framework.data.global.get_mut::<Message>().unwrap() = Message::Error(format!("MPV error: {e}"))
+        //     }
+        //
+        // }
+        #[cfg(feature = "mpv")]
+        // ["mpv", name, ..] => framework.data.global.get::<Status>().unwrap().mpv.command(
+        //     name.to_string(),
+        //     command[2..].into_iter().map(|s| s.to_string()).collect(),
+        // ),
+        ["mpv", name, ..] => framework
+            .data
+            .global
+            .get::<MpvWrapper>()
+            .unwrap()
+            .sender
+            .send(MpvAction::Command {
+                name: name.to_string(),
+                args: command[2..].iter().map(|s| s.to_string()).collect(),
+            })
+            .unwrap(),
         _ => {
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Error(format!("Unknown command: `{}`", command.join(" ")));

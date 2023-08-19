@@ -4,7 +4,11 @@ use crate::{
 };
 use home::home_dir;
 use ratatui::{backend::CrosstermBackend, Terminal};
-use std::{error::Error, fs, io::Stdout};
+use std::{
+    error::Error,
+    fs::{self, OpenOptions},
+    io::{Stdout, Write},
+};
 use tui_additions::framework::{Framework, FrameworkClean};
 
 /// app to run before the app starts
@@ -49,10 +53,17 @@ pub fn init(
         .insert::<Subscriptions>(Subscriptions::load());
     framework.data.global.insert::<Library>(Library::load());
     framework.data.global.insert::<Message>(Message::None);
+
     framework.data.global.insert::<Status>(Status {
         provider: framework.data.global.get::<MainConfig>().unwrap().provider,
         ..Status::default()
     });
+
+    #[cfg(feature = "mpv")]
+    framework
+        .data
+        .global
+        .insert::<MpvWrapper>(MpvWrapper::spawn());
 
     framework.data.state.insert::<Tasks>(Tasks::default());
     framework.data.state.insert::<Page>(Page::default());

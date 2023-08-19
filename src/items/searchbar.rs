@@ -148,7 +148,7 @@ impl FrameworkItem for SearchBar {
                     return Ok(());
                 }
 
-                let mut search = framework.data.state.get_mut::<Search>().unwrap();
+                let search = framework.data.state.get_mut::<Search>().unwrap();
                 search.query = self.text_field.content.clone();
                 let search = search.clone();
                 let tasks = framework.data.state.get_mut::<Tasks>().unwrap();

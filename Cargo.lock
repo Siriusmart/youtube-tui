@@ -584,6 +584,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4668fb0ea861c1df094127ac5f1da3409a82116a4ba74fca2e58ef927159bb3"
 
 [[package]]
+name = "libmpv"
+version = "2.0.1"
+source = "git+https://github.com/sudipghimire533/libmpv-rs#18aa79a6b73e309360d3dcaeb434e862f9483350"
+dependencies = [
+ "libmpv-sys",
+]
+
+[[package]]
+name = "libmpv-sys"
+version = "3.1.0"
+source = "git+https://github.com/sudipghimire533/libmpv-rs#18aa79a6b73e309360d3dcaeb434e862f9483350"
+
+[[package]]
 name = "linux-raw-sys"
 version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1520,7 +1533,7 @@ dependencies = [
 
 [[package]]
 name = "youtube-tui"
-version = "0.7.5"
+version = "0.8.0"
 dependencies = [
  "chrono",
  "clipboard",
@@ -1528,6 +1541,7 @@ dependencies = [
  "dyn-clone",
  "home",
  "invidious",
+ "libmpv",
  "ratatui",
  "serde",
  "serde_json",

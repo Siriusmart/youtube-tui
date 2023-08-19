@@ -1,6 +1,11 @@
 use crossterm::event::{self, Event, MouseButton, MouseEventKind};
 use ratatui::{backend::CrosstermBackend, Terminal};
-use std::{any::TypeId, error::Error, io::Stdout};
+use std::{
+    any::TypeId,
+    error::Error,
+    io::Stdout,
+    time::{Duration, Instant},
+};
 use tui_additions::framework::Framework;
 
 use crate::{
@@ -14,6 +19,8 @@ pub fn run(
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     framework: &mut Framework,
 ) -> Result<(), Box<dyn Error>> {
+    let tick_rate = Duration::from_secs(1);
+    let mut last_tick = Instant::now();
     loop {
         // repeat forever until all tasks are ran (and Tasks is cleared)
         if let Some(tasks) = framework.data.state.get_mut::<Tasks>().unwrap().pop() {
@@ -33,6 +40,24 @@ pub fn run(
         if framework.data.global.get::<Status>().unwrap().exit {
             break;
         }
+
+        if !event::poll(
+            tick_rate
+                .checked_sub(last_tick.elapsed())
+                .unwrap_or_else(|| Duration::from_secs(0)),
+        )? {
+            // do tick changes
+            last_tick = Instant::now();
+            // dbg!(framework
+            //     .data
+            //     .global
+            //     .get::<Status>()
+            //     .unwrap()
+            //     .mpv
+            //     .sender.send(MpvAction::RequestI64 { name: "audio-pts".to_string() }));
+            continue;
+        }
+
         *framework.data.global.get_mut::<Message>().unwrap() = Message::None;
 
         match event::read()? {
