@@ -1,4 +1,6 @@
 //! Structs for config files, all impl ConfigTrait, config files are stored in `~./config`
+mod remap;
+pub use remap::*;
 mod main;
 pub use main::*;
 mod appearance;

@@ -12,10 +12,17 @@ use crate::{config::*, global::structs::*, items::SearchBar};
 use super::*;
 
 pub fn key_input(
-    key: KeyEvent,
+    mut key: KeyEvent,
     framework: &mut Framework,
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
 ) {
+    framework
+        .data
+        .global
+        .get::<RemapConfig>()
+        .unwrap()
+        .get(&mut key);
+
     // 1. get the corresponding action
     // 2. check if action is deselect, if yes, deselect
     // 3. check is anything is selected, if yes, run `.key_event()` with the key
