@@ -42,6 +42,26 @@ impl Default for CommandsRemapConfig {
             ("x".to_string(), "quit".to_string()),
             ("exit".to_string(), "quit".to_string()),
             ("sub".to_string(), "sync".to_string()),
+            (
+                "tpause".to_string(),
+                "mpv tprop pause ;; echo success Toggled player pause".to_string(),
+            ),
+            (
+                "pause".to_string(),
+                "mpv sprop pause yes ;; echo mpv Player paused".to_string(),
+            ),
+            (
+                "resume".to_string(),
+                "mpv sprop pause no ;; echo mpv Player resumed".to_string(),
+            ),
+            (
+                "back".to_string(),
+                "mpv playlist-previous ;; echo mpv Skipped".to_string(),
+            ),
+            (
+                "next".to_string(),
+                "mpv playlist-next ;; echo mpv Skipped".to_string(),
+            ),
         ]))
     }
 }

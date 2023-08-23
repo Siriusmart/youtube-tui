@@ -347,7 +347,7 @@ impl SinglePlaylistItem {
                         Ok(entries) => entries
                             .map(|entry| {
                                 format!(
-                                    "mpv loadfile '{}'",
+                                    "mpv loadfile '{}' append",
                                     match entry {
                                         Ok(entry) =>
                                             entry.path().as_os_str().to_str().unwrap().to_string(),

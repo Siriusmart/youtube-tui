@@ -459,7 +459,7 @@ pub fn run_single_command(
             key_input(KeyEvent::new(keycode, keymodifier), framework, terminal)
         }
         #[cfg(feature = "mpv")]
-        ["mpv", "property", property] | ["mpv", "prop", property] => {
+        ["mpv", "prop", property] => {
             let res = framework
                 .data
                 .global
@@ -468,22 +468,41 @@ pub fn run_single_command(
                 .property(property.to_string());
 
             *framework.data.global.get_mut::<Message>().unwrap() = match res {
-                Some(value) => Message::Message(format!("Value: {value}")),
+                Some(value) => Message::Message(format!("Value: `{value}`")),
                 None => Message::Error("No such property".to_string()),
             };
         }
         #[cfg(feature = "mpv")]
-        ["mpv", "set_property", name, ..] | ["mpv", "sprop", name, ..] => {
+        ["mpv", "tprop", property] => {
+            let mpv = framework.data.global.get::<MpvWrapper>().unwrap();
+            let res = mpv.property(property.to_string());
+
+            let toset = match res {
+                Some(value) if value.as_str() == "yes" || value.as_str() == "true" => "no",
+                _ => "yes",
+            };
+
+            let res = mpv.set_property(property.to_string(), toset.to_string());
+            *framework.data.global.get_mut::<Message>().unwrap() = match res {
+                MpvResponse::Copy => Message::Mpv(format!("Set `{property}` to `{toset}`")),
+                MpvResponse::Error(e) => Message::Error(format!("MPV error: {e}")),
+                _ => unreachable!(),
+            };
+        }
+        #[cfg(feature = "mpv")]
+        ["mpv", "sprop", name, ..] => {
+            let value = command[3..].join(" ");
             let res = framework
                 .data
                 .global
                 .get::<MpvWrapper>()
                 .unwrap()
-                .set_property(name.to_string(), command[3..].join(" "));
+                .set_property(name.to_string(), value.clone());
 
             *framework.data.global.get_mut::<Message>().unwrap() = match res {
-                MpvResponse::Copy => Message::Mpv("Value set".to_string()),
-                MpvResponse::Error(e) => Message::Error(format!("MPV error: {e}")),
+                // MpvResponse::Copy => Message::Mpv(format!("Set `{name}` to `{value}`")),
+                MpvResponse::Copy => return,
+                MpvResponse::Error(e) => Message::Mpv(format!("MPV error: {e}")),
                 _ => unreachable!(),
             };
         }
@@ -495,14 +514,21 @@ pub fn run_single_command(
             );
 
             *framework.data.global.get_mut::<Message>().unwrap() = match res {
-                MpvResponse::Copy => Message::Mpv("MPV player OK.".to_string()),
-                MpvResponse::Error(e) => Message::Error(format!("MPV error: {e}")),
+                // MpvResponse::Copy => Message::Mpv("MPV player OK.".to_string()),
+                MpvResponse::Copy => return,
+                MpvResponse::Error(e) => Message::Mpv(format!("MPV error: {e}")),
                 _ => unreachable!(),
             };
         }
-        ["echo", ..] => {
-            *framework.data.global.get_mut::<Message>().unwrap() =
-                Message::Message(command[1..].join(" "))
+        ["echo", r#type, ..] => {
+            *framework.data.global.get_mut::<Message>().unwrap() = match *r#type {
+                "message" => Message::Message(command[2..].join(" ")),
+                "mpv" => Message::Mpv(command[2..].join(" ")),
+                "success" => Message::Success(command[2..].join(" ")),
+                "error" => Message::Error(command[2..].join(" ")),
+                "none" => Message::None,
+                _ => Message::Error(format!("Unknown type `{}`", r#type)),
+            }
         }
         _ => {
             if let Some(cmd) = framework
@@ -600,6 +626,12 @@ fn help_msg(cmdefines: &CommandsRemapConfig) -> String {
     \x1b[33msub/sync [id or url]\x1b[0m            Add channel to subscription, or sync an existing channel
     \x1b[33munsub [id or url]\x1b[0m               Remove channel from subscription
     \x1b[33msyncall\x1b[0m                         Sync all subscriptions
+
+\x1b[91mMPV:\x1b[0m
+    \x1b[33mmpv prop [label]\x1b[0m                Gets mpv property
+    \x1b[33mmpv sprop [label] [value]\x1b[0m       Set mpv property
+    \x1b[33mmpv tprop [label] [value]\x1b[0m       Toggle a yes/no property
+    \x1b[33mmpv [command]\x1b[0m                   Runs a libmpv command
 
 \x1b[91mCUSTOM COMMANDS:\x1b[0m
 \x1b[37mdefined in cmdefine.yml\x1b[30m
