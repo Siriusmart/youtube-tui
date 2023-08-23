@@ -4,7 +4,7 @@ use ratatui::{
     style::Style,
     widgets::{Block, Borders, Paragraph},
 };
-use tui_additions::framework::FrameworkItem;
+use tui_additions::framework::{FrameworkClean, FrameworkItem};
 
 /// a message bar item, contains no fields because the message is taken from `data.global.Message`
 #[derive(Clone, Copy, Default)]
@@ -23,8 +23,26 @@ impl FrameworkItem for MessageBar {
             return;
         }
 
-        let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
+        let mpv = framework.data.global.get::<MpvWrapper>().unwrap();
+        if Self::is_mpv_render(framework) {
+            let duration = mpv
+                .property("duration".to_string())
+                .unwrap_or_default()
+                .parse::<f64>()
+                .unwrap() as u64;
+            let playerhead = mpv
+                .property("time-pos".to_string())
+                .unwrap_or_default()
+                .parse::<f64>()
+                .unwrap() as u64;
+            let percentage = playerhead * 100 / duration;
+
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Mpv(format!("{playerhead}/{duration} [{percentage}%]"));
+        }
+
         let message = framework.data.global.get::<Message>().unwrap();
+        let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
 
         // the Option<TextList> that is Some if keys were captured for entering command
         let command_capture = &framework
@@ -82,5 +100,22 @@ impl FrameworkItem for MessageBar {
 
     fn selectable(&self) -> bool {
         false
+    }
+}
+
+impl MessageBar {
+    pub fn is_mpv_render(framework: &FrameworkClean) -> bool {
+        framework.data.global.get::<MpvWrapper>().unwrap().playing()
+            && matches!(
+                framework.data.global.get::<Message>().unwrap(),
+                Message::Mpv(_) | Message::None
+            )
+            && framework
+                .data
+                .global
+                .get::<Status>()
+                .unwrap()
+                .command_capture
+                .is_none()
     }
 }

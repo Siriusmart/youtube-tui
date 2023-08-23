@@ -100,13 +100,11 @@ fn video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Play audio"),
-            String::from("parrun ${terminal-emulator} ${video-player} '${embed-url}' --no-video"),
+            String::from("mpv sprop loop no ;; mpv loadfile '${embed-url}'"),
         )]),
         HashMap::from([(
             String::from("Play audio (loop)"),
-            String::from(
-                "parrun ${terminal-emulator} ${video-player} '${embed-url}' --no-video --loop-file=inf",
-            ),
+            String::from("mpv sprop loop inf ;; mpv loadfile '${embed-url}'"),
         )]),
         HashMap::from([(
             String::from("View channel"),
@@ -147,15 +145,15 @@ fn saved_video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("[Offline] Play saved file"),
-            String::from("parrun ${video-player} ${save-path}*${id}* --force-window"),
+            String::from("parrun ${video-player} '${offline-path}' --force-window"),
         )]),
         HashMap::from([(
             String::from("[Offline] Play saved file (audio)"),
-            String::from("parrun ${terminal-emulator} ${video-player} ${save-path}*${id}* --no-video"),
+            String::from("mpv sprop loop no ;; mpv loadfile '${offline-path}'"),
         )]),
         HashMap::from([(
             String::from("[Offline] Play saved file (audio loop)"),
-            String::from("parrun ${terminal-emulator} ${video-player} ${save-path}*${id}* --no-video --loop"),
+            String::from("mpv sprop loop inf ;; mpv loadfile '${offline-path}'"),
         )]),
         HashMap::from([(
             String::from("View channel"),
@@ -197,15 +195,15 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Play all (videos)"),
-            String::from("parrun ${video-player} ${all-videos}"),
+            String::from("parrun ${video-player} ${url}"),
         )]),
         HashMap::from([(
             String::from("Play all (audio)"),
-            String::from("parrun ${terminal-emulator} ${video-player} ${all-videos} --no-video"),
+            String::from("mpv stop ;; ${mpv-queuelist} ;; mpv playlist-play-index 0"),
         )]),
         HashMap::from([(
             String::from("Shuffle play all (audio loop)"),
-            String::from("parrun ${terminal-emulator} ${video-player} ${all-videos} --no-video --shuffle --loop-playlist=inf"),
+            String::from("mpv stop ;; ${mpv-queuelist} ;; mpv playlist-shuffle ;; mpv playlist-play-index 0"),
         )]),
         HashMap::from([(
             String::from("View channel"),
@@ -251,11 +249,11 @@ fn saved_playlist_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("[Offline] Play all (audio)"),
-            String::from("parrun ${terminal-emulator} bash -c '${video-player} ${save-path}*${id}*/* --no-video'"),
+            String::from("mpv stop ;; ${offline-queuelist} ;; mpv playlist-play-index 0"),
         )]),
         HashMap::from([(
             String::from("[Offline] Shuffle play all (audio loop)"),
-            String::from("parrun ${terminal-emulator} bash -c '${video-player} ${save-path}*${id}*/* --no-video --loop-playlist=inf --shuffle'"),
+            String::from("mpv stop ;; ${offline-queuelist} ;; mpv playlist-shuffle ;; mpv playlist-play-index 0"),
         )]),
         HashMap::from([(
             String::from("View channel"),

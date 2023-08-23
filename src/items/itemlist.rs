@@ -388,7 +388,7 @@ impl FrameworkItem for ItemList {
         };
 
         // only create a render task if the key event actually changed something
-        if updated {
+        if updated && !self.items.is_empty() {
             self.update(framework);
             set_envs(
                 self.infalte_item_update(

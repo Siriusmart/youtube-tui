@@ -22,7 +22,9 @@ pub fn text_command(command: &str) -> Option<String> {
         .collect::<Vec<_>>()
         .as_slice()
     {
-        ["help"] => Some(String::from(HELP_MSG)),
+        ["help"] => Some(help_msg(
+            &CommandsRemapConfig::load(WriteConfig::Dont).unwrap(),
+        )),
         ["version"] => Some(format!(
             "{} {}",
             env!("CARGO_PKG_NAME"),
@@ -101,7 +103,7 @@ pub fn run_single_command(
                 run_single_command(&["bookmark", id], framework, terminal);
             }
         }
-        ["help"] | ["h"] => {
+        ["help"] => {
             *framework.data.global.get_mut::<Message>().unwrap() = Message::Message(String::from(
                 "Avaliable commands can be viewed by running `youtube-tui help` in terminal",
             ));
@@ -114,10 +116,6 @@ pub fn run_single_command(
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Success(format!("Provider updated to {}", status.provider.as_str()));
             update_provider(&mut framework.data);
-        }
-        ["loadpage"] => {
-            *framework.data.global.get_mut::<Message>().unwrap() =
-                Message::Message(String::from("Usage: `loadpage {page}`"));
         }
         // loads a given page
         ["loadpage", page, ..] => {
@@ -209,37 +207,6 @@ pub fn run_single_command(
                     .push(Task::LoadPage(page))
             }
         }
-        // redirects to the relevant `loadpage` command
-        ["popular"] => run_single_command(&["loadpage", "popular"], framework, terminal),
-        ["trending"] => run_single_command(&["loadpage", "trending"], framework, terminal),
-        ["watchhistory"] => run_single_command(&["loadpage", "watchhistory"], framework, terminal),
-        ["feed"] => run_single_command(&["loadpage", "feed"], framework, terminal),
-        ["bookmarks"] => run_single_command(&["loadpage", "bookmarks"], framework, terminal),
-        ["library"] => run_single_command(&["loadpage", "library"], framework, terminal),
-        ["search"] => run_single_command(&["loadpage", "search"], framework, terminal),
-        ["search", ..] => run_single_command(
-            &format!("loadpage search {}", command[1..].join(" "))
-                .split(' ')
-                .collect::<Vec<&str>>(),
-            framework,
-            terminal,
-        ),
-        ["channel"] => run_single_command(&["loadpage", "channel"], framework, terminal),
-        ["channel", identifier] => {
-            run_single_command(&["loadpage", "channel", *identifier], framework, terminal)
-        }
-        ["video"] => run_single_command(&["loadpage", "video"], framework, terminal),
-        ["video", identifier] => {
-            run_single_command(&["loadpage", "video", *identifier], framework, terminal)
-        }
-        ["playlist"] => run_single_command(&["loadpage", "playlist"], framework, terminal),
-        ["playlist", identifier] => {
-            run_single_command(&["loadpage", "playlist", *identifier], framework, terminal)
-        }
-        ["history"] => {
-            *framework.data.global.get_mut::<Message>().unwrap() =
-                Message::Message(String::from("Usage: `history [back/clear]`"))
-        }
         ["history", "back"] | ["back"] => {
             let _ = framework.revert_last_history();
             framework
@@ -284,14 +251,14 @@ pub fn run_single_command(
                 .priority
                 .push(Task::Reload);
         }
-        ["reload", "config"] | ["reload", "configs"] | ["r", "config"] | ["r", "configs"] => {
+        ["reload", "configs"] => {
             *framework.data.global.get_mut::<Message>().unwrap() =
                 match load_configs(&mut framework.split_clean().0) {
                     Ok(()) => Message::Success(String::from("Config files have been reloaded")),
                     Err(e) => Message::Error(e.to_string()),
                 };
         }
-        ["q"] | ["quit"] | ["x"] | ["exit"] => {
+        ["quit"] => {
             framework.data.global.get_mut::<Status>().unwrap().exit = true;
         }
         ["hello", "world"] => {
@@ -299,16 +266,12 @@ pub fn run_single_command(
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Message(format!("Line #{index}: {}", HELLO_WORLDS[index]));
         }
-        ["version"] | ["v"] => {
+        ["version"] => {
             *framework.data.global.get_mut::<Message>().unwrap() = Message::Message(format!(
                 "{} {}",
                 env!("CARGO_PKG_NAME"),
                 env!("CARGO_PKG_VERSION")
             ));
-        }
-        ["run"] | ["parrun"] => {
-            *framework.data.global.get_mut::<Message>().unwrap() =
-                Message::Message(String::from("Usage: run/parrun [command]"));
         }
         ["run", ..] => {
             let command = command[1..].join(" ");
@@ -334,17 +297,13 @@ pub fn run_single_command(
                 .stderr(Stdio::null())
                 .spawn();
         }
-        ["copy"] | ["cp"] => {
-            *framework.data.global.get_mut::<Message>().unwrap() =
-                Message::Message(String::from("Usage: copy [text]"));
-        }
         #[cfg(feature = "clipboard")]
-        ["copy", ..] | ["cp", ..] => {
+        ["copy", ..] => {
             set_clipboard(command[1..].join(" "));
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Success(String::from("Copied to clipboad"));
         }
-        ["sub", identifier] | ["sync", identifier] => {
+        ["sync", identifier] => {
             let id = if identifier.len() == 24 {
                 identifier.to_string()
             } else {
@@ -514,13 +473,13 @@ pub fn run_single_command(
             };
         }
         #[cfg(feature = "mpv")]
-        ["mpv", "set_property", name, value] | ["mpv", "sprop", name, value] => {
+        ["mpv", "set_property", name, ..] | ["mpv", "sprop", name, ..] => {
             let res = framework
                 .data
                 .global
                 .get::<MpvWrapper>()
                 .unwrap()
-                .set_property(name.to_string(), value.to_string());
+                .set_property(name.to_string(), command[3..].join(" "));
 
             *framework.data.global.get_mut::<Message>().unwrap() = match res {
                 MpvResponse::Copy => Message::Mpv("Value set".to_string()),
@@ -541,7 +500,22 @@ pub fn run_single_command(
                 _ => unreachable!(),
             };
         }
+        ["echo", ..] => {
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Message(command[1..].join(" "))
+        }
         _ => {
+            if let Some(cmd) = framework
+                .data
+                .global
+                .get_mut::<CommandsRemapConfig>()
+                .unwrap()
+                .get(command)
+            {
+                run_command(&cmd, framework, terminal);
+                return;
+            }
+
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Error(format!("Unknown command: `{}`", command.join(" ")));
         }
@@ -579,7 +553,8 @@ const HELLO_WORLDS: &[&str] = &[
     "<h1>Hello World<\\h1>",
 ];
 
-const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
+fn help_msg(cmdefines: &CommandsRemapConfig) -> String {
+    format!("\x1b[32mYouTube TUI commands\x1b[0m
 
 \x1b[37mfor more visit https://siriusmart.github.io/youtube-tui/commands.html\x1b[0m
 
@@ -626,13 +601,9 @@ const HELP_MSG: &str = "\x1b[32mYouTube TUI commands\x1b[0m
     \x1b[33munsub [id or url]\x1b[0m               Remove channel from subscription
     \x1b[33msyncall\x1b[0m                         Sync all subscriptions
 
-\x1b[91mALT:\x1b[0m
-\x1b[37malts links back to the original command\x1b[30m
-    \x1b[33m[page] (additional options)\x1b[0m     `loadpage [page]`
-    \x1b[33mback\x1b[0m                            `history back`
-    \x1b[33mr\x1b[0m                               `reload`
-    \x1b[33mreload/r config/configs\x1b[0m         `reload configs`
-    \x1b[33mq, exit, x\x1b[0m                      `quit`
-    \x1b[33mcp [text]\x1b[0m                       `copy [text]`
+\x1b[91mCUSTOM COMMANDS:\x1b[0m
+\x1b[37mdefined in cmdefine.yml\x1b[30m
+{}
 
-\x1b[37mOnly load page and informational commands should be used from command line, the rest can only be used in (`:`) command mode inside the TUI.\x1b[0m";
+\x1b[37mOnly load page and informational commands should be used from command line, the rest can only be used in (`:`) command mode inside the TUI.\x1b[0m", cmdefines.0.iter().map(|(key, value)| format!("   \x1b[33m{: <28}\x1b[0m     `{value}`", key)).collect::<Vec<_>>().join("\n"))
+}

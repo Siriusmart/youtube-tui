@@ -7,7 +7,7 @@ use ratatui::{
     backend::CrosstermBackend, layout::Alignment, style::Style, widgets::Paragraph, Frame, Terminal,
 };
 use std::{error::Error, io::Stdout, mem};
-use tui_additions::framework::{CursorState, Framework};
+use tui_additions::framework::{CursorState, Framework, FrameworkItem};
 use typemap::Key;
 
 /// tasks to be put on taskqueues
@@ -176,13 +176,8 @@ impl TaskQueue {
         }
 
         match self.render {
-            RenderTask::All => {
-                Self::render(framework, terminal)?;
-            }
-            RenderTask::Only(_locations) => {
-                // need to file an issue to tui-rs suggesting this as a feature
-                unimplemented!("tui-rs does not support partial re-rendering");
-            }
+            RenderTask::All => Self::render(framework, terminal)?,
+            RenderTask::Only(locations) => Self::render_onlys(framework, terminal, locations)?,
             RenderTask::None => {}
         }
 
@@ -224,12 +219,29 @@ impl TaskQueue {
         Ok(())
     }
 
+    pub fn render_onlys(
+        framework: &mut Framework,
+        terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+        locations: Vec<(usize, usize)>,
+    ) -> Result<(), Box<dyn Error>> {
+        Self::render_onlys_with_frame(framework, &mut terminal.get_frame(), locations);
+        terminal.flush()?;
+        Ok(())
+    }
+
+    pub fn render_onlys_with_frame(
+        framework: &mut Framework,
+        frame: &mut Frame<CrosstermBackend<Stdout>>,
+        locations: Vec<(usize, usize)>,
+    ) {
+        framework.render_only_multiple(frame, &locations);
+    }
+
     /// this function renders onto the given frame
     pub fn render_with_frame(
         framework: &mut Framework,
         frame: &mut Frame<CrosstermBackend<Stdout>>,
     ) {
-        let min_dimentions = framework.data.state.get::<MinDimentions>().unwrap();
         let area = frame.size();
 
         framework
@@ -238,6 +250,52 @@ impl TaskQueue {
             .get_mut::<Status>()
             .unwrap()
             .prev_frame = Some(area);
+
+        if Self::protective_screen(framework, frame) {
+            return;
+        }
+
+        framework.render(frame);
+    }
+
+    pub fn render_filter(
+        framework: &mut Framework,
+        terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+        filter: impl Fn(&Box<dyn FrameworkItem>) -> bool,
+    ) -> Result<(), Box<dyn Error>> {
+        Self::render_filter_with_frame(framework, &mut terminal.get_frame(), filter);
+        terminal.flush()?;
+        Ok(())
+    }
+
+    pub fn render_filter_with_frame(
+        framework: &mut Framework,
+        frame: &mut Frame<CrosstermBackend<Stdout>>,
+        filter: impl Fn(&Box<dyn FrameworkItem>) -> bool,
+    ) {
+        let area = frame.size();
+
+        framework
+            .data
+            .global
+            .get_mut::<Status>()
+            .unwrap()
+            .prev_frame = Some(area);
+
+        if Self::protective_screen(framework, frame) {
+            return;
+        }
+
+        framework.render_filter(frame, filter);
+    }
+
+    /// this function renders onto the given frame
+    pub fn protective_screen(
+        framework: &mut Framework,
+        frame: &mut Frame<CrosstermBackend<Stdout>>,
+    ) -> bool {
+        let min_dimentions = framework.data.state.get::<MinDimentions>().unwrap();
+        let area = frame.size();
 
         // if the minimum width and height is not meet, then displays a "protective screen" to prevent panicking
         if area.width < min_dimentions.width || area.height < min_dimentions.height {
@@ -260,10 +318,10 @@ impl TaskQueue {
                     .text_error),
             );
             frame.render_widget(paragraph, area);
-            return;
+            true
+        } else {
+            false
         }
-
-        framework.render(frame);
     }
 }
 

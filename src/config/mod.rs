@@ -15,5 +15,7 @@ mod commands;
 pub use commands::*;
 mod commandbindings;
 pub use commandbindings::*;
+mod commands_remap;
+pub use commands_remap::*;
 
 pub mod serde;

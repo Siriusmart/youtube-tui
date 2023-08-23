@@ -65,18 +65,7 @@ pub struct SinglePlaylistItem {
 
 impl SingleVideoItem {
     pub fn new(commands: &CommandsConfig, mainconfig: &MainConfig, id: &str) -> Self {
-        let saved = (|| -> Option<()> {
-            fs::read_dir(
-                home_dir()
-                    .unwrap()
-                    .join(mainconfig.env.get("save-path")?.replacen("~/", "", 1)),
-            )
-            .ok()?
-            .filter_map(|entry| Some(entry.ok()?.path().file_stem()?.to_os_string()))
-            .find(|stem| stem.as_os_str().to_str().unwrap_or_default().contains(id))?;
-            Some(())
-        })()
-        .is_some();
+        let saved = find_library_item(id, mainconfig).is_some();
         if saved {
             Self::new_with_map(
                 commands
@@ -188,6 +177,14 @@ impl SingleVideoItem {
                     ),
                 },
             ),
+            (
+                String::from("offline-path"),
+                find_library_item(&video_item.id, mainconfig)
+                    .unwrap_or_default()
+                    .to_str()
+                    .unwrap()
+                    .to_string(),
+            ),
         ]
     }
 }
@@ -199,18 +196,7 @@ impl SinglePlaylistItem {
         id: &str,
         playlist_items: &[Item],
     ) -> Self {
-        let saved = (|| -> Option<()> {
-            fs::read_dir(
-                home_dir()
-                    .unwrap()
-                    .join(mainconfig.env.get("save-path")?.replacen("~/", "", 1)),
-            )
-            .ok()?
-            .filter_map(|entry| Some(entry.ok()?.path().file_stem()?.to_os_string()))
-            .find(|stem| stem.as_os_str().to_str().unwrap_or_default().contains(id))?;
-            Some(())
-        })()
-        .is_some();
+        let saved = find_library_item(id, mainconfig).is_some();
         if saved {
             Self::new_with_map(
                 commands
@@ -329,8 +315,9 @@ impl SinglePlaylistItem {
     }
 
     /// creates a hashmap from `self`, containing info of the current item
-    pub fn inflate_load(&self, item: &Item) -> Vec<(String, String)> {
+    pub fn inflate_load(&self, item: &Item, mainconfig: &MainConfig) -> Vec<(String, String)> {
         let playlist_item = item.fullplaylist().unwrap();
+        let path = find_library_item(&playlist_item.id, mainconfig);
 
         vec![
             (String::from("id"), playlist_item.id.clone()),
@@ -344,6 +331,36 @@ impl SinglePlaylistItem {
                     .map(|video| video.minivideo().unwrap().id.as_str())
                     .collect::<Vec<&str>>()
                     .join(" "),
+            ),
+            (
+                String::from("offline-path"),
+                path.clone()
+                    .unwrap_or_default()
+                    .to_str()
+                    .unwrap()
+                    .to_string(),
+            ),
+            (
+                String::from("offline-queuelist"),
+                match path {
+                    Some(path) => match fs::read_dir(path) {
+                        Ok(entries) => entries
+                            .map(|entry| {
+                                format!(
+                                    "mpv loadfile '{}'",
+                                    match entry {
+                                        Ok(entry) =>
+                                            entry.path().as_os_str().to_str().unwrap().to_string(),
+                                        Err(_) => String::new(),
+                                    }
+                                )
+                            })
+                            .collect::<Vec<_>>()
+                            .join(" ;; "),
+                        Err(e) => e.to_string(),
+                    },
+                    None => String::from("bad path"),
+                },
             ),
         ]
     }
@@ -385,7 +402,7 @@ impl SingleItemType {
 
         match self {
             Self::Video(singlevideoitem) => singlevideoitem.inflate_load(mainconfig, status, item),
-            Self::Playlist(singleplaylistitem) => singleplaylistitem.inflate_load(item),
+            Self::Playlist(singleplaylistitem) => singleplaylistitem.inflate_load(item, mainconfig),
             Self::None => Vec::new(),
         }
     }

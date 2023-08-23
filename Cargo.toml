@@ -29,7 +29,7 @@ viuer = {version = "0.6", default-features = false, optional = true}
 home = "0.5"
 chrono = {version = "0.4", default-features = false, features = ["clock"]}
 typemap = {version = "0.3", default-features = false}
-tui-additions = {version = "0.2.1", default-features = false, features = ["framework", "widgets"]}
+# tui-additions = {version = "0.2.1", default-features = false, features = ["framework", "widgets"]}
 invidious = {version = "0.5"}
 serde_yaml = {version = "0.9", default-features = false}
 dyn-clone = {version = "1.0", default-features = false}
@@ -39,7 +39,7 @@ urlencoding = "2.1"
 ratatui = {version = "0.21", default-features = false, features = ["serde"]}
 libmpv = { git = "https://github.com/sudipghimire533/libmpv-rs", optional = true }
 
-# tui-additions = {path = "../../Rust/Packages/tui-additions", default-features = false, features = ["framework", "widgets"]}
+tui-additions = {path = "../../Rust/Packages/tui-additions", default-features = false, features = ["framework", "widgets"]}
 # invidious = {path = "../../Rust/Packages/invidious"}
 
 [package.metadata.docs.rs]

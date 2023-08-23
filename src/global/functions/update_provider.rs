@@ -163,6 +163,28 @@ pub fn update_provider(data: &mut FrameworkData) {
                     ),
                 },
             ),
+            (
+                String::from("mpv-queuelist"),
+                match status.provider {
+                    Provider::YouTube => env::var("all-ids")
+                        .unwrap_or(String::from("env_not_found"))
+                        .split(' ')
+                        .map(|id| format!("mpv loadfile 'https://youtu.be/{id}' append"))
+                        .collect::<Vec<_>>()
+                        .join(" ;; "),
+                    Provider::Invidious => env::var("all-ids")
+                        .unwrap_or(String::from("env_not_found"))
+                        .split(' ')
+                        .map(|id| {
+                            format!(
+                                "mpv loadfile '{}/watch?v={id}' append",
+                                mainconfig.invidious_instance,
+                            )
+                        })
+                        .collect::<Vec<_>>()
+                        .join(" ;; "),
+                },
+            ),
         ],
     };
 

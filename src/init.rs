@@ -125,6 +125,10 @@ pub fn load_configs(framework: &mut FrameworkClean) -> Result<(), Box<dyn Error>
     framework
         .data
         .global
+        .insert::<CommandsRemapConfig>(*CommandsRemapConfig::load(main_config.write_config)?);
+    framework
+        .data
+        .global
         .insert::<KeyBindingsConfig>(KeyBindingsConfig::load(main_config.write_config)?);
     framework
         .data

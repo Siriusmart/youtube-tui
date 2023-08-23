@@ -107,6 +107,13 @@ impl MpvWrapper {
     }
 }
 
+impl MpvWrapper {
+    pub fn playing(&self) -> bool {
+        self.property("core-idle".to_string())
+            .is_some_and(|s| s.as_str() == "no" || s.as_str() == "false")
+    }
+}
+
 #[derive(Debug)]
 pub enum MpvAction {
     Command {
