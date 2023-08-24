@@ -743,16 +743,9 @@ impl FrameworkItem for SingleItem {
             }
 
             let item = item.clone();
-            let max_watch_history = framework
-                .data
-                .global
-                .get::<MainConfig>()
-                .unwrap()
-                .max_watch_history;
-
             // push to watch history
             let watch_history = framework.data.global.get_mut::<WatchHistory>().unwrap();
-            watch_history.push(item, Some(max_watch_history))?;
+            watch_history.push(item)?;
             watch_history.save()?;
         }
 

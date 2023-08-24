@@ -46,6 +46,14 @@ pub fn init(
     framework
         .data
         .global
+        .insert::<CommandHistory>(CommandHistory::load());
+    framework
+        .data
+        .global
+        .insert::<SearchHistory>(SearchHistory::load());
+    framework
+        .data
+        .global
         .insert::<WatchHistory>(WatchHistory::load());
     framework
         .data

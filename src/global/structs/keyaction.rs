@@ -42,4 +42,8 @@ pub enum KeyAction {
     First,
     /// move cursor to the last position
     End,
+    /// Previous entry
+    PreviousEntry,
+    /// Next entry
+    NextEntry,
 }

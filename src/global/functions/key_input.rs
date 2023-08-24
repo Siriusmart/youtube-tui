@@ -4,7 +4,6 @@ use crossterm::event::KeyEvent;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use tui_additions::{
     framework::{Framework, FrameworkDirection},
-    widgets::TextField,
 };
 
 use crate::{config::*, global::structs::*, items::SearchBar};
@@ -124,7 +123,7 @@ pub fn key_input(
                     .global
                     .get_mut::<Status>()
                     .unwrap()
-                    .command_capture = Some(TextField::default());
+                    .reset_command_capture();
             }
             KeyAction::Exit => framework
                 .data

@@ -329,7 +329,7 @@ impl Collection<SubItem> for Subscriptions {
         Ok(())
     }
 
-    fn push(&mut self, _: SubItem, _: Option<usize>) -> Result<(), Box<dyn Error>> {
+    fn push(&mut self, _: SubItem) -> Result<(), Box<dyn Error>> {
         unimplemented!("not in use");
     }
 

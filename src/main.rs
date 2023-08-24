@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     )?;
     terminal.show_cursor()?;
 
-    let exit_res = exit(&framework);
+    let exit_res = exit(&mut framework);
 
     res?;
     exit_res?;

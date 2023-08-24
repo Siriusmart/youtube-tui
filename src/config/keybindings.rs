@@ -55,11 +55,11 @@ impl Default for KeyBindingsConfigSerde {
             ),
             (
                 KeyCodeSerde::KeyVariants(KeyVariantsSerde::Up),
-                HashMap::from([(0, KeyAction::MoveUp)]),
+                HashMap::from([(0, KeyAction::MoveUp), (2, KeyAction::PreviousEntry)]),
             ),
             (
                 KeyCodeSerde::KeyVariants(KeyVariantsSerde::Down),
-                HashMap::from([(0, KeyAction::MoveDown)]),
+                HashMap::from([(0, KeyAction::MoveDown), (2, KeyAction::NextEntry)]),
             ),
             // vim keybindings
             (

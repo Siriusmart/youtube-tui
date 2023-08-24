@@ -70,7 +70,7 @@ pub fn run_single_command(
             })() {
                 Ok(item) => {
                     let library = framework.data.global.get_mut::<Library>().unwrap();
-                    let _ = library.push(item, None);
+                    let _ = library.push(item);
                     let _ = library.save();
                     *framework.data.global.get_mut::<Message>().unwrap() =
                         Message::Success(String::from("Bookmark added"))

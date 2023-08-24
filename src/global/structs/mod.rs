@@ -1,5 +1,6 @@
 //! enums and structs
 mod errors;
+mod history;
 mod invidiousclient;
 mod item;
 mod keyaction;
@@ -12,9 +13,9 @@ mod state_env;
 mod status;
 mod subscriptions;
 mod tasks;
-mod watchhistory;
 
 pub use errors::*;
+pub use history::*;
 pub use invidiousclient::*;
 pub use item::*;
 pub use keyaction::*;
@@ -27,4 +28,3 @@ pub use state_env::*;
 pub use status::*;
 pub use subscriptions::*;
 pub use tasks::*;
-pub use watchhistory::*;

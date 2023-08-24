@@ -1,6 +1,9 @@
 use std::error::Error;
 
-use crate::{config::*, global::structs::*};
+use crate::{
+    config::*,
+    global::{structs::*, traits::CollectionNoId},
+};
 
 #[cfg(feature = "clipboard")]
 use crate::global::functions::get_clipboard;
@@ -18,6 +21,8 @@ use tui_additions::{framework::FrameworkItem, widgets::TextField};
 #[derive(Clone, Default)]
 pub struct SearchBar {
     pub text_field: TextField,
+    pub history_index: Option<usize>,
+    pub custom_value_cache: String,
 }
 
 impl FrameworkItem for SearchBar {
@@ -112,6 +117,34 @@ impl FrameworkItem for SearchBar {
             Some(KeyAction::End | KeyAction::MoveDown) => {
                 self.text_field.cursor = self.text_field.content.len()
             }
+            Some(KeyAction::PreviousEntry) => {
+                let history = framework.data.global.get::<SearchHistory>().unwrap();
+                if self.history_index != Some(0) && !history.0.is_empty() {
+                    if self.history_index.is_none() {
+                        self.custom_value_cache = self.text_field.content.clone();
+                        self.history_index = None
+                    }
+                    self.history_index = Some(self.history_index.unwrap_or(history.0.len()) - 1);
+                    self.text_field.content = history.0[self.history_index.unwrap()].clone();
+                    let _ = self.text_field.last();
+                } else {
+                    render = false
+                }
+            }
+            Some(KeyAction::NextEntry) => {
+                let history = framework.data.global.get::<SearchHistory>().unwrap();
+                if self.history_index.is_none() {
+                    render = false
+                } else if self.history_index == Some(history.0.len() - 1) {
+                    self.history_index = None;
+                    self.text_field.content = self.custom_value_cache.clone();
+                    let _ = self.text_field.last();
+                } else {
+                    self.history_index = self.history_index.map(|n| n + 1);
+                    self.text_field.content = history.0[self.history_index.unwrap()].clone();
+                    let _ = self.text_field.last();
+                }
+            }
             _ => render = false,
         }
 
@@ -150,6 +183,12 @@ impl FrameworkItem for SearchBar {
 
                 let search = framework.data.state.get_mut::<Search>().unwrap();
                 search.query = self.text_field.content.clone();
+                framework
+                    .data
+                    .global
+                    .get_mut::<SearchHistory>()
+                    .unwrap()
+                    .push(search.query.clone());
                 let search = search.clone();
                 let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
                 tasks.priority.push(Task::LoadPage(Page::Search(search)));

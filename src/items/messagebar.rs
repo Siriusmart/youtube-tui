@@ -74,7 +74,7 @@ impl FrameworkItem for MessageBar {
                     let mut seeker_len = length - total_len - 4;
                     let seeker_pad = if seeker_len > 10 { seeker_len / 10 } else { 0 };
                     seeker_len -= seeker_pad * 2;
-                    let seeker_pos = seeker_len * playerhead as usize / duration as usize;
+                    let seeker_pos = (seeker_len - 1) * playerhead as usize / duration as usize;
                     format!(
                         "{left_chunk} {}├{}-{}┤{} {right_chunk}",
                         " ".repeat(seeker_pad),

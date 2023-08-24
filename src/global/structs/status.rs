@@ -15,6 +15,10 @@ pub struct Status {
     pub render_image: bool,
     /// the textfield for command capture
     pub command_capture: Option<TextField>,
+    /// used for command history and stuff
+    pub command_history_index: Option<usize>,
+    /// currently editing command
+    pub command_editing_cache: String,
     /// if true, exit in the next iteration
     pub exit: bool,
     /// stores the area of the previously rendered frame
@@ -39,6 +43,8 @@ impl Default for Status {
             render_image: true,
             command_capture: None,
             exit: false,
+            command_history_index: None,
+            command_editing_cache: String::new(),
             prev_frame: None,
             provider: Provider::YouTube,
             provider_updated: false,
@@ -50,5 +56,13 @@ impl Default for Status {
 impl Status {
     pub fn reset(&mut self) {
         *self = Self::default();
+    }
+}
+
+impl Status {
+    pub fn reset_command_capture(&mut self) {
+        self.command_capture = Some(TextField::default());
+        self.command_history_index = None;
+        self.command_editing_cache = String::new();
     }
 }

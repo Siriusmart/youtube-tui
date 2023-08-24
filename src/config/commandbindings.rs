@@ -177,7 +177,7 @@ fn global_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
         ),
         (
             KeyCodeSerde::Char(' '),
-            HashMap::from([(0, String::from("tpause ;; echo mpv Player paused toggled"))]),
+            HashMap::from([(0, String::from("tpause ;; echo mpv Player pause toggled"))]),
         ),
         (
             KeyCodeSerde::KeyVariants(super::serde::KeyVariantsSerde::Left),

@@ -100,12 +100,16 @@ fn video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Play audio"),
-            String::from("mpv stop ;; resume ;; mpv sprop loop no ;; mpv loadfile '${embed-url}'"),
+            String::from("mpv stop ;; resume ;; mpv sprop loop-file no ;; mpv loadfile '${embed-url}' ;; echo mpv Player started"),
         )]),
         HashMap::from([(
             String::from("Play audio (loop)"),
-            String::from("mpv stop ;; resume ;; mpv sprop loop inf ;; mpv loadfile '${embed-url}'"),
+            String::from("mpv stop ;; resume ;; mpv sprop loop-file inf ;; mpv loadfile '${embed-url}' ;; echo mpv Player started"),
         )]),
+        // HashMap::from([(
+        //     String::from("Add to queue"),
+        //     String::from("mpv loadfile '${embed-url}' appendplay;; echo mpv Added to queue"),
+        // )]),
         HashMap::from([(
             String::from("View channel"),
             String::from("channel ${channel-id}"),
@@ -149,12 +153,16 @@ fn saved_video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("[Offline] Play saved file (audio)"),
-            String::from("mpv stop ;; resume ;; mpv sprop loop no ;; mpv loadfile '${offline-path}'"),
+            String::from("mpv stop ;; resume ;; mpv sprop loop-file no ;; mpv loadfile '${offline-path}' ;; echo mpv Player started"),
         )]),
         HashMap::from([(
             String::from("[Offline] Play saved file (audio loop)"),
-            String::from("mpv stop ;; resume ;; mpv sprop loop inf ;; mpv loadfile '${offline-path}'"),
+            String::from("mpv stop ;; resume ;; mpv sprop loop-file inf ;; mpv loadfile '${offline-path}' ;; echo mpv Player started"),
         )]),
+        // HashMap::from([(
+        //     String::from("[Offline] Add to queue"),
+        //     String::from("mpv loadfile '${offline-path}' appendplay ;; echo mpv Added to queue"),
+        // )]),
         HashMap::from([(
             String::from("View channel"),
             String::from("channel ${channel-id}"),
@@ -199,12 +207,16 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Play all (audio)"),
-            String::from("mpv stop ;; resume ;; ${mpv-queuelist} ;; mpv playlist-play-index 0"),
+            String::from("mpv stop ;; resume ;; ${mpv-queuelist} ;; mpv sprop loop-playlist no ;; mpv playlist-play-index 0 ;; echo mpv Player started"),
         )]),
         HashMap::from([(
             String::from("Shuffle play all (audio loop)"),
-            String::from("mpv stop ;; resume ;; ${mpv-queuelist} ;; mpv playlist-shuffle ;; mpv playlist-play-index 0"),
+            String::from("mpv stop ;; resume ;; ${mpv-queuelist} ;; mpv sprop loop-playlist yes ;; mpv playlist-shuffle ;; mpv playlist-play-index 0 ;; echo mpv Player started"),
         )]),
+        // HashMap::from([(
+        //     String::from("Add all to queue"),
+        //     String::from("${mpv-queuelist} ;; echo mpv Queued playlist"),
+        // )]),
         HashMap::from([(
             String::from("View channel"),
             String::from("channel ${channel-id}"),
@@ -249,12 +261,16 @@ fn saved_playlist_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("[Offline] Play all (audio)"),
-            String::from("mpv stop ;; resume ;; ${offline-queuelist} ;; mpv playlist-play-index 0"),
+            String::from("mpv stop ;; resume ;; ${offline-queuelist} ;; mpv sprop loop-playlist no ;; mpv playlist-play-index 0 ;; echo mpv Player started"),
         )]),
         HashMap::from([(
             String::from("[Offline] Shuffle play all (audio loop)"),
-            String::from("mpv stop ;; resume ;; ${offline-queuelist} ;; mpv playlist-shuffle ;; mpv playlist-play-index 0"),
+            String::from("mpv stop ;; resume ;; ${offline-queuelist} ;; mpv sprop loop-playlist yes ;; mpv playlist-shuffle ;; mpv playlist-play-index 0 ;; echo mpv Player started"),
         )]),
+        // HashMap::from([(
+        //     String::from("[Offline] Add all to queue"),
+        //     String::from("${offline-queuelist} ;; echo mpv Queued playlist"),
+        // )]),
         HashMap::from([(
             String::from("View channel"),
             String::from("channel ${channel-id}"),

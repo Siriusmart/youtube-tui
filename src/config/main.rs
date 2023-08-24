@@ -12,8 +12,6 @@ pub struct MainConfig {
     pub invidious_instance: String,
     #[serde(default = "write_to_config_default")]
     pub write_config: WriteConfig,
-    #[serde(default = "max_watch_history_default")]
-    pub max_watch_history: usize,
     #[serde(default = "allow_unicode_default")]
     pub allow_unicode: bool,
     #[serde(default = "message_bar_default_default")]
@@ -22,7 +20,10 @@ pub struct MainConfig {
     pub images: Images,
     #[serde(default = "refresh_after_modifying_search_filters_default")]
     pub refresh_after_modifying_search_filters: bool,
+    #[serde(default = "sync_config_default")]
     pub syncing: SyncConfig,
+    #[serde(default)]
+    pub limits: Limits,
     #[serde(default = "image_index_default")]
     // The image to download from the array of images provided by the invidious api
     // 0 is usually `maxres` and 3 (default) is good enough for normal uses without having huge files sizes
@@ -48,13 +49,13 @@ impl Default for MainConfig {
             write_config: write_to_config_default(),
             mouse_support: mouse_support_default(),
             invidious_instance: invidious_instance_default(),
-            max_watch_history: max_watch_history_default(),
             allow_unicode: allow_unicode_default(),
             message_bar_default: message_bar_default_default(),
             images: images_default(),
             image_index: image_index_default(),
             refresh_after_modifying_search_filters: refresh_after_modifying_search_filters_default(
             ),
+            limits: Limits::default(),
             syncing: sync_config_default(),
             provider: provider_default(),
             shell: shell_default(),
@@ -87,6 +88,26 @@ const fn sync_config_default() -> SyncConfig {
         sync_channel_info: sync_channel_info_default(),
         sync_channel_cooldown_secs: sync_channel_cooldown_secs_default(),
         sync_videos_cooldown_secs: sync_videos_cooldown_secs_default(),
+    }
+}
+
+#[derive(Clone, Copy, Serialize, Deserialize)]
+pub struct Limits {
+    #[serde(default = "watch_history_default")]
+    pub watch_history: usize,
+    #[serde(default = "search_history_default")]
+    pub search_history: usize,
+    #[serde(default = "commands_history_default")]
+    pub commands_history: usize,
+}
+
+impl Default for Limits {
+    fn default() -> Self {
+        Self {
+            watch_history: watch_history_default(),
+            search_history: search_history_default(),
+            commands_history: commands_history_default(),
+        }
     }
 }
 
@@ -167,7 +188,15 @@ const fn provider_default() -> Provider {
     Provider::YouTube
 }
 
-const fn max_watch_history_default() -> usize {
+const fn search_history_default() -> usize {
+    75
+}
+
+const fn commands_history_default() -> usize {
+    75
+}
+
+const fn watch_history_default() -> usize {
     50
 }
 

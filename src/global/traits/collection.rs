@@ -23,6 +23,13 @@ where
 
     fn from_items(items: Vec<T>) -> Self;
 
+    fn trim(&mut self, length: usize) {
+        let items = self.items_mut();
+        if items.len() > length {
+            items.drain(0..items.len() - length);
+        }
+    }
+
     /// saves the current state of watch history into a file
     fn save(&self) -> Result<(), Box<dyn Error>> {
         let save_string = serde_json::to_string_pretty(
@@ -47,7 +54,7 @@ where
     }
 
     /// add an item to watch history
-    fn push(&mut self, item: T, max_length: Option<usize>) -> Result<(), Box<dyn Error>> {
+    fn push(&mut self, item: T) -> Result<(), Box<dyn Error>> {
         let info = home_dir().unwrap().join(".cache/youtube-tui/info/");
 
         // removes duplicates and place them on top (if exists)
@@ -68,11 +75,6 @@ where
         file.write_all(item_string.as_bytes())?;
 
         self.items_mut().push(item);
-
-        // if length of history exceeds the maximum history length, removes that oldest item
-        if self.items().len() > max_length.unwrap_or(usize::MAX) {
-            self.items_mut().remove(0);
-        }
 
         Ok(())
     }
@@ -150,6 +152,90 @@ where
             .iter()
             .enumerate()
             .find(|(_index, item)| item.id() == Some(id))
+        {
+            items.remove(found.0);
+            true
+        } else {
+            false
+        }
+    }
+}
+
+pub trait CollectionNoId<T>
+where
+    Self: Default + Clone + Serialize + DeserializeOwned,
+    T: Serialize + DeserializeOwned + PartialEq,
+{
+    const INDEX_PATH: &'static str;
+
+    fn items(&self) -> &Vec<T>;
+    fn items_mut(&mut self) -> &mut Vec<T>;
+
+    fn from_items(items: Vec<T>) -> Self;
+
+    fn trim(&mut self, length: usize) {
+        let items = self.items_mut();
+        if items.len() > length {
+            items.drain(0..items.len() - length);
+        }
+    }
+    /// saves the current state of watch history into a file
+    fn save(&self) -> Result<(), Box<dyn Error>> {
+        let save_string = serde_json::to_string_pretty(&self)?;
+        let path = home_dir().unwrap().join(Self::INDEX_PATH);
+
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(path)?;
+
+        file.write_all(save_string.as_bytes())?;
+
+        Ok(())
+    }
+
+    /// add an item to watch history
+    fn push(&mut self, item: T) {
+        // removes duplicates and place them on top (if exists)
+        if let Some(index) = self
+            .items_mut()
+            .iter_mut()
+            .position(|item_in_iter| *item_in_iter == item)
+        {
+            self.items_mut().remove(index);
+        }
+
+        self.items_mut().push(item);
+    }
+
+    /// loads watch history from file
+    fn load() -> Self {
+        let path = home_dir().unwrap().join(Self::INDEX_PATH);
+        let res = (|| -> Result<Vec<T>, Box<dyn Error>> {
+            let file_string = fs::read_to_string(&path)?;
+            let deserialized = serde_json::from_str(&file_string)?;
+            Ok(deserialized)
+        })();
+
+        // if res is err, then the file either doesn't exist of has be altered incorrectly, in
+        // which case returns Self::default()
+        let items = match res {
+            Ok(res) => res,
+            Err(_) => Vec::new(),
+        };
+
+        Self::from_items(items)
+    }
+
+    /// remove item based on their id
+    fn remove(&mut self, matcher: &T) -> bool {
+        let items = self.items_mut();
+
+        if let Some(found) = items
+            .iter()
+            .enumerate()
+            .find(|(_index, item)| *item == matcher)
         {
             items.remove(found.0);
             true
