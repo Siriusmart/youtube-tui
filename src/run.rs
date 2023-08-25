@@ -1,17 +1,14 @@
 use crossterm::event::{self, Event, MouseButton, MouseEventKind};
 use ratatui::{backend::CrosstermBackend, Terminal};
-use std::{
-    any::TypeId,
-    error::Error,
-    io::Stdout,
-    time::{Duration, Instant},
-};
+#[cfg(feature = "mpv")]
+use std::time::{Duration, Instant};
+use std::{any::TypeId, error::Error, io::Stdout};
 use tui_additions::framework::Framework;
 
 use crate::{
     config::*,
     global::{functions::*, structs::*},
-    items::{MessageBar, SearchFilter},
+    items::*,
 };
 
 /// the main event loop of the program
@@ -19,7 +16,9 @@ pub fn run(
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     framework: &mut Framework,
 ) -> Result<(), Box<dyn Error>> {
+    #[cfg(feature = "mpv")]
     let tick_rate = Duration::from_secs(1);
+    #[cfg(feature = "mpv")]
     let mut last_tick = Instant::now();
     loop {
         // repeat forever until all tasks are ran (and Tasks is cleared)
@@ -41,6 +40,7 @@ pub fn run(
             break;
         }
 
+        #[cfg(feature = "mpv")]
         if !event::poll(
             tick_rate
                 .checked_sub(last_tick.elapsed())

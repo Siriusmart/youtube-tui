@@ -1,20 +1,28 @@
 # Changelogs
 
-### v0.8.0 (latest unstable on Github)
-
-#### Added
-
-- Build in MPV player, controlled by command `mpv [libmpv command] [args...]`
-
-## v0.7.4 (latest stable on crates.io)
+## v0.8.0 (latest)
 
 ### Added
+
+- Built in MPV player, controlled by command `mpv [libmpv command] [args...]`
+- Command/search histories.
+- Keys remapping, custom commands.
+
+### Fixed
+
+- Some keys captured in search bar and are not working [#37](https://github.com/Siriusmart/youtube-tui/issues/37).
+
+---
+
+### v0.7.4
+
+#### Added
 
 - `Ctrl + w` and `Ctrl + u` in search bar and command mode.
 - Keybindings works even when an item is selected (`legacy_input_handling: false` in `main.yml`).
 - Creating fake key input using `:key`
 
-### Fixed
+#### Fixed
 
 - Search filters popup closing when you click on it.
 - Configured keybindings in all items.
@@ -66,7 +74,7 @@
 
 - Empty ItemList crash (<a href="https://github.com/Siriusmart/youtube-tui/issues/26" target=_blank>issue 26</a>)
 
-<hr>
+---
 
 ## v0.6.2
 
@@ -98,7 +106,7 @@
 - Vim-like commands
 - Pasting with `Ctrl + V` in search bar and command mode
 
-<hr>
+---
 
 ## v0.5.3
 
@@ -132,7 +140,7 @@
 - Sixels image support
 - Improved config files
 
-<hr>
+---
 
 ## v0.4.4
 

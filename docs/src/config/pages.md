@@ -64,3 +64,5 @@ Command to run when the page loads, you can use the `key` command to select an i
 |ChannelMain|Channel display|Loads the main channel page|
 |ChannelVideos|Channel display|Loads the channel videos page|
 |ChannelPlaylists|Channel display|Loads the channel playlists page|
+|ChannelList|Feed|Displays subscribed channels|
+|VideoList|Feed|Displays videos of subscribed channels|

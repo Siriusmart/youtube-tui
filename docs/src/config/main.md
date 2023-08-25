@@ -6,20 +6,32 @@ The main config file is located in `~/.config/youtube-tui/main.yml`.
 
 ```yaml
 mouse_support: true
-invidious_instance: https://y.com.sb
+invidious_instance: https://invidious.fdn.fr
 write_config: Try
-max_watch_history: 50
-allow_unicode: false
+allow_unicode: true
 message_bar_default: All good :)
 images: Sixels
 refresh_after_modifying_search_filters: true
+syncing:
+  download_images: true
+  sync_channel_info: true
+  sync_channel_cooldown_secs: 86400
+  sync_videos_cooldown_secs: 600
+limits:
+  watch_history: 50
+  search_history: 75
+  commands_history: 75
 image_index: 4
 provider: YouTube
+shell: sh
+legacy_input_handling: false
 env:
-  browser: firefox
+  video-player: mpv
+  download-path: ~/Downloads/%(title)s-%(id)s.%(ext)s
   terminal-emulator: konsole -e
   youtube-downloader: yt-dlp
-  video-player: mpv
+  save-path: ~/.local/share/youtube-tui/saved/
+  browser: firefox
 ```
 
 <hr>
@@ -52,11 +64,6 @@ Whether to write to config after every read, this allows for auto-formatting the
 
 *Accept: `Must`/`Try`/`Dont`*
 
-### max_watch_history
-
-The maximum length that the watch history can hold, a value higher will record more items, but will also result in a larger file size in storage.
-
-*Accept: positive integer below 2<sup>*your CPU architecture*</sup> - 1*
  
 ### allow_unicode
 
@@ -105,6 +112,12 @@ Sync all do not sync channel info if it has been synced in the past *n* seconds.
 Sync all do not sync videos from channel if it has been synced in the past *n* seconds.
 
 *Accept: integer value seconds*
+
+### limits
+
+The maximum length that the watch/search/command history can hold, a value higher will record more items, but will also result in a larger file size in storage.
+
+*Accept: positive integer below 2<sup>*your CPU architecture*</sup> - 1*
 
 ### image_index
 

@@ -2,9 +2,7 @@ use std::{any::TypeId, io::Stdout};
 
 use crossterm::event::KeyEvent;
 use ratatui::{backend::CrosstermBackend, Terminal};
-use tui_additions::{
-    framework::{Framework, FrameworkDirection},
-};
+use tui_additions::framework::{Framework, FrameworkDirection};
 
 use crate::{config::*, global::structs::*, items::SearchBar};
 

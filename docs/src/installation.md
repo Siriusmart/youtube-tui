@@ -85,3 +85,9 @@ Requires <a href="https://github.com/saitoha/libsixel" target=_blank>`libsixel`<
 Allows clipboard pasting in commands and search bar.
 
 Requires <a href="https://xcb.freedesktop.org/" target=_blank>`libxcb`</a>.
+
+### `mpv` (default)
+
+Embedded audio player
+
+Requires <a href="https://mpv.io/" target=_blank>`mpv`</a> (libmpv) to be installed in your system.

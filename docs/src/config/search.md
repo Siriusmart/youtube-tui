@@ -23,8 +23,28 @@ The default query when you launch the TUI.
 
 *Accept: any string*
 
-### Sort
+### sort
 
 How the search results are sorted.
 
 *Accept: `Relevance`/`Rating`/`Date`/`Views`*
+
+### date
+
+Restrict videos publish date.
+
+*Accept: `None`, `Hour`, `Day`, `Week`, `Month`, `Year`*
+
+### duration
+
+Restrict videos duration.
+
+*Accept: `None`, `Short`, `Medium`, `Long`*
+
+### type
+
+Restrict video types
+
+*Accept: `All`, `Video`, `Channel`, `Playlist`*
+
+> All these options can also be changed in runtime using [search filters](basic_usage.md#searching)

@@ -1,6 +1,12 @@
 # Commands
 
-Commands can be entered to the TUI by pressing the `:` key, the same as in Vim. Some commands have shorter *alternatives* that can be used instead.
+Commands can be entered to the TUI by pressing the `:` key, the same as in Vim.
+
+Run the help command to view more detailed help.
+
+```sh
+youtube-tui help
+```
 
 > Env variables can be used by passing in as `${key}`, such as `:channel ${channel-id}` when in a video or playlist page.
 
@@ -15,13 +21,7 @@ Below are the avaliable commands:
 `loadpage` can be used to load a specific page.
 
 ```vim
-loadpage popular (alt: `popular`)
-loadpage trending (alt: `trending`)
-loadpage watchhistory (alt: `watchhistory`)
-loadpage search [search query] (alt: `search [search query]`)
-loadpage video [id or url] (alt: `video [id or url]`)
-loadpage playlist [id or url] (alt: `playlist [id or url] `)
-loadpage channel [id or url] (alt: `channel [id or url] `)
+loadpage [page]
 ```
 
 ## History
@@ -29,20 +29,21 @@ loadpage channel [id or url] (alt: `channel [id or url] `)
 `history` is used to manage page history (`Backspace` equivalent).
 
 ```vim
-history back (alt: `back`)
+history back
 history clear
 ```
 
 ## Utility
 
 ```vim
-reload (alt `r`)
-reload configs (alt `reload/r config/configs`)
+reload // reloads the page
+reload configs // reload config files in ~/.config/youtube-tui/
 flush
-quit (alt `q`, `exit`, `x`)
+quit
 run [command]
 parrun [command]
 key [keycode] [keymodifier]
+echo [mode] (message) # run youtube-tui help to learn more about modes
 ```
 
 > The `flush` command is used to run all tasks in queue immediately, this is usually done automatically.
@@ -65,6 +66,19 @@ sub/sync [id or url]            Add channel to subscription, or sync an existing
 unsub [id or url]               Remove channel from subscription
 syncall                         Sync all subscriptions
 ```
+
+## MPV commands
+
+<sub>Only with the [`mpv`](installation.md#mpv-default) feature.</sub>
+
+```vim
+mpv prop [label]                Gets mpv property
+mpv sprop [label] [value]       Set mpv property
+mpv tprop [label] [value]       Toggle a yes/no property
+mpv [command]                   Runs a libmpv command
+```
+
+> Note that properties and commands are **libmpv** commands, *not* mpv commands. Please refer to [mpv reference](https://mpv.io/manual/master/).
 
 ## Text commands
 

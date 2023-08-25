@@ -3,7 +3,8 @@
 - [Overview](README.md)
 - [Installation](installation.md)
 - [Basic usage](basic_usage.md)
-- [Invidious](invidious.md)
+<!-- - [Invidious](invidious.md) -->
+<!-- Will add it back in when it's relevant again -->
 - [Commands](commands.md)
 
 # Customisation guide
@@ -16,6 +17,8 @@
 	- [pages](config/pages.md)
 	- [appearance](config/appearance.md)
 	- [search](config/search.md)
+	- [cmdefine](config/cmdefine.md)
+	- [remap](config/remap.md)
 
 # Contributing
 

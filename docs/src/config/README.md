@@ -12,3 +12,5 @@ In the following sections we will go through all config files including:
 - [`pages.yml`](./pages.md)
 - [`appearance.yml`](./appearance.md)
 - [`search.yml`](./search.md)
+- [`cmdefine.yml`](./cmdefine.md)
+- [`remap.yml`](./remap.md)

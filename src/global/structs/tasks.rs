@@ -7,7 +7,7 @@ use ratatui::{
     backend::CrosstermBackend, layout::Alignment, style::Style, widgets::Paragraph, Frame, Terminal,
 };
 use std::{error::Error, io::Stdout, mem};
-use tui_additions::framework::{CursorState, Framework, FrameworkItem};
+use tui_additions::framework::{CursorState, Framework};
 use typemap::Key;
 
 /// tasks to be put on taskqueues
@@ -258,36 +258,36 @@ impl TaskQueue {
         framework.render(frame);
     }
 
-    pub fn render_filter(
-        framework: &mut Framework,
-        terminal: &mut Terminal<CrosstermBackend<Stdout>>,
-        filter: impl Fn(&Box<dyn FrameworkItem>) -> bool,
-    ) -> Result<(), Box<dyn Error>> {
-        Self::render_filter_with_frame(framework, &mut terminal.get_frame(), filter);
-        terminal.flush()?;
-        Ok(())
-    }
-
-    pub fn render_filter_with_frame(
-        framework: &mut Framework,
-        frame: &mut Frame<CrosstermBackend<Stdout>>,
-        filter: impl Fn(&Box<dyn FrameworkItem>) -> bool,
-    ) {
-        let area = frame.size();
-
-        framework
-            .data
-            .global
-            .get_mut::<Status>()
-            .unwrap()
-            .prev_frame = Some(area);
-
-        if Self::protective_screen(framework, frame) {
-            return;
-        }
-
-        framework.render_filter(frame, filter);
-    }
+    // pub fn render_filter(
+    //     framework: &mut Framework,
+    //     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    //     filter: impl Fn(&Box<dyn FrameworkItem>) -> bool,
+    // ) -> Result<(), Box<dyn Error>> {
+    //     Self::render_filter_with_frame(framework, &mut terminal.get_frame(), filter);
+    //     terminal.flush()?;
+    //     Ok(())
+    // }
+    //
+    // pub fn render_filter_with_frame(
+    //     framework: &mut Framework,
+    //     frame: &mut Frame<CrosstermBackend<Stdout>>,
+    //     filter: impl Fn(&Box<dyn FrameworkItem>) -> bool,
+    // ) {
+    //     let area = frame.size();
+    //
+    //     framework
+    //         .data
+    //         .global
+    //         .get_mut::<Status>()
+    //         .unwrap()
+    //         .prev_frame = Some(area);
+    //
+    //     if Self::protective_screen(framework, frame) {
+    //         return;
+    //     }
+    //
+    //     framework.render_filter(frame, filter);
+    // }
 
     /// this function renders onto the given frame
     pub fn protective_screen(

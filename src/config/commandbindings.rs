@@ -184,7 +184,7 @@ fn global_default() -> HashMap<KeyCodeSerde, HashMap<u8, String>> {
             HashMap::from([
                 (
                     2,
-                    String::from("mpv seek -5 ;; echo mpv Reversed 5 seconds"),
+                    String::from("mpv seek -5 ;; echo mpv Rewinded 5 seconds"),
                 ),
                 (3, String::from("back ;; echo mpv Unskipped")),
             ]),

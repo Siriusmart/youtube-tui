@@ -303,6 +303,12 @@ pub fn run_single_command(
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Success(String::from("Copied to clipboad"));
         }
+        #[cfg(not(feature = "clipboard"))]
+        ["copy", ..] => {
+            *framework.data.global.get_mut::<Message>().unwrap() = Message::Error(String::from(
+                "Feature `clipboard` is disabled and not compiled",
+            ));
+        }
         ["sync", identifier] => {
             let id = if identifier.len() == 24 {
                 identifier.to_string()
@@ -520,6 +526,11 @@ pub fn run_single_command(
                 _ => unreachable!(),
             };
         }
+        #[cfg(not(feature = "mpv"))]
+        ["mpv", ..] => {
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Error(String::from("Feature `mpv` is disabled and not compiled"));
+        }
         ["echo", r#type, ..] => {
             *framework.data.global.get_mut::<Message>().unwrap() = match *r#type {
                 "message" => Message::Message(command[2..].join(" ")),
@@ -618,6 +629,7 @@ fn help_msg(cmdefines: &CommandsRemapConfig) -> String {
     \x1b[33mparrun [command]\x1b[0m                Runs a system command non blocking (e.g. `run firefox example.com`)
     \x1b[33mcopy [text]\x1b[0m                     Copies text to clipboard
     \x1b[33mkey [keycode] [keymodifier]\x1b[0m     Create a key input event
+    \x1b[33mecho [mode] [message]\x1b[0m           Dispalys a message in message bar, mode: none, success, warn, error, mpv (can be overwritten by mpv player)
 
 \x1b[91mLIBRARY:\x1b[0m
     \x1b[33mbookmark [id]\x1b[0m                   Bookmark item with ID (item must be already loaded)

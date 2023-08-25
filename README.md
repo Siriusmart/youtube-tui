@@ -7,20 +7,15 @@
 
 ***Read more in the [user manual](https://siriusmart.github.io/youtube-tui) (including installation guide and documentation).***
 
-> "May Invidious live and prosper, with, or without us."
->
-> ~ The Invidious team on [YouTube trying to take them down](https://github.com/iv-org/invidious/issues/3872).
-
-Go show them some support by [donating](https://invidious.io/donate/) and starring their
-[GitHub repos](https://github.com/iv-org)!
-
 # Overview
 
-Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal.
+Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal. Works out of the box and easily to configurable.
 
 ![](./docs/src/images/search-showcase.png)
 
 It is like an _app launcher_, it launches other programs to do the heavy lifting (for example, `mpv` for playing videos).
+
+<sub>It also have an embedded mpv music player, but that can be disabled in compile time.</sub>
 
 > Consider regenerating config files on updates to allow new features.
 
@@ -61,10 +56,10 @@ However, the programs to launch can be changed, and therefore the YouTube TUI <u
 
 The YouTube TUI allows you to browse YouTube with (almost) all of it's features, functions including:
 
-- View popular/trending videos
 - View information about channels, playlists and videos
 - Use search filters to sort and filter search results
 - Save browsing history
+- Embedded audio/music player
 
 It also includes features like:
 
@@ -77,9 +72,9 @@ It also includes features like:
 ### What it doesn't have
 
 - [URGENT] Replace the no-longer-going-to-compile `typemap` dependency with either a self implementation of it or a useable crate.
-- Strip down some libraries to reduce compile speed, specifically removing.
+- Strip down some libraries to reduce compile speed.
 - Add command section for channel main page (first priority)
-- Add NewPipe as a source alongside Invidious
+- Git like command line to improve on `yt-dlp` - make changes to existing downloaded playlists instead of redownloading the entire thing.
 
 ## How to contribute
 

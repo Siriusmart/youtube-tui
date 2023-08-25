@@ -24,6 +24,10 @@ The item with the cursor hovering will have a <u>red outline</u>.
 |First page history|Home|
 |Clear page history|End|
 |Paste from clipboard|`Ctrl` + `V`|
+|Next/previous entry on search and command|`Ctrl` + up/down arrow|
+|Next song|`Ctrl` + `Shift` + Right arrow|
+|Seek audio|`Ctrl` + left/right arrow|
+|Pause/resume audio|Space|
 |Enter command mode|`:`|
 |Quit|`q`|
 
@@ -41,13 +45,27 @@ To apply search filters, select the button with 3 dots (`...`) to the right of t
 
 ![](./images/search-filters-showcase.png)
 
-## Playing videos and playlists
+> You may use `Ctrl + Up/Down arrow` to cycle through previously searched queries (when focused on the search bar).
+
+## Playing media with embedded player
+
+By default, running any "play video" options in video or playlist view will open a new mpv player window.
+
+While any "play audio" options will start playing the audio in the embedded audio player,
+
+- seek and rewind using `Ctrl + Left/Right arrow`
+- skip with `Ctrl + Shift + Right arrow`
+- pause and resume with space
+
+## Playing videos and playlists externally
+
+You can also play audio and videos externally.
 
 > This part assumes that you use `mpv` as your video player, `konsole` as your terminal emulator, `yt-dlp` as your YouTube video downloader, and `firefox` as your browser.
 > 
 > If that is not the case, you can learn how to change that in the *custom commands* section.
 
-Press `Enter` to select a video or playlist from any lists, then move the cursor to the *bottom item* where you can play, download and open the webpage in browser.
+You can press keybindings like `Shift` + `A` to run a command which opens a new terminal screen, and in that terminal screen it runs an mpv command to play the media.
 
 ## Feeds
 
