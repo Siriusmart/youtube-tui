@@ -38,6 +38,16 @@ environment.systemPackages = [
 ];
 ```
 
+##  Installation on NixOS **with flakes** (recommended)
+
+```nix
+{
+    inputs.youtube-tui.url = "github:Siriusmart/youtube-tui";
+
+    ...
+}
+```
+
 ## Build from source
 
 Use the `cargo` command:
