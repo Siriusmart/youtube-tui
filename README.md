@@ -1,3 +1,5 @@
+## YouTube TUI is being **rewritten**, [click here](https://github.com/Siriusmart/youtube-tui/issues/48) to learn more.
+
 ![](https://img.shields.io/github/languages/top/siriusmart/youtube-tui?label=rust)
 ![](https://shields.io/github/license/siriusmart/youtube-tui)
 [![](https://img.shields.io/crates/d/youtube-tui?label=crates.io%20downloads)](https://crates.io/crates/youtube-tui)
