@@ -8,6 +8,7 @@ use crate::{
 };
 use chrono::Utc;
 use home::home_dir;
+use invidious::ClientSyncTrait;
 use serde::*;
 use std::{
     error::Error,
@@ -210,7 +211,7 @@ fn sync_one(
         .videos
         .into_iter()
         .map(|video| {
-            Item::from_channel_video(video, image_index)
+            Item::from_common_video(video, image_index)
                 .into_minivideo()
                 .unwrap()
         })

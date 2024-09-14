@@ -1,9 +1,9 @@
-use chrono::{Datelike, NaiveDateTime};
+use chrono::{DateTime, Datelike};
 
 /// Convert timestamp into `DD/MM/YYYY`
 pub fn date_text(timestamp: u64) -> String {
-    let date = NaiveDateTime::from_timestamp_opt(timestamp as i64, 0)
+    let date = DateTime::from_timestamp(timestamp as i64, 0)
         .unwrap()
-        .date();
+        .date_naive();
     format!("{}/{}/{}", date.day(), date.month(), date.year())
 }

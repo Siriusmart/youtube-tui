@@ -1,5 +1,5 @@
 use crate::{config::MainConfig, global::functions::download_all_images, global::structs::Item};
-use invidious::ClientSync;
+use invidious::{ClientSync, ClientSyncTrait};
 use std::error::Error;
 
 pub fn load_playlist(
@@ -13,7 +13,7 @@ pub fn load_playlist(
     if mainconfig.images.display() {
         download_all_images({
             let mut items = videos.iter().map(|item| item.into()).collect::<Vec<_>>();
-            items.extend([(&playlist).into()].into_iter());
+            items.extend([(&playlist).into()]);
             items
         });
     }

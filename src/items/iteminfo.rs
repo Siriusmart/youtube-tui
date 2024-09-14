@@ -19,9 +19,9 @@ pub struct ItemInfo {
 impl FrameworkItem for ItemInfo {
     fn render(
         &mut self,
-        frame: &mut ratatui::Frame<ratatui::backend::CrosstermBackend<std::io::Stdout>>,
+        frame: &mut ratatui::Frame,
         framework: &mut tui_additions::framework::FrameworkClean,
-        area: ratatui::layout::Rect,
+        area: Rect,
         popup_render: bool,
         _info: tui_additions::framework::ItemInfo,
     ) {
@@ -318,16 +318,16 @@ impl FrameworkItem for ItemInfo {
                     Style::default().fg(appearance.colors.item_info.description),
                 )),
             ),
-            Item::Unknown(searchitem_transitional) => (
-                vec![(
-                    format!("Unknown type `{}`", searchitem_transitional.r#type),
-                    Style::default().fg(appearance.colors.text_error),
-                )],
-                Some((
-                    serde_json::to_string(&searchitem_transitional).unwrap(),
-                    Style::default().fg(appearance.colors.item_info.description),
-                )),
-            ),
+            // Item::Unknown(searchitem_transitional) => (
+            //     vec![(
+            //         format!("Unknown type `{}`", searchitem_transitional.r#type),
+            //         Style::default().fg(appearance.colors.text_error),
+            //     )],
+            //     Some((
+            //         serde_json::to_string(&searchitem_transitional).unwrap(),
+            //         Style::default().fg(appearance.colors.item_info.description),
+            //     )),
+            // ),
             Item::Page(b) => (
                 vec![(
                     if *b { "Next page" } else { "Previous page" }.to_string(),

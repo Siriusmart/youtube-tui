@@ -6,6 +6,7 @@ use crate::{
     items::ItemInfo,
 };
 use home::home_dir;
+use invidious::ClientSyncTrait;
 use ratatui::{
     layout::{Constraint, Rect},
     style::Style,
@@ -75,7 +76,7 @@ impl ItemList {
                     ),
                 )]
             }
-            Item::Page(_) | Item::Unknown(_) => {
+            Item::Page(_) => {
                 vec![(String::from("hover-url"), String::from("not avaliable"))]
             }
         }
@@ -136,18 +137,18 @@ impl ItemList {
                 }
                 Item::MiniChannel(MiniChannelItem { id: _id, .. })
                 | Item::FullChannel(FullChannelItem { id: _id, .. }) => todo!(),
-                Item::Unknown(_) => {
-                    *framework.data.global.get_mut::<Message>().unwrap() =
-                        Message::Message(String::from("Unknown item"));
-                    framework
-                        .data
-                        .state
-                        .get_mut::<Tasks>()
-                        .unwrap()
-                        .priority
-                        .push(Task::RenderAll);
-                    None
-                }
+                // Item::Unknown(_) => {
+                //     *framework.data.global.get_mut::<Message>().unwrap() =
+                //         Message::Message(String::from("Unknown item"));
+                //     framework
+                //         .data
+                //         .state
+                //         .get_mut::<Tasks>()
+                //         .unwrap()
+                //         .priority
+                //         .push(Task::RenderAll);
+                //     None
+                // }
                 Item::Page(b) => match framework.data.state.get::<Page>().unwrap() {
                     Page::Search(search) => Some(Page::Search(Search {
                         page: if *b { search.page + 1 } else { search.page - 1 },
@@ -173,18 +174,18 @@ impl ItemList {
                         r#type: ChannelDisplayPageType::Main,
                     }))
                 }
-                Item::Unknown(_) => {
-                    *framework.data.global.get_mut::<Message>().unwrap() =
-                        Message::Message(String::from("Unknown item"));
-                    framework
-                        .data
-                        .state
-                        .get_mut::<Tasks>()
-                        .unwrap()
-                        .priority
-                        .push(Task::RenderAll);
-                    None
-                }
+                // Item::Unknown(_) => {
+                //     *framework.data.global.get_mut::<Message>().unwrap() =
+                //         Message::Message(String::from("Unknown item"));
+                //     framework
+                //         .data
+                //         .state
+                //         .get_mut::<Tasks>()
+                //         .unwrap()
+                //         .priority
+                //         .push(Task::RenderAll);
+                //     None
+                // }
                 Item::Page(b) => match framework.data.state.get::<Page>().unwrap() {
                     Page::Search(search) => Some(Page::Search(Search {
                         page: if *b { search.page + 1 } else { search.page - 1 },
@@ -225,7 +226,7 @@ impl Default for ItemList {
 impl FrameworkItem for ItemList {
     fn render(
         &mut self,
-        frame: &mut ratatui::Frame<ratatui::backend::CrosstermBackend<std::io::Stdout>>,
+        frame: &mut ratatui::Frame,
         framework: &mut tui_additions::framework::FrameworkClean,
         area: ratatui::layout::Rect,
         popup_render: bool,
@@ -298,7 +299,7 @@ impl FrameworkItem for ItemList {
                     .trending(None)?
                     .videos
                     .into_iter()
-                    .map(|item| Item::from_trending_video(item, image_index))
+                    .map(|item| Item::from_common_video(item, image_index))
                     .collect();
             }
             Page::MainMenu(MainMenuPage::Popular) => {
@@ -503,7 +504,7 @@ impl ItemList {
             return;
         }
 
-        if matches!(selected, Some(Item::Page(_)) | Some(Item::Unknown(_))) {
+        if matches!(selected, Some(Item::Page(_))) {
             framework
                 .data
                 .global

@@ -31,7 +31,7 @@ pub trait ConfigTrait {
                     Err(_) => return Ok(Self::default()),
                 };
 
-                match serde_yaml::from_str::<Self>(&content) {
+                match serde_yaml_ng::from_str::<Self>(&content) {
                     Ok(config) => Ok(config),
                     // If there is error parsing the json file, create a backup with current time and returns
                     // Self::default()
@@ -61,7 +61,7 @@ pub trait ConfigTrait {
                     .create(true)
                     .truncate(true)
                     .open(&config_path)?;
-                file.write_all(serde_yaml::to_string(&config)?.as_bytes())?
+                file.write_all(serde_yaml_ng::to_string(&config)?.as_bytes())?
             }
             WriteConfig::Try => {
                 if let Ok(mut file) = OpenOptions::new()
@@ -70,7 +70,7 @@ pub trait ConfigTrait {
                     .truncate(true)
                     .open(&config_path)
                 {
-                    let _ = file.write_all(serde_yaml::to_string(&config)?.as_bytes());
+                    let _ = file.write_all(serde_yaml_ng::to_string(&config)?.as_bytes());
                 }
             }
             WriteConfig::Dont => {}

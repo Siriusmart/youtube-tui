@@ -231,18 +231,15 @@ impl TaskQueue {
 
     pub fn render_onlys_with_frame(
         framework: &mut Framework,
-        frame: &mut Frame<CrosstermBackend<Stdout>>,
+        frame: &mut Frame,
         locations: Vec<(usize, usize)>,
     ) {
         framework.render_only_multiple(frame, &locations);
     }
 
     /// this function renders onto the given frame
-    pub fn render_with_frame(
-        framework: &mut Framework,
-        frame: &mut Frame<CrosstermBackend<Stdout>>,
-    ) {
-        let area = frame.size();
+    pub fn render_with_frame(framework: &mut Framework, frame: &mut Frame) {
+        let area = frame.area();
 
         framework
             .data
@@ -290,12 +287,9 @@ impl TaskQueue {
     // }
 
     /// this function renders onto the given frame
-    pub fn protective_screen(
-        framework: &mut Framework,
-        frame: &mut Frame<CrosstermBackend<Stdout>>,
-    ) -> bool {
+    pub fn protective_screen(framework: &mut Framework, frame: &mut Frame) -> bool {
         let min_dimentions = framework.data.state.get::<MinDimentions>().unwrap();
-        let area = frame.size();
+        let area = frame.area();
 
         // if the minimum width and height is not meet, then displays a "protective screen" to prevent panicking
         if area.width < min_dimentions.width || area.height < min_dimentions.height {

@@ -3,6 +3,7 @@ use crate::{
     config::*,
     global::{functions::*, structs::*},
 };
+use invidious::ClientSyncTrait;
 use ratatui::{
     layout::{Constraint, Rect},
     style::Style,
@@ -225,7 +226,7 @@ impl ChannelDisplay {
 impl FrameworkItem for ChannelDisplay {
     fn render(
         &mut self,
-        frame: &mut ratatui::Frame<ratatui::backend::CrosstermBackend<std::io::Stdout>>,
+        frame: &mut ratatui::Frame,
         framework: &mut tui_additions::framework::FrameworkClean,
         area: ratatui::layout::Rect,
         popup_render: bool,
@@ -435,7 +436,7 @@ impl FrameworkItem for ChannelDisplay {
                     .channel_videos(&page.id, None)?
                     .videos
                     .into_iter()
-                    .map(|video| Item::from_channel_video(video, mainconfig.image_index))
+                    .map(|video| Item::from_common_video(video, mainconfig.image_index))
                     .collect::<Vec<_>>();
                 if mainconfig.images.display() {
                     download_all_images(videos.iter().map(|item| item.into()).collect());
@@ -465,7 +466,7 @@ impl FrameworkItem for ChannelDisplay {
                     .channel_playlists(&page.id, None)?
                     .playlists
                     .into_iter()
-                    .map(Item::from_channel_playlist)
+                    .map(Item::from_common_playlist)
                     .collect::<Vec<_>>();
                 if mainconfig.images.display() {
                     download_all_images(playlists.iter().map(|item| item.into()).collect());

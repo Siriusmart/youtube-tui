@@ -200,7 +200,7 @@ impl KeyBindingsConfig {
             .truncate(true)
             .open(&config_path)?;
 
-        file.write_all(serde_yaml::to_string(&default)?.as_bytes())?;
+        file.write_all(serde_yaml_ng::to_string(&default)?.as_bytes())?;
 
         match default.into() {
             Some(keybindings) => Ok(keybindings),

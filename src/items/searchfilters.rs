@@ -82,14 +82,14 @@ impl SearchFilter {
 impl FrameworkItem for SearchFilter {
     fn render(
         &mut self,
-        frame: &mut ratatui::Frame<ratatui::backend::CrosstermBackend<std::io::Stdout>>,
+        frame: &mut ratatui::Frame,
         framework: &mut tui_additions::framework::FrameworkClean,
         area: ratatui::layout::Rect,
         popup_render: bool,
         info: tui_additions::framework::ItemInfo,
     ) {
         if popup_render && info.selected {
-            let frame_area = frame.size();
+            let frame_area = frame.area();
             let (area, success) = match popup_area(
                 (POPUP_WIDTH_PERCENTAGE, POPOUP_HEIGHT_PERCENTAGE),
                 (POPUP_MIN_WIDTH, POPUP_MIN_HEIGHT),

@@ -15,7 +15,7 @@ pub struct MessageBar;
 impl FrameworkItem for MessageBar {
     fn render(
         &mut self,
-        frame: &mut ratatui::Frame<ratatui::backend::CrosstermBackend<std::io::Stdout>>,
+        frame: &mut ratatui::Frame,
         framework: &mut tui_additions::framework::FrameworkClean,
         area: ratatui::layout::Rect,
         popup_render: bool,

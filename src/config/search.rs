@@ -34,12 +34,12 @@ impl ToString for Search {
     fn to_string(&self) -> String {
         format!(
             "{}&page={}",
-            vec![
+            [
                 format!("q={}", encode(&self.query)),
                 self.filters.sort.as_url_string(),
                 self.filters.date.as_url_string(),
                 self.filters.duration.as_url_string(),
-                self.filters.r#type.as_url_string(),
+                self.filters.r#type.as_url_string()
             ]
             .join("&"),
             self.page

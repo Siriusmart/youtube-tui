@@ -67,23 +67,9 @@ impl SingleVideoItem {
     pub fn new(commands: &CommandsConfig, mainconfig: &MainConfig, id: &str) -> Self {
         let saved = find_library_item(id, mainconfig).is_some();
         if saved {
-            Self::new_with_map(
-                commands
-                    .saved_video
-                    .clone()
-                    .into_iter()
-                    .map(|(display, command)| (display, command))
-                    .collect(),
-            )
+            Self::new_with_map(commands.saved_video.clone().into_iter().collect())
         } else {
-            Self::new_with_map(
-                commands
-                    .video
-                    .clone()
-                    .into_iter()
-                    .map(|(display, command)| (display, command))
-                    .collect(),
-            )
+            Self::new_with_map(commands.video.clone().into_iter().collect())
         }
     }
 
@@ -199,22 +185,12 @@ impl SinglePlaylistItem {
         let saved = find_library_item(id, mainconfig).is_some();
         if saved {
             Self::new_with_map(
-                commands
-                    .saved_playlist
-                    .clone()
-                    .into_iter()
-                    .map(|(display, command)| (display, command))
-                    .collect(),
+                commands.saved_playlist.clone().into_iter().collect(),
                 playlist_items,
             )
         } else {
             Self::new_with_map(
-                commands
-                    .playlist
-                    .clone()
-                    .into_iter()
-                    .map(|(display, command)| (display, command))
-                    .collect(),
+                commands.playlist.clone().into_iter().collect(),
                 playlist_items,
             )
         }
@@ -557,9 +533,9 @@ impl SingleItem {
 impl FrameworkItem for SingleItem {
     fn render(
         &mut self,
-        frame: &mut ratatui::Frame<ratatui::backend::CrosstermBackend<std::io::Stdout>>,
-        framework: &mut tui_additions::framework::FrameworkClean,
-        area: ratatui::layout::Rect,
+        frame: &mut ratatui::Frame,
+        framework: &mut FrameworkClean,
+        area: Rect,
         popup_render: bool,
         info: tui_additions::framework::ItemInfo,
     ) {
@@ -738,9 +714,9 @@ impl FrameworkItem for SingleItem {
         self.iteminfo.item = self.item.clone();
 
         if let Some(item) = &self.item {
-            if item.is_unknown() {
-                return Ok(());
-            }
+            // if item.is_unknown() {
+            //     return Ok(());
+            // }
 
             let item = item.clone();
             // push to watch history

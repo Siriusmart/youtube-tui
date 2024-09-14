@@ -444,7 +444,7 @@ pub fn run_single_command(
         ["key", keycode, modifier] => {
             let (keycodeserde, modifier) =
                 match (|| -> Result<(KeyCodeSerde, u8), Box<dyn Error>> {
-                    Ok((serde_yaml::from_str(keycode)?, modifier.parse()?))
+                    Ok((serde_yaml_ng::from_str(keycode)?, modifier.parse()?))
                 })() {
                     Ok(stuff) => stuff,
                     Err(e) => {

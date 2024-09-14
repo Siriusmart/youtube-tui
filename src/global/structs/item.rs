@@ -1,5 +1,8 @@
 use crate::global::{functions::*, traits::CollectionItem};
-use invidious::{channel::Channel, hidden::*, universal::Playlist as FullPlaylist, video::Video};
+use invidious::{
+    channel::Channel, hidden::*, universal::Playlist as FullPlaylist, video::Video, CommonChannel,
+    CommonPlaylist, CommonVideo,
+};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
@@ -18,7 +21,7 @@ pub enum Item {
     FullPlaylist(FullPlaylistItem),
     FullChannel(FullChannelItem),
     Page(bool), // true: next false: prev
-    Unknown(SearchItemTransition),
+                // Unknown(SearchItemTransition),
 }
 
 impl CollectionItem for Item {
@@ -159,8 +162,7 @@ impl Display for Item {
                 } else {
                     "Previous page"
                 }
-            }
-            Self::Unknown(_) => "Unknown item",
+            } // Self::Unknown(_) => "Unknown item",
         })
     }
 }
@@ -175,13 +177,8 @@ impl Item {
             | Self::FullVideo(FullVideoItem { id, .. })
             | Self::FullChannel(FullChannelItem { id, .. })
             | Self::FullPlaylist(FullPlaylistItem { id, .. }) => Some(id),
-            Self::Unknown(_) | Self::Page(_) => None,
+            Self::Page(_) => None,
         }
-    }
-
-    /// check if self is Self::Unknown
-    pub fn is_unknown(&self) -> bool {
-        matches!(self, Self::Unknown(_))
     }
 }
 
@@ -294,16 +291,16 @@ impl Item {
             Self::FullVideo(video) => &video.id,
             Self::FullPlaylist(playlist) => &playlist.id,
             Self::FullChannel(channel) => &channel.id,
-            Self::Unknown(_) | Self::Page(_) => "invalid",
+            Self::Page(_) => "invalid",
         }
     }
 
-    /// parse `TrendingVideo` into `Self`
-    pub fn from_trending_video(original: TrendingVideo, image_index: usize) -> Self {
+    /// parse `CommonVideo` into `Self`
+    pub fn from_common_video(original: CommonVideo, image_index: usize) -> Self {
         Self::MiniVideo(MiniVideoItem {
             title: original.title,
             id: original.id,
-            thumbnail_url: original.thumbmails[image_index].url.clone(),
+            thumbnail_url: original.thumbnails[image_index].url.clone(),
             length: secs_display_string(original.length),
             views: Some(viewcount_text(original.views)),
             channel: original.author,
@@ -315,6 +312,31 @@ impl Item {
                 date_text(original.published)
             )),
             description: Some(original.description),
+        })
+    }
+
+    /// parse `CommonPlaylist` into `Self`
+    pub fn from_common_playlist(original: CommonPlaylist) -> Self {
+        Self::MiniPlaylist(MiniPlaylistItem {
+            title: original.title,
+            id: original.id,
+            channel: original.author,
+            channel_id: original.author_id,
+            video_count: original.video_count,
+            thumbnail_url: original.thumbnail,
+        })
+    }
+
+    /// parse `CommonChannel` into `Self`
+    pub fn from_common_channel(original: CommonChannel, image_index: usize) -> Self {
+        Self::MiniChannel(MiniChannelItem {
+            name: original.name,
+            id: original.id,
+            thumbnail_url: format!("https://{}", original.thumbnails[image_index].url),
+            video_count: original.video_count,
+            sub_count: original.subscribers,
+            sub_count_text: viewcount_text(original.subscribers as u64),
+            description: original.description,
         })
     }
 
@@ -338,79 +360,12 @@ impl Item {
         })
     }
 
-    /// parse `Playlist` into `Self`
-    pub fn from_mini_playlist(original: Playlist) -> Self {
-        Self::MiniPlaylist(MiniPlaylistItem {
-            title: original.title,
-            id: original.id,
-            channel: original.author,
-            channel_id: original.author_id,
-            video_count: original.video_count,
-            thumbnail_url: original.thumbnail,
-        })
-    }
-
     /// parse `SearchItem` into `Self`
     pub fn from_search_item(original: SearchItem, image_index: usize) -> Self {
         match original {
-            SearchItem::Video {
-                title,
-                id,
-                author,
-                author_id,
-                length,
-                thumbnails,
-                description,
-                views,
-                published,
-                published_text,
-                ..
-            } => Self::MiniVideo(MiniVideoItem {
-                title,
-                id,
-                thumbnail_url: thumbnails[image_index].url.clone(),
-                length: secs_display_string(length as u32),
-                views: Some(viewcount_text(views)),
-                channel: author,
-                channel_id: author_id,
-                timestamp: Some(published),
-                published: Some(format!("{} [{}]", published_text, date_text(published))),
-                description: Some(description),
-            }),
-            SearchItem::Playlist {
-                title,
-                id,
-                author,
-                author_id,
-                video_count,
-                thumbnail,
-                ..
-            } => Self::MiniPlaylist(MiniPlaylistItem {
-                title,
-                id,
-                channel: author,
-                channel_id: author_id,
-                video_count,
-                thumbnail_url: thumbnail,
-            }),
-            SearchItem::Channel {
-                name,
-                id,
-                thumbnails,
-                subscribers,
-                video_count,
-                description,
-                ..
-            } => Self::MiniChannel(MiniChannelItem {
-                name,
-                id,
-                thumbnail_url: format!("https://{}", thumbnails[image_index].url),
-                video_count,
-                sub_count: subscribers,
-                sub_count_text: viewcount_text(subscribers as u64),
-                description,
-            }),
-            SearchItem::Unknown(searchitem_transitional) => Self::Unknown(searchitem_transitional),
+            SearchItem::Video(vid) => Self::from_common_video(vid, image_index),
+            SearchItem::Channel(chan) => Self::from_common_channel(chan, image_index),
+            SearchItem::Playlist(list) => Self::from_common_playlist(list),
         }
     }
 
@@ -477,44 +432,12 @@ impl Item {
             name: original.name,
             id: original.id,
             thumbnail_url: original.thumbnails[image_index].url.clone(),
-            sub_count: original.sub_count,
-            sub_count_text: viewcount_text(original.sub_count as u64),
+            sub_count: original.subscribers,
+            sub_count_text: viewcount_text(original.subscribers as u64),
             total_views: viewcount_text(original.total_views),
             created: date_text(original.joined),
             autogenerated: original.auto_generated,
             description: original.description,
-        })
-    }
-
-    /// parse `ChannelVideo` into `Self`
-    pub fn from_channel_video(original: ChannelVideo, image_index: usize) -> Self {
-        Self::MiniVideo(MiniVideoItem {
-            title: original.title,
-            id: original.id,
-            thumbnail_url: original.thumbnails[image_index].url.clone(),
-            length: secs_display_string(original.length),
-            views: Some(viewcount_text(original.view_count)),
-            channel: original.author,
-            channel_id: original.author_id,
-            timestamp: Some(original.published),
-            published: Some(format!(
-                "{} [{}]",
-                original.published_text,
-                date_text(original.published)
-            )),
-            description: Some(original.description),
-        })
-    }
-
-    /// parse `Playlist` into `Self`
-    pub fn from_channel_playlist(original: Playlist) -> Self {
-        Self::MiniPlaylist(MiniPlaylistItem {
-            title: original.title,
-            id: original.id,
-            channel: original.author,
-            channel_id: original.author_id,
-            video_count: original.video_count,
-            thumbnail_url: original.thumbnail,
         })
     }
 }
