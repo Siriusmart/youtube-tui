@@ -1,14 +1,20 @@
 # Changelogs
 
-## v0.8.0 (latest)
+## v0.8.2 (latest)
 
 ### Added
+
+- Added `hover-*` variables for item list.
+
+### v0.8.0
+
+#### Added
 
 - Built in MPV player, controlled by command `mpv [libmpv command] [args...]`
 - Command/search histories.
 - Keys remapping, custom commands.
 
-### Fixed
+#### Fixed
 
 - Some keys captured in search bar and are not working [#37](https://github.com/Siriusmart/youtube-tui/issues/37).
 
