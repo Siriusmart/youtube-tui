@@ -220,10 +220,7 @@ where
 
         // if res is err, then the file either doesn't exist of has be altered incorrectly, in
         // which case returns Self::default()
-        let items = match res {
-            Ok(res) => res,
-            Err(_) => Vec::new(),
-        };
+        let items = res.unwrap_or_default();
 
         Self::from_items(items)
     }

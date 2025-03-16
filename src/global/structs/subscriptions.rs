@@ -264,7 +264,11 @@ pub struct SubItem {
 impl Eq for SubItem {}
 impl Ord for SubItem {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).unwrap()
+        let get_timestamp = |item: &Self| match item.videos.first() {
+            Some(video) => video.timestamp.unwrap(),
+            None => 0,
+        };
+        get_timestamp(other).cmp(&get_timestamp(self))
     }
 }
 
@@ -282,11 +286,7 @@ impl PartialEq for SubItem {
 
 impl PartialOrd for SubItem {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        let get_timestamp = |item: &Self| match item.videos.first() {
-            Some(video) => video.timestamp.unwrap(),
-            None => 0,
-        };
-        get_timestamp(other).partial_cmp(&get_timestamp(self))
+        Some(self.cmp(other))
     }
 }
 

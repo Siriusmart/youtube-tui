@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{config::AppearanceConfig, global::structs::*};
 use ratatui::{
     layout::Alignment,
@@ -53,18 +55,18 @@ impl PageButton {
     // }
 }
 
-impl ToString for PageButton {
-    fn to_string(&self) -> String {
-        match self {
-            Self::Popular => String::from("Popular"),
-            Self::Trending => String::from("Trending"),
-            Self::ChannelMain => String::from("Main"),
-            Self::ChannelVideos => String::from("Videos"),
-            Self::ChannelPlaylists => String::from("Playlists"),
-            Self::History => String::from("History"),
-            Self::Feed => String::from("Feed"),
-            Self::Library => String::from("Library"),
-        }
+impl Display for PageButton {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Popular => "Popular",
+            Self::Trending => "Trending",
+            Self::ChannelMain => "Main",
+            Self::ChannelVideos => "Videos",
+            Self::ChannelPlaylists => "Playlists",
+            Self::History => "History",
+            Self::Feed => "Feed",
+            Self::Library => "Library",
+        })
     }
 }
 

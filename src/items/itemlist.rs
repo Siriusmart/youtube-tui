@@ -37,44 +37,89 @@ impl ItemList {
         }
 
         match &self.items[self.textlist.selected] {
-            Item::MiniVideo(MiniVideoItem { id, .. })
-            | Item::FullVideo(FullVideoItem { id, .. }) => {
-                vec![(
-                    String::from("hover-url"),
-                    format!(
-                        "{}/watch?v={id}",
-                        match status.provider {
-                            Provider::YouTube => "https://youtube.com",
-                            Provider::Invidious => &mainconfig.invidious_instance,
-                        }
+            Item::MiniVideo(MiniVideoItem {
+                id,
+                title,
+                channel_id,
+                channel,
+                ..
+            })
+            | Item::FullVideo(FullVideoItem {
+                id,
+                title,
+                channel_id,
+                channel,
+                ..
+            }) => {
+                vec![
+                    (
+                        String::from("hover-url"),
+                        format!(
+                            "{}/watch?v={id}",
+                            match status.provider {
+                                Provider::YouTube => "https://youtube.com",
+                                Provider::Invidious => &mainconfig.invidious_instance,
+                            }
+                        ),
                     ),
-                )]
+                    (String::from("hover-title"), title.clone()),
+                    (String::from("hover-id"), id.clone()),
+                    (String::from("hover-type"), String::from("video")),
+                    (String::from("hover-channel-id"), channel_id.clone()),
+                    (String::from("hover-channel"), channel.clone()),
+                ]
             }
-            Item::MiniPlaylist(MiniPlaylistItem { id, .. })
-            | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
-                vec![(
-                    String::from("hover-url"),
-                    format!(
-                        "{}/playlist?list={id}",
-                        match status.provider {
-                            Provider::YouTube => "https://youtube.com",
-                            Provider::Invidious => &mainconfig.invidious_instance,
-                        }
+            Item::MiniPlaylist(MiniPlaylistItem {
+                id,
+                title,
+                channel_id,
+                channel,
+                ..
+            })
+            | Item::FullPlaylist(FullPlaylistItem {
+                id,
+                title,
+                channel_id,
+                channel,
+                ..
+            }) => {
+                vec![
+                    (
+                        String::from("hover-url"),
+                        format!(
+                            "{}/playlist?list={id}",
+                            match status.provider {
+                                Provider::YouTube => "https://youtube.com",
+                                Provider::Invidious => &mainconfig.invidious_instance,
+                            }
+                        ),
                     ),
-                )]
+                    (String::from("hover-title"), title.clone()),
+                    (String::from("hover-id"), id.clone()),
+                    (String::from("hover-type"), String::from("playlist")),
+                    (String::from("hover-channel-id"), channel_id.clone()),
+                    (String::from("hover-channel"), channel.clone()),
+                ]
             }
-            Item::MiniChannel(MiniChannelItem { id, .. })
-            | Item::FullChannel(FullChannelItem { id, .. }) => {
-                vec![(
-                    String::from("hover-url"),
-                    format!(
-                        "{}/channel/{id}",
-                        match status.provider {
-                            Provider::YouTube => "https://youtube.com",
-                            Provider::Invidious => &mainconfig.invidious_instance,
-                        }
+            Item::MiniChannel(MiniChannelItem { id, name, .. })
+            | Item::FullChannel(FullChannelItem { id, name, .. }) => {
+                vec![
+                    (
+                        String::from("hover-url"),
+                        format!(
+                            "{}/channel/{id}",
+                            match status.provider {
+                                Provider::YouTube => "https://youtube.com",
+                                Provider::Invidious => &mainconfig.invidious_instance,
+                            }
+                        ),
                     ),
-                )]
+                    (String::from("hover-title"), name.clone()),
+                    (String::from("hover-id"), id.clone()),
+                    (String::from("hover-channel-id"), id.clone()),
+                    (String::from("hover-channel"), name.clone()),
+                    (String::from("hover-type"), String::from("channel")),
+                ]
             }
             Item::Page(_) => {
                 vec![(String::from("hover-url"), String::from("not avaliable"))]

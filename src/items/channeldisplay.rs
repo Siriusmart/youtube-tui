@@ -20,19 +20,22 @@ pub enum ChannelDisplay {
     /// a blank item, will turn into one of the other variants when `.load()` depending on the page
     None,
     /// main channel display page
-    Main { channel: Item, iteminfo: ItemInfo },
+    Main {
+        channel: Box<Item>,
+        iteminfo: Box<ItemInfo>,
+    },
     /// latest videos
     Videos {
         videos: Vec<Item>,
         textlist: TextList,
-        iteminfo: ItemInfo,
+        iteminfo: Box<ItemInfo>,
         grid: Grid,
     },
     /// created playlists
     Playlists {
         playlists: Vec<Item>,
         textlist: TextList,
-        iteminfo: ItemInfo,
+        iteminfo: Box<ItemInfo>,
         grid: Grid,
     },
 }
@@ -422,8 +425,8 @@ impl FrameworkItem for ChannelDisplay {
                     download_all_images(vec![(&channel).into()]);
                 }
                 *self = Self::Main {
-                    iteminfo: ItemInfo::new(Some(channel.clone())),
-                    channel,
+                    iteminfo: Box::new(ItemInfo::new(Some(channel.clone()))),
+                    channel: Box::new(channel),
                 }
             }
             ChannelDisplayPageType::Videos => {
@@ -447,7 +450,7 @@ impl FrameworkItem for ChannelDisplay {
                         .border_type(appearance.borders)
                         .style(Style::default().fg(appearance.colors.text))
                         .items(&videos)?,
-                    iteminfo: ItemInfo::new(videos.first().cloned()),
+                    iteminfo: Box::new(ItemInfo::new(videos.first().cloned())),
                     grid: Grid::new(
                         vec![Constraint::Percentage(60), Constraint::Percentage(40)],
                         vec![Constraint::Percentage(100)],
@@ -477,7 +480,7 @@ impl FrameworkItem for ChannelDisplay {
                         .border_type(appearance.borders)
                         .style(Style::default().fg(appearance.colors.text))
                         .items(&playlists)?,
-                    iteminfo: ItemInfo::new(playlists.first().cloned()),
+                    iteminfo: Box::new(ItemInfo::new(playlists.first().cloned())),
                     grid: Grid::new(
                         vec![Constraint::Percentage(60), Constraint::Percentage(40)],
                         vec![Constraint::Percentage(100)],

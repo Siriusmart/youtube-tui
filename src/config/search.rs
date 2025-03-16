@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::global::{structs::Message, traits::*};
 use serde::{Deserialize, Serialize};
 use typemap::Key;
@@ -30,9 +32,9 @@ impl ConfigTrait for Search {
     const LABEL: &'static str = "search";
 }
 
-impl ToString for Search {
-    fn to_string(&self) -> String {
-        format!(
+impl Display for Search {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!(
             "{}&page={}",
             [
                 format!("q={}", encode(&self.query)),
@@ -43,7 +45,7 @@ impl ToString for Search {
             ]
             .join("&"),
             self.page
-        )
+        ))
     }
 }
 
@@ -168,49 +170,49 @@ impl Default for SearchFilterType {
     }
 }
 
-impl ToString for SearchFilterSort {
-    fn to_string(&self) -> String {
-        match self {
-            Self::Relevance => String::from("relevance"),
-            Self::Rating => String::from("rating"),
-            Self::Date => String::from("date"),
-            Self::Views => String::from("views"),
-        }
+impl Display for SearchFilterSort {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Relevance => "relevance",
+            Self::Rating => "rating",
+            Self::Date => "date",
+            Self::Views => "views",
+        })
     }
 }
 
-impl ToString for SearchFilterDate {
-    fn to_string(&self) -> String {
-        match self {
-            Self::None => String::from("none"),
-            Self::Hour => String::from("hour"),
-            Self::Day => String::from("day"),
-            Self::Week => String::from("week"),
-            Self::Month => String::from("month"),
-            Self::Year => String::from("year"),
-        }
+impl Display for SearchFilterDate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::None => "none",
+            Self::Hour => "hour",
+            Self::Day => "day",
+            Self::Week => "week",
+            Self::Month => "month",
+            Self::Year => "year",
+        })
     }
 }
 
-impl ToString for SearchFilterDuration {
-    fn to_string(&self) -> String {
-        match self {
-            Self::None => String::from("none"),
-            Self::Short => String::from("short"),
-            Self::Medium => String::from("medium"),
-            Self::Long => String::from("long"),
-        }
+impl Display for SearchFilterDuration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::None => "none",
+            Self::Short => "short",
+            Self::Medium => "medium",
+            Self::Long => "long",
+        })
     }
 }
 
-impl ToString for SearchFilterType {
-    fn to_string(&self) -> String {
-        match self {
-            Self::All => String::from("all"),
-            Self::Video => String::from("video"),
-            Self::Channel => String::from("channel"),
-            Self::Playlist => String::from("playlist"),
-        }
+impl Display for SearchFilterType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::All => "all",
+            Self::Video => "video",
+            Self::Channel => "channel",
+            Self::Playlist => "playlist",
+        })
     }
 }
 

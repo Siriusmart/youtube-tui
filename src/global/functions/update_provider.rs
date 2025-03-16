@@ -30,13 +30,11 @@ pub fn update_provider(data: &mut FrameworkData) {
             String::from("url"),
             match status.provider {
                 Provider::YouTube => {
-                    format!("https://youtube.com/results?{}", search.to_string())
+                    format!("https://youtube.com/results?{}", search)
                 }
-                Provider::Invidious => format!(
-                    "{}/search?{}",
-                    mainconfig.invidious_instance,
-                    search.to_string()
-                ),
+                Provider::Invidious => {
+                    format!("{}/search?{}", mainconfig.invidious_instance, search)
+                }
             },
         )],
         Page::MainMenu(MainMenuPage::Popular) => vec![(
