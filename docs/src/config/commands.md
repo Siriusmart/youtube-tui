@@ -85,6 +85,7 @@ Does not include custom env set in `main.yml`.
 |`all-videos`|playlist|String url***s*** separated by space to all embed videos in a playlist|
 |`hover-url`|trending, popular, search|Url of the currenly hovering item.|
 |`hover-id`|trending, popular, search|Url of the currenly hovering item.|
+|`hover-title`|trending, popular, search|Title of the currenly hovering item.|
 |`hover-channel`|trending, popular, search|Channel name of the currenly hovering item.|
 |`hover-channel-id`|trending, popular, search|Channel ID of the currenly hovering item.|
 |`hover-channel`|trending, popular, search|Url of the currenly hovering item.|
