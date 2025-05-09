@@ -1,8 +1,18 @@
 # Changelogs
 
-## v0.8.2 (latest)
+## v0.8.3 (latest)
 
 ### Added
+
+- Added channel commands menu.
+
+### Fixed
+
+- Patched invidious-rs to fix [#80](https://github.com/Siriusmart/youtube-tui/issues/80).
+
+### v0.8.2
+
+#### Added
 
 - Added `hover-*` variables for item list.
 

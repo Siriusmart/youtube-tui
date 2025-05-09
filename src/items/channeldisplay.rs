@@ -23,6 +23,9 @@ pub enum ChannelDisplay {
     Main {
         channel: Box<Item>,
         iteminfo: Box<ItemInfo>,
+        grid: Grid,
+        textlist: TextList,
+        commands: Vec<(String, String)>,
     },
     /// latest videos
     Videos {
@@ -47,6 +50,52 @@ impl Default for ChannelDisplay {
 }
 
 impl ChannelDisplay {
+    pub fn new_textlist_with_map(commands: Vec<(String, String)>) -> TextList {
+        TextList::default()
+            .items(
+                &commands
+                    .iter()
+                    .map(|command| &command.0)
+                    .collect::<Vec<_>>(),
+            )
+            .unwrap()
+    }
+
+    fn inflate_load(&self, mainconfig: &MainConfig, status: &Status) -> Vec<(String, String)> {
+        match self {
+            Self::Main { channel, .. } => {
+                vec![
+                    (
+                        String::from("url"),
+                        match status.provider {
+                            Provider::Invidious => format!(
+                                "{}/channel/{}{}",
+                                mainconfig.invidious_instance,
+                                channel.id().unwrap_or_default(),
+                                match self {
+                                    Self::None | Self::Main { .. } => "",
+                                    Self::Videos { .. } => "videos",
+                                    Self::Playlists { .. } => "playlists",
+                                }
+                            ),
+                            Provider::YouTube => format!("'https://youtu.be/{}'", channel.id().unwrap_or_default()),
+                        },
+                    ),
+                    (
+                        String::from("id"),
+                        channel.id().unwrap_or_default().to_string()
+                    ),
+                    (
+                        String::from("name"),
+                        channel.fullchannel().unwrap().name.clone()
+                    )
+                ]
+            }
+            // TODO?
+            _ => Vec::new()
+        }
+    }
+
     fn infalte_item_update(
         &self,
         mainconfig: &MainConfig,
@@ -104,25 +153,12 @@ impl ChannelDisplay {
     ) {
         // is runs on every render
         match self {
-            ChannelDisplay::Videos { textlist, grid, .. } => {
-                if info.selected {
-                    textlist
-                        .set_selected_style(Style::default().fg(appearance.colors.text_special));
-                    textlist.set_cursor_style(Style::default().fg(appearance.colors.outline_hover));
-                    grid.set_border_style(Style::default().fg(appearance.colors.outline_selected));
-                } else {
-                    if info.hover {
-                        grid.set_border_style(Style::default().fg(appearance.colors.outline_hover));
-                    } else {
-                        grid.set_border_style(Style::default().fg(appearance.colors.outline));
-                    }
-                    textlist
-                        .set_selected_style(Style::default().fg(appearance.colors.text_secondary));
-                    textlist
-                        .set_cursor_style(Style::default().fg(appearance.colors.outline_secondary));
-                }
-            }
-            ChannelDisplay::Playlists { textlist, grid, .. } => {
+            ChannelDisplay::Main { textlist, grid, .. }
+            | ChannelDisplay::Playlists { textlist, grid, .. }
+            | ChannelDisplay::Videos { textlist, grid, .. } => {
+                textlist.set_border_type(appearance.borders);
+                textlist.set_style(Style::default().fg(appearance.colors.text));
+
                 if info.selected {
                     textlist
                         .set_selected_style(Style::default().fg(appearance.colors.text_special));
@@ -148,7 +184,20 @@ impl ChannelDisplay {
     /// `SingleItemPage`
     fn select_at_cursor(&self, framework: &mut FrameworkClean) {
         match self {
-            Self::None | Self::Main { .. } => {}
+            Self::None => {}
+            Self::Main {
+                textlist, commands, ..
+            } => {
+                let command_string = commands[textlist.selected].1.clone();
+
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::Command(apply_envs(command_string)));
+            }
             Self::Videos {
                 videos, textlist, ..
             } => {
@@ -222,7 +271,7 @@ impl ChannelDisplay {
 
     /// check if self should be able to be selected
     pub fn selectable(&self) -> bool {
-        !(matches!(self, Self::Main { .. }) || matches!(self, Self::None))
+        !matches!(self, Self::None)
     }
 }
 
@@ -260,15 +309,17 @@ impl FrameworkItem for ChannelDisplay {
                     .border_style(border_style);
                 frame.render_widget(block, area);
             }
-            Self::Main { iteminfo, .. } => {
-                let block = Block::default()
-                    .border_type(appearance.borders)
-                    .borders(Borders::ALL)
-                    .border_style(border_style);
-                let inner = block.inner(area);
-
-                frame.render_widget(block, area);
-                iteminfo.render(frame, framework, inner, popup_render, info);
+            Self::Main {
+                grid,
+                textlist,
+                iteminfo,
+                ..
+            } => {
+                let chunks = grid.chunks(area).unwrap()[0].clone();
+                frame.render_widget(grid.clone(), area);
+                iteminfo.render(frame, framework, chunks[0], popup_render, info);
+                textlist.set_height(chunks[1].height);
+                frame.render_widget(textlist.clone(), chunks[1]);
             }
             Self::Videos {
                 textlist,
@@ -394,6 +445,45 @@ impl FrameworkItem for ChannelDisplay {
                     iteminfo.item = Some(playlists[textlist.selected].clone());
                 }
             }
+            Self::Main {
+                textlist, commands, ..
+            } => {
+                let updated = match action {
+                    // move the cursor in the textlist, only update the screen if it is changed
+                    KeyAction::MoveUp => textlist.up().is_ok(),
+                    KeyAction::MoveDown => textlist.down().is_ok(),
+                    KeyAction::MoveLeft | KeyAction::First => textlist.first().is_ok(),
+                    KeyAction::MoveRight | KeyAction::End => textlist.last().is_ok(),
+                    KeyAction::Select => {
+                        self.select_at_cursor(framework);
+                        framework
+                            .data
+                            .state
+                            .get_mut::<Tasks>()
+                            .unwrap()
+                            .priority
+                            .push(Task::RenderAll);
+                        return Ok(());
+                    }
+                    _ => false,
+                };
+
+                if updated && !commands.is_empty() {
+                    framework
+                        .data
+                        .state
+                        .get_mut::<Tasks>()
+                        .unwrap()
+                        .priority
+                        .push(Task::RenderAll);
+                    framework
+                        .data
+                        .global
+                        .get_mut::<Status>()
+                        .unwrap()
+                        .render_image = true;
+                }
+            }
             _ => {}
         }
 
@@ -424,9 +514,23 @@ impl FrameworkItem for ChannelDisplay {
                 if mainconfig.images.display() {
                     download_all_images(vec![(&channel).into()]);
                 }
+                let commands = framework
+                    .data
+                    .global
+                    .get::<CommandsConfig>()
+                    .unwrap()
+                    .channel
+                    .clone();
                 *self = Self::Main {
                     iteminfo: Box::new(ItemInfo::new(Some(channel.clone()))),
                     channel: Box::new(channel),
+                    grid: Grid::new(
+                        vec![Constraint::Percentage(60), Constraint::Percentage(40)],
+                        vec![Constraint::Percentage(100)],
+                    )?
+                    .border_type(appearance.borders),
+                    textlist: Self::new_textlist_with_map(commands.clone()),
+                    commands,
                 }
             }
             ChannelDisplayPageType::Videos => {
@@ -492,6 +596,16 @@ impl FrameworkItem for ChannelDisplay {
         }
 
         set_envs(
+            self
+                .inflate_load(
+                    mainconfig,
+                    framework.data.global.get::<Status>().unwrap(),
+                )
+                .into_iter(),
+            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+        );
+
+        set_envs(
             self.infalte_item_update(mainconfig, framework.data.global.get::<Status>().unwrap())
                 .into_iter(),
             &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
@@ -508,9 +622,16 @@ impl FrameworkItem for ChannelDisplay {
         _absolute_x: u16,
         _absolute_y: u16,
     ) -> bool {
+        let chunk_index = if matches!(self, Self::Main { .. }) {
+            1
+        } else {
+            0
+        };
         match self {
-            Self::None | Self::Main { .. } => return false,
-            Self::Videos { textlist, grid, .. } | Self::Playlists { textlist, grid, .. } => {
+            Self::None => return false,
+            Self::Main { textlist, grid, .. }
+            | Self::Videos { textlist, grid, .. }
+            | Self::Playlists { textlist, grid, .. } => {
                 let chunk = grid
                     .chunks(
                         if let Some(prev_frame) =
@@ -521,7 +642,7 @@ impl FrameworkItem for ChannelDisplay {
                             return false;
                         },
                     )
-                    .unwrap()[0][0];
+                    .unwrap()[0][chunk_index];
 
                 if !chunk.intersects(Rect::new(x, y, 1, 1)) {
                     return false;

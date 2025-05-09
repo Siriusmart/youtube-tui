@@ -30,6 +30,7 @@ The few required fields are:
 - `saved_video`
 - `playlist`
 - `saved_playlist`
+- `channel`
 
 ## Env variables
 
@@ -78,8 +79,10 @@ Does not include custom env set in `main.yml`.
 
 |Name|Page|Value|
 |---|---|---|
-|`url`|search, popular, trending, video, playlist|String url to the web page|
-|`id`|video, playlist|String id of the video or playlist|
+|`url`|search, popular, trending, video, playlist, channel (main)|String url to the web page|
+|`id`|video, playlist, channel (main)|String id of the video, playlist or channel|
+|`title`|video, playlist|Title of video or playlist|
+|`name`|channel|Name of channel|
 |`channel-id`|video, playlist|String id of the channel|
 |`embed-url`|video|String url to the embed video (required to play video using mpv from Invidious)|
 |`all-videos`|playlist|String url***s*** separated by space to all embed videos in a playlist|

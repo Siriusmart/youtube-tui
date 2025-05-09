@@ -161,7 +161,7 @@ impl Provider {
 // default functions
 
 fn invidious_instance_default() -> String {
-    String::from("https://vid.puffyan.us")
+    String::from("https://invidious.f5.si")
 }
 
 fn message_bar_default_default() -> String {

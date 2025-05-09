@@ -321,7 +321,7 @@ impl Item {
             id: original.id,
             channel: original.author,
             channel_id: original.author_id,
-            video_count: original.video_count,
+            video_count: original.video_count.max(0) as u32,
             thumbnail_url: original.thumbnail,
         })
     }

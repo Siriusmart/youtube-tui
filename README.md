@@ -71,12 +71,14 @@ It also includes features like:
 - Offline library
 - Subscriptions
 
-### What it doesn't have
+### TODO
 
 - [URGENT] Replace the no-longer-going-to-compile `typemap` dependency with either a self implementation of it or a useable crate.
-- Strip down some libraries to reduce compile speed.
-- Add command section for channel main page (first priority)
+> This has been urgent for over 2 years now, maybe the deprecation warnings aren't real, nothing ever happens.
+- Move some backend to use yt-dlp instead of entirely relying on Invidious, given the current state of events.
 - Git like command line to improve on `yt-dlp` - make changes to existing downloaded playlists instead of redownloading the entire thing.
+- Channel caching and bookmarking.
+- Selecting item on channel list moves focus to feed items.
 
 ## How to contribute
 

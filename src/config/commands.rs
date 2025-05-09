@@ -13,6 +13,7 @@ pub struct CommandsConfig {
     pub saved_video: Vec<(String, String)>,
     pub playlist: Vec<(String, String)>,
     pub saved_playlist: Vec<(String, String)>,
+    pub channel: Vec<(String, String)>,
 }
 
 impl Key for CommandsConfig {
@@ -43,6 +44,11 @@ impl From<CommandsConfigSerde> for CommandsConfig {
                 .into_iter()
                 .map(|hashmap| hashmap.into_iter().last().unwrap())
                 .collect(),
+            channel: original
+                .channel
+                .into_iter()
+                .map(|hashmap| hashmap.into_iter().last().unwrap())
+                .collect(),
         }
     }
 }
@@ -61,6 +67,8 @@ pub struct CommandsConfigSerde {
     pub playlist: Vec<HashMap<String, String>>,
     #[serde(default = "saved_playlist_default")]
     pub saved_playlist: Vec<HashMap<String, String>>,
+    #[serde(default = "channel_default")]
+    pub channel: Vec<HashMap<String, String>>,
 }
 
 impl ConfigTrait for CommandsConfigSerde {
@@ -75,6 +83,7 @@ impl Default for CommandsConfigSerde {
             saved_video: saved_video_default(),
             playlist: playlist_default(),
             saved_playlist: saved_playlist_default(),
+            channel: channel_default(),
         }
     }
 }
@@ -298,6 +307,27 @@ fn saved_playlist_default() -> Vec<HashMap<String, String>> {
         HashMap::from([(
             String::from("Delete saved files"),
             String::from("run rm -rf ${save-path}*${id}*")
+        )]),
+    ]
+}
+
+fn channel_default() -> Vec<HashMap<String, String>> {
+    vec![
+        HashMap::from([(
+            String::from("Subscribe to channel"),
+            String::from("sync ${id}"),
+        )]),
+        HashMap::from([(
+            String::from("Play all (videos)"),
+            String::from("parrun ${video-player} ${url}"),
+        )]),
+        HashMap::from([(
+            String::from("Play all (audio)"),
+            String::from("mpv stop ;; resume ;; mpv loadfile ${url} ;; mpv sprop loop-playlist no ;; mpv playlist-play-index 0 ;; echo mpv Player started"),
+        )]),
+        HashMap::from([(
+            String::from("Shuffle play all (audio loop)"),
+            String::from("mpv stop ;; resume ;; mpv loadfile ${url} ;; mpv sprop loop-playlist yes ;; mpv playlist-shuffle ;; mpv playlist-play-index 0 ;; echo mpv Player started"),
         )]),
     ]
 }
