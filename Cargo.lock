@@ -739,6 +739,8 @@ dependencies = [
 [[package]]
 name = "invidious"
 version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa2cff01a915c4780785828f6bec4ad5f8d03f34307d4183ca210830a8a6d88d"
 dependencies = [
  "http_req",
  "serde",
@@ -1725,6 +1727,8 @@ checksum = "04a79e25382e2e852e8da874249358d382ebaf259d0d34e75d8db16a7efabbc7"
 [[package]]
 name = "tui-additions"
 version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f7b596c218d7ad85959a22131d1e959627174c526654e093b89d55a0d679672"
 dependencies = [
  "crossterm 0.29.0",
  "dyn-clone",
