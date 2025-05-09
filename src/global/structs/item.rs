@@ -59,7 +59,7 @@ pub struct MiniVideoItem {
 
 impl PartialOrd for MiniVideoItem {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
+        Some(other.cmp(self))
     }
 }
 
