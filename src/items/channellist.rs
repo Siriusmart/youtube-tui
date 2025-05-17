@@ -121,6 +121,55 @@ impl ChannelList {
             &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
         )
     }
+
+    fn update_channel_item(&mut self, framework: &mut FrameworkClean) {
+        if self.selector.selected == 0 {
+            self.channel_display.item = None;
+            framework
+                .data
+                .state
+                .get_mut::<Tasks>()
+                .unwrap()
+                .priority
+                .push(Task::ClearPage);
+        } else {
+            if framework.data.state.get::<VidSelect>().unwrap().0 {
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::ClearPage);
+            }
+            self.channel_display.item = self
+                .channels
+                .get(self.selector.selected - 1)
+                .map(|channel| Item::FullChannel(channel.clone()));
+            let subscriptions = framework.data.global.get_mut::<Subscriptions>().unwrap();
+            let item = subscriptions.0.get_mut(self.selector.selected - 1);
+            let mut found = false;
+            match item {
+                Some(item) if item.channel.id == self.channels[self.selector.selected - 1].id => {
+                    if item.has_new {
+                        item.has_new = false;
+                        found = true;
+                    }
+                }
+                _ => subscriptions.0.iter_mut().for_each(|item| {
+                    if item.channel.id == self.channels[self.selector.selected - 1].id {
+                        found = true;
+                        item.has_new = false;
+                    }
+                }),
+            }
+
+            if found {
+                self.update_unread(subscriptions);
+            }
+            self.set_env(framework);
+        }
+    }
 }
 
 impl FrameworkItem for ChannelList {
@@ -130,6 +179,7 @@ impl FrameworkItem for ChannelList {
         _info: tui_additions::framework::ItemInfo,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
+
         let subscriptions = framework.data.global.get::<Subscriptions>().unwrap();
         self.selector.set_border_type(appearance.borders);
         self.grid.set_border_type(appearance.borders);
@@ -140,6 +190,8 @@ impl FrameworkItem for ChannelList {
         if self.selector.selected >= self.selector.items.len() {
             self.selector.last()?;
         }
+
+        self.update_channel_item(framework);
 
         Ok(())
     }
@@ -260,54 +312,7 @@ impl FrameworkItem for ChannelList {
                 .storage
                 .insert::<SubSelect>(SubSelect(self.selector.selected));
 
-            if self.selector.selected == 0 {
-                self.channel_display.item = None;
-                framework
-                    .data
-                    .state
-                    .get_mut::<Tasks>()
-                    .unwrap()
-                    .priority
-                    .push(Task::ClearPage);
-            } else {
-                if framework.data.state.get::<VidSelect>().unwrap().0 {
-                    framework
-                        .data
-                        .state
-                        .get_mut::<Tasks>()
-                        .unwrap()
-                        .priority
-                        .push(Task::ClearPage);
-                }
-                self.channel_display.item = self
-                    .channels
-                    .get(self.selector.selected - 1)
-                    .map(|channel| Item::FullChannel(channel.clone()));
-                let subscriptions = framework.data.global.get_mut::<Subscriptions>().unwrap();
-                let item = subscriptions.0.get_mut(self.selector.selected - 1);
-                let mut found = false;
-                match item {
-                    Some(item)
-                        if item.channel.id == self.channels[self.selector.selected - 1].id =>
-                    {
-                        if item.has_new {
-                            item.has_new = false;
-                            found = true;
-                        }
-                    }
-                    _ => subscriptions.0.iter_mut().for_each(|item| {
-                        if item.channel.id == self.channels[self.selector.selected - 1].id {
-                            found = true;
-                            item.has_new = false;
-                        }
-                    }),
-                }
-
-                if found {
-                    self.update_unread(subscriptions);
-                }
-                self.set_env(framework);
-            }
+            self.update_channel_item(framework);
 
             framework
                 .data
@@ -402,9 +407,7 @@ impl FrameworkItem for ChannelList {
             let item = subscriptions.0.get_mut(self.selector.selected - 1);
             let mut found = false;
             match item {
-                Some(item)
-                    if item.channel.id == self.channels[self.selector.selected - 1].id =>
-                {
+                Some(item) if item.channel.id == self.channels[self.selector.selected - 1].id => {
                     if item.has_new {
                         item.has_new = false;
                         found = true;

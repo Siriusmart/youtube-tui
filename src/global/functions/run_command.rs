@@ -12,6 +12,7 @@ use std::{
     fs,
     io::Stdout,
     process::{Command, Stdio},
+    sync::Arc,
 };
 use tui_additions::framework::Framework;
 
@@ -344,23 +345,38 @@ pub fn run_single_command(
             let syncing = mainconfig.syncing;
 
             let subscriptions = framework.data.global.get_mut::<Subscriptions>().unwrap();
-            match subscriptions.sync_one(&id, &client, image_index, download_thumbnails, &syncing) {
-                Ok(()) => {
-                    *framework.data.global.get_mut::<Message>().unwrap() =
-                        Message::Success(String::from("Channel synced"));
-                }
-                Err(e) => {
-                    *framework.data.global.get_mut::<Message>().unwrap() =
-                        Message::Error(format!("Sync failed: {e}"));
-                }
+
+            let message = match subscriptions.sync_one(
+                &id,
+                &client,
+                image_index,
+                download_thumbnails,
+                &syncing,
+            ) {
+                Ok(()) => Message::Success(String::from("Channel synced")),
+                Err(e) => Message::Error(format!("Sync failed: {e}")),
             };
-            framework
-                .data
-                .state
-                .get_mut::<Tasks>()
-                .unwrap()
-                .priority
-                .push(Task::RenderAll);
+
+            if framework.data.state.get::<Page>().unwrap() == &Page::Feed {
+                let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
+                tasks.priority.push(Task::Reload);
+                // tasks.priority.reload_render = false;
+                tasks.priority.push(Task::Custom(TaskFunction::new(Arc::new(
+                    move |framework| {
+                        *framework.data.global.get_mut::<Message>().unwrap() = message.clone();
+                    },
+                ))));
+                tasks.last.push(Task::RenderAll);
+            } else {
+                *framework.data.global.get_mut::<Message>().unwrap() = message;
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::RenderAll);
+            }
         }
         ["unsub", identifier] => {
             let id = if identifier.len() == 24 {
@@ -380,26 +396,38 @@ pub fn run_single_command(
                 }
             };
 
-            if framework
+            let message = if framework
                 .data
                 .global
                 .get_mut::<Subscriptions>()
                 .unwrap()
                 .remove_one(&id)
             {
-                *framework.data.global.get_mut::<Message>().unwrap() =
-                    Message::Success(String::from("Unsubscribed from channel"));
+                Message::Success(String::from("Unsubscribed from channel"))
             } else {
-                *framework.data.global.get_mut::<Message>().unwrap() =
-                    Message::Error(String::from("Channel not found in subscriptions"));
+                Message::Error(String::from("Channel not found in subscriptions"))
+            };
+
+            if framework.data.state.get::<Page>().unwrap() == &Page::Feed {
+                let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
+                tasks.priority.push(Task::Reload);
+                // tasks.priority.reload_render = false;
+                tasks.priority.push(Task::Custom(TaskFunction::new(Arc::new(
+                    move |framework| {
+                        *framework.data.global.get_mut::<Message>().unwrap() = message.clone();
+                    },
+                ))));
+                tasks.last.push(Task::RenderAll);
+            } else {
+                *framework.data.global.get_mut::<Message>().unwrap() = message;
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::RenderAll);
             }
-            framework
-                .data
-                .state
-                .get_mut::<Tasks>()
-                .unwrap()
-                .priority
-                .push(Task::RenderAll);
         }
         ["syncall"] => {
             *framework.data.global.get_mut::<Message>().unwrap() =
@@ -424,7 +452,7 @@ pub fn run_single_command(
                 .unwrap()
                 .sync(&client, image_index, download_thumbnails, syncing);
 
-            *framework.data.global.get_mut::<Message>().unwrap() = Message::Success(format!(
+            let message = Message::Success(format!(
                 "Subscriptions synced: {success} success{} | {failed} fail | {cached} cached",
                 if empty != 0 {
                     format!(" (which {empty} empty)")
@@ -433,13 +461,26 @@ pub fn run_single_command(
                 }
             ));
 
-            framework
-                .data
-                .state
-                .get_mut::<Tasks>()
-                .unwrap()
-                .priority
-                .push(Task::RenderAll);
+            if framework.data.state.get::<Page>().unwrap() == &Page::Feed {
+                let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
+                tasks.priority.push(Task::Reload);
+                // tasks.priority.reload_render = false;
+                tasks.priority.push(Task::Custom(TaskFunction::new(Arc::new(
+                    move |framework| {
+                        *framework.data.global.get_mut::<Message>().unwrap() = message.clone();
+                    },
+                ))));
+                tasks.last.push(Task::RenderAll);
+            } else {
+                *framework.data.global.get_mut::<Message>().unwrap() = message;
+                framework
+                    .data
+                    .state
+                    .get_mut::<Tasks>()
+                    .unwrap()
+                    .priority
+                    .push(Task::RenderAll);
+            }
         }
         ["key", keycode, modifier] => {
             let (keycodeserde, modifier) =

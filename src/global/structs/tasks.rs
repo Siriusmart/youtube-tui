@@ -6,7 +6,7 @@ use crate::{
 use ratatui::{
     backend::CrosstermBackend, layout::Alignment, style::Style, widgets::Paragraph, Frame, Terminal,
 };
-use std::{error::Error, io::Stdout, mem};
+use std::{error::Error, fmt::Debug, io::Stdout, mem, sync::Arc};
 use tui_additions::framework::{CursorState, Framework};
 use typemap::Key;
 
@@ -20,7 +20,37 @@ pub enum Task {
     ClearPage,
     LazyRendered,
     Command(String),
+    Custom(TaskFunction),
 }
+
+#[derive(Clone)]
+pub struct TaskFunction(Arc<dyn Fn(&mut tui_additions::framework::Framework)>);
+
+impl TaskFunction {
+    pub fn new(f: Arc<dyn Fn(&mut tui_additions::framework::Framework)>) -> Self {
+        Self(f)
+    }
+}
+
+impl PartialEq for TaskFunction {
+    fn eq(&self, _other: &Self) -> bool {
+        false
+    }
+}
+
+impl Debug for TaskFunction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("[task function]")
+    }
+}
+
+impl TaskFunction {
+    pub fn run(self, framework: &mut tui_additions::framework::Framework) {
+        self.0(framework);
+    }
+}
+
+impl Eq for TaskFunction {}
 
 /// multiple tasks joined together, with duplicates removed
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -30,7 +60,9 @@ pub struct TaskQueue {
     pub load_page: Option<Page>,
     pub clear_all: bool,
     pub lazy_rendered: bool,
+    pub reload_render: bool,
     pub commands: Vec<String>,
+    pub custom_functions: Vec<TaskFunction>,
 }
 
 impl Default for TaskQueue {
@@ -41,7 +73,9 @@ impl Default for TaskQueue {
             load_page: None,
             clear_all: false,
             lazy_rendered: false,
+            reload_render: true,
             commands: Vec::new(),
+            custom_functions: Vec::new(),
         }
     }
 }
@@ -65,6 +99,7 @@ impl TaskQueue {
             Task::ClearPage => self.clear_all = true,
             Task::LazyRendered => self.lazy_rendered = true,
             Task::Command(s) => self.commands.push(s),
+            Task::Custom(f) => self.custom_functions.push(f),
         }
     }
 
@@ -160,25 +195,32 @@ impl TaskQueue {
             );
 
             // reload simply runs `.load()` on all items
-            *framework.data.global.get_mut::<Message>().unwrap() =
-                Message::Message(String::from("Reloading page..."));
-            Self::render_force_clear(framework, terminal)?;
-            *framework.data.global.get_mut::<Message>().unwrap() = if let Err(e) = framework.load()
-            {
-                Message::Error(e.to_string())
-            } else {
-                Message::None
-            };
+            if self.reload_render {
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Message(String::from("Reloading page..."));
+                Self::render_force_clear(framework, terminal)?;
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    if let Err(e) = framework.load() {
+                        Message::Error(e.to_string())
+                    } else {
+                        Message::None
+                    };
+                self.render = RenderTask::All;
+            }
+
             let status = framework.data.global.get_mut::<Status>().unwrap();
             status.provider_updated = true;
             status.render_image = true;
-            self.render = RenderTask::All;
         }
 
         match self.render {
             RenderTask::All => Self::render(framework, terminal)?,
             RenderTask::Only(locations) => Self::render_onlys(framework, terminal, locations)?,
             RenderTask::None => {}
+        }
+
+        for custom in self.custom_functions {
+            custom.run(framework)
         }
 
         if framework

@@ -156,6 +156,7 @@ impl Subscriptions {
         self.0.sort();
 
         self.save()?;
+
         Ok(())
     }
 

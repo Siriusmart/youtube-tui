@@ -78,21 +78,23 @@ impl ChannelDisplay {
                                     Self::Playlists { .. } => "playlists",
                                 }
                             ),
-                            Provider::YouTube => format!("'https://youtu.be/{}'", channel.id().unwrap_or_default()),
+                            Provider::YouTube => {
+                                format!("'https://youtu.be/{}'", channel.id().unwrap_or_default())
+                            }
                         },
                     ),
                     (
                         String::from("id"),
-                        channel.id().unwrap_or_default().to_string()
+                        channel.id().unwrap_or_default().to_string(),
                     ),
                     (
                         String::from("name"),
-                        channel.fullchannel().unwrap().name.clone()
-                    )
+                        channel.fullchannel().unwrap().name.clone(),
+                    ),
                 ]
             }
             // TODO?
-            _ => Vec::new()
+            _ => Vec::new(),
         }
     }
 
@@ -596,11 +598,7 @@ impl FrameworkItem for ChannelDisplay {
         }
 
         set_envs(
-            self
-                .inflate_load(
-                    mainconfig,
-                    framework.data.global.get::<Status>().unwrap(),
-                )
+            self.inflate_load(mainconfig, framework.data.global.get::<Status>().unwrap())
                 .into_iter(),
             &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
         );
