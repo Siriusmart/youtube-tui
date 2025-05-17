@@ -11,7 +11,7 @@
 
 # Overview
 
-Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal. Works out of the box and easily to configurable.
+Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal. Works out of the box and easily configurable.
 
 ![](./docs/src/images/readme1.png)
 
