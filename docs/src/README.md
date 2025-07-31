@@ -2,7 +2,7 @@
 
 Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal. Works out of the box and easily configurable.
 
-![](./docs/src/images/readme1.png)
+![](./images/readme1.png)
 
 It is like an _app launcher_, it launches other programs to do the heavy lifting (for example, `mpv` for playing videos).
 
@@ -40,7 +40,7 @@ The YouTube TUI does not work on its own, it is instead like a _TUI frontend_ fo
 
 However, the programs to launch can be changed, and therefore the YouTube TUI <u>does not rely on any specific dependencies</u> to run.
 
-![](./docs/src/images/readme2.png)
+![](./images/readme2.png)
 
 ## Powerful
 
@@ -51,7 +51,7 @@ The YouTube TUI allows you to browse YouTube with (almost) all of it's features,
 - Save browsing history
 - Embedded audio/music player
 
-![](./docs/src/images/readme3.png)
+![](./images/readme3.png)
 
 It also includes features like:
 
