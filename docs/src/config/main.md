@@ -23,6 +23,7 @@ limits:
   commands_history: 75
 image_index: 4
 provider: YouTube
+search_provider: RustyPipe
 shell: sh
 legacy_input_handling: false
 env:
@@ -148,6 +149,12 @@ This changes the `${url}` and `${embed-url}` of videos, allowing you to watch vi
 (Don't always use Invidious if YouTube is working, because first of all the load time if gonna be much slower, and secondly you will be DDoSing Invidious)
 
 *Accept: `YouTube`/`Invidious`*
+
+### search_provider
+
+What method to fetch video info: from an Invidious instance or using RustyPipe - a local webscraper.
+
+*Accept: `RustyPipe`/`Invidious`
 
 ### shell
 

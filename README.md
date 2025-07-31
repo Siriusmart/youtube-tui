@@ -1,4 +1,4 @@
-## YouTube TUI is being **rewritten**, [click here](https://github.com/Siriusmart/youtube-tui/issues/48) to learn more.
+<!-- ## YouTube TUI is being **rewritten**, [click here](https://github.com/Siriusmart/youtube-tui/issues/48) to learn more. -->
 
 ![](https://img.shields.io/github/languages/top/siriusmart/youtube-tui?label=rust)
 ![](https://shields.io/github/license/siriusmart/youtube-tui)
@@ -29,7 +29,6 @@ Here's an example of the config file:
 
 ```yaml
 mouse_support: true
-invidious_instance: https://vid.puffyan.us
 max_watch_history: 50
 allow_unicode: false
 images: Sixels
@@ -77,7 +76,6 @@ It also includes features like:
 
 - [URGENT] Replace the no-longer-going-to-compile `typemap` dependency with either a self implementation of it or a useable crate.
 > This has been urgent for over 2 years now, maybe the deprecation warnings aren't real, nothing ever happens.
-- Move some backend to use yt-dlp instead of entirely relying on Invidious, given the current state of events.
 - Git like command line to improve on `yt-dlp` - make changes to existing downloaded playlists instead of redownloading the entire thing.
 - Channel caching and bookmarking.
 - Selecting item on channel list moves focus to feed items.

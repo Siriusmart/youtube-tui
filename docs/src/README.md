@@ -1,8 +1,8 @@
 # Overview
 
-Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal. Works out of the box and easily to configurable.
+Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal. Works out of the box and easily configurable.
 
-![](./images/search-showcase.png)
+![](./docs/src/images/readme1.png)
 
 It is like an _app launcher_, it launches other programs to do the heavy lifting (for example, `mpv` for playing videos).
 
@@ -18,7 +18,6 @@ Here's an example of the config file:
 
 ```yaml
 mouse_support: true
-invidious_instance: https://vid.puffyan.us
 max_watch_history: 50
 allow_unicode: false
 images: Sixels
@@ -35,13 +34,13 @@ Anything from layouts to colours and keybindings can be customised, more on that
 
 ## Dependency-free*
 
-<sub>See [installation#features](./installation.md#features) for more info on dependencies.</sub>
+<sub>See [installation#features](https://siriusmart.github.io/youtube-tui/installation.html#features) for more info on dependencies.</sub>
 
 The YouTube TUI does not work on its own, it is instead like a _TUI frontend_ for programs like `mpv` or `yt-dlp`/`youtube-dl`.
 
 However, the programs to launch can be changed, and therefore the YouTube TUI <u>does not rely on any specific dependencies</u> to run.
 
-![](./images/custom-dependencies-showcase.png)
+![](./docs/src/images/readme2.png)
 
 ## Powerful
 
@@ -52,6 +51,8 @@ The YouTube TUI allows you to browse YouTube with (almost) all of it's features,
 - Save browsing history
 - Embedded audio/music player
 
+![](./docs/src/images/readme3.png)
+
 It also includes features like:
 
 - Vim-like commands
@@ -60,12 +61,13 @@ It also includes features like:
 - Offline library
 - Subscriptions
 
-### What it doesn't have
+### TODO
 
 - [URGENT] Replace the no-longer-going-to-compile `typemap` dependency with either a self implementation of it or a useable crate.
-- Strip down some libraries to reduce compile speed.
-- Add command section for channel main page (first priority)
+> This has been urgent for over 2 years now, maybe the deprecation warnings aren't real, nothing ever happens.
 - Git like command line to improve on `yt-dlp` - make changes to existing downloaded playlists instead of redownloading the entire thing.
+- Channel caching and bookmarking.
+- Selecting item on channel list moves focus to feed items.
 
 ## How to contribute
 
