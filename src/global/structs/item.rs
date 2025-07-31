@@ -299,7 +299,13 @@ impl Item {
         Self::MiniVideo(MiniVideoItem {
             title: original.title,
             id: original.id,
-            thumbnail_url: original.thumbnails[image_index].url.clone(),
+            thumbnail_url: if original.thumbnails.is_empty() {
+                String::new()
+            } else {
+                original.thumbnails[image_index.min(original.thumbnails.len() - 1)]
+                    .url
+                    .clone()
+            },
             length: secs_display_string(original.length),
             views: Some(viewcount_text(original.views)),
             channel: original.author,
@@ -331,7 +337,18 @@ impl Item {
         Self::MiniChannel(MiniChannelItem {
             name: original.name,
             id: original.id,
-            thumbnail_url: format!("https://{}", original.thumbnails[image_index].url),
+            thumbnail_url: if !original.thumbnails.is_empty() {
+                let url = original.thumbnails[image_index.min(original.thumbnails.len() - 1)]
+                    .url
+                    .clone();
+                if url.starts_with("https://") {
+                    url
+                } else {
+                    format!("https://{url}")
+                }
+            } else {
+                "".to_string()
+            },
             video_count: original.video_count,
             sub_count: original.subscribers,
             sub_count_text: viewcount_text(original.subscribers as u64),
@@ -344,7 +361,13 @@ impl Item {
         Self::MiniVideo(MiniVideoItem {
             title: original.title,
             id: original.id,
-            thumbnail_url: original.thumbnails[image_index].url.clone(),
+            thumbnail_url: if !original.thumbnails.is_empty() {
+                original.thumbnails[image_index.min(original.thumbnails.len() - 1)]
+                    .url
+                    .clone()
+            } else {
+                "".to_string()
+            },
             length: secs_display_string(original.length),
             views: Some(viewcount_text(original.views)),
             channel: original.author,
@@ -373,7 +396,13 @@ impl Item {
         Self::FullVideo(FullVideoItem {
             title: original.title,
             id: original.id,
-            thumbnail_url: original.thumbnails[image_index].url.clone(),
+            thumbnail_url: if !original.thumbnails.is_empty() {
+                original.thumbnails[image_index.min(original.thumbnails.len() - 1)]
+                    .url
+                    .clone()
+            } else {
+                "".to_string()
+            },
             length: secs_display_string(original.length),
             views: viewcount_text(original.views),
             channel: original.author,
@@ -414,7 +443,13 @@ impl Item {
         Self::MiniVideo(MiniVideoItem {
             title: original.title,
             id: original.id,
-            thumbnail_url: original.thumbnails[image_index].url.clone(),
+            thumbnail_url: if !original.thumbnails.is_empty() {
+                original.thumbnails[image_index.min(original.thumbnails.len() - 1)]
+                    .url
+                    .clone()
+            } else {
+                "".to_string()
+            },
             length: secs_display_string(original.length),
             views: None,
             channel: original.author,
@@ -430,7 +465,13 @@ impl Item {
         Self::FullChannel(FullChannelItem {
             name: original.name,
             id: original.id,
-            thumbnail_url: original.thumbnails[image_index].url.clone(),
+            thumbnail_url: if !original.thumbnails.is_empty() {
+                original.thumbnails[image_index.min(original.thumbnails.len() - 1)]
+                    .url
+                    .clone()
+            } else {
+                "".to_string()
+            },
             sub_count: original.subscribers,
             sub_count_text: viewcount_text(original.subscribers as u64),
             total_views: viewcount_text(original.total_views),

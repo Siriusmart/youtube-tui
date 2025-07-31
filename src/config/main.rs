@@ -1,4 +1,10 @@
-use crate::global::traits::ConfigTrait;
+use crate::{
+    global::{
+        structs::{InvidiousClient, RustyPipeWrapper},
+        traits::{ConfigTrait, SearchProviderTrait},
+    },
+    MAIN_CONFIG,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use typemap::Key;
@@ -31,6 +37,10 @@ pub struct MainConfig {
     pub image_index: usize,
     #[serde(default = "provider_default")]
     pub provider: Provider,
+    #[serde(default = "search_provider_default")]
+    pub search_provider: SearchProvider,
+    #[serde(default = "api_key_default")]
+    pub api_key: String,
     #[serde(default = "shell_default")]
     pub shell: String,
     #[serde(default = "legacy_input_handling_default")]
@@ -58,6 +68,8 @@ impl Default for MainConfig {
             limits: Limits::default(),
             syncing: sync_config_default(),
             provider: provider_default(),
+            search_provider: search_provider_default(),
+            api_key: api_key_default(),
             shell: shell_default(),
             legacy_input_handling: legacy_input_handling_default(),
 
@@ -135,6 +147,35 @@ pub enum Provider {
     Invidious,
 }
 
+#[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum SearchProvider {
+    Invidious,
+    RustyPipe,
+}
+
+impl SearchProvider {
+    pub fn create(&self) -> Box<dyn SearchProviderTrait> {
+        match self {
+            Self::Invidious => Box::new(InvidiousClient::new(
+                unsafe { MAIN_CONFIG.get() }
+                    .unwrap()
+                    .invidious_instance
+                    .clone(),
+            )),
+            Self::RustyPipe => Box::new(RustyPipeWrapper::default()),
+        }
+    }
+}
+
+impl SearchProvider {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Invidious => "Invidious",
+            Self::RustyPipe => "RustyPipe",
+        }
+    }
+}
+
 #[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum WriteConfig {
     Must,
@@ -188,6 +229,10 @@ const fn provider_default() -> Provider {
     Provider::YouTube
 }
 
+const fn search_provider_default() -> SearchProvider {
+    SearchProvider::RustyPipe
+}
+
 const fn search_history_default() -> usize {
     75
 }
@@ -230,6 +275,10 @@ fn default_env() -> HashMap<String, String> {
 
 fn shell_default() -> String {
     String::from("sh")
+}
+
+fn api_key_default() -> String {
+    String::from("YOUR API KEY HERE")
 }
 
 const fn download_images_default() -> bool {

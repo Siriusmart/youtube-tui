@@ -2,11 +2,10 @@ use std::error::Error;
 
 use crate::{
     config::*,
-    global::{functions::*, structs::*},
+    global::{functions::*, structs::*, traits::SearchProviderWrapper},
     items::ItemInfo,
 };
 use home::home_dir;
-use invidious::ClientSyncTrait;
 use ratatui::{
     layout::{Constraint, Rect},
     style::Style,
@@ -180,8 +179,13 @@ impl ItemList {
                 | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
                     Some(Page::SingleItem(SingleItemPage::Playlist(id.clone())))
                 }
-                Item::MiniChannel(MiniChannelItem { id: _id, .. })
-                | Item::FullChannel(FullChannelItem { id: _id, .. }) => todo!(),
+                Item::MiniChannel(MiniChannelItem { id, .. })
+                | Item::FullChannel(FullChannelItem { id, .. }) => {
+                    Some(Page::ChannelDisplay(ChannelDisplayPage {
+                        id: id.to_string(),
+                        r#type: ChannelDisplayPageType::Main,
+                    }))
+                }
                 // Item::Unknown(_) => {
                 //     *framework.data.global.get_mut::<Message>().unwrap() =
                 //         Message::Message(String::from("Unknown item"));
@@ -335,22 +339,17 @@ impl FrameworkItem for ItemList {
             .get::<MainConfig>()
             .unwrap()
             .image_index;
-        let client = &framework.data.global.get::<InvidiousClient>().unwrap().0;
 
         // fetch the items using the invidious api
         match page {
             Page::MainMenu(MainMenuPage::Trending) => {
-                self.items = client
-                    .trending(None)?
-                    .videos
+                self.items = SearchProviderWrapper::trending()?
                     .into_iter()
                     .map(|item| Item::from_common_video(item, image_index))
                     .collect();
             }
             Page::MainMenu(MainMenuPage::Popular) => {
-                self.items = client
-                    .popular(None)?
-                    .items
+                self.items = SearchProviderWrapper::popular()?
                     .into_iter()
                     .map(|item| Item::from_popular_item(item, image_index))
                     .collect();
@@ -366,9 +365,7 @@ impl FrameworkItem for ItemList {
                 self.items = history.0.clone().into_iter().rev().collect();
             }
             Page::Search(search) => {
-                self.items = client
-                    .search(Some(&search.to_string()))?
-                    .items
+                self.items = SearchProviderWrapper::search(search)?
                     .into_iter()
                     .map(|item| Item::from_search_item(item, image_index))
                     .collect();

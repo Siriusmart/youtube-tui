@@ -1,6 +1,6 @@
 [package]
 name = "youtube-tui"
-version = "0.8.3"
+version = "0.9.0"
 authors = ["Siriusmart <siriusmart@tuta.io>"]
 edition = "2021"
 description = "An aesthetically pleasing YouTube TUI written in Rust"
@@ -39,6 +39,10 @@ urlencoding = "2.1"
 ratatui = {version = "0.29", default-features = false, features = ["serde"]}
 unicode-segmentation = "1"
 libmpv-sirno = { version = "2.0.2-fork.1", optional = true }
+
+rustypipe = "0.11"
+futures = { version = "0.3", features = [ "executor" ] }
+tokio = { version = "1", features = [ "rt" ]}
 
 # libmpv = { path = "libmpv-rs", optional = true, version = "2" }
 # tui-additions = {path = "../Rust/tui-additions", default-features = false, features = ["framework", "widgets"]}

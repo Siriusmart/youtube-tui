@@ -666,11 +666,7 @@ impl FrameworkItem for SingleItem {
                 let video = if path.exists() {
                     serde_json::from_str(&fs::read_to_string(path)?)?
                 } else {
-                    load_video(
-                        &framework.data.global.get::<InvidiousClient>().unwrap().0,
-                        id,
-                        mainconfig,
-                    )?
+                    load_video(id, mainconfig)?
                 };
                 (
                     video,
@@ -689,11 +685,7 @@ impl FrameworkItem for SingleItem {
                 let playlist = if path.exists() {
                     serde_json::from_str(&fs::read_to_string(path)?)?
                 } else {
-                    load_playlist(
-                        &framework.data.global.get::<InvidiousClient>().unwrap().0,
-                        id,
-                        mainconfig,
-                    )?
+                    load_playlist(id, mainconfig)?
                 };
                 let r#type = SingleItemType::Playlist(
                     SinglePlaylistItem::new(

@@ -3,12 +3,11 @@ use crate::{
     config::SyncConfig,
     global::{
         functions::{download_all_images, DownloadRequest},
-        traits::{Collection, CollectionItem},
+        traits::{Collection, CollectionItem, SearchProviderWrapper},
     },
 };
 use chrono::Utc;
 use home::home_dir;
-use invidious::ClientSyncTrait;
 use serde::*;
 use std::{
     error::Error,
@@ -32,7 +31,6 @@ impl Subscriptions {
     /// Res<(success, failed)>
     pub fn sync(
         &mut self,
-        client: &InvidiousClient,
         image_index: usize,
         download_thumbnails: bool,
         syncconfig: SyncConfig,
@@ -55,14 +53,12 @@ impl Subscriptions {
                 return;
             }
             let tx = tx.clone();
-            let client = client.clone();
             let success = success.clone();
             let failed = failed.clone();
             let empty = empty.clone();
             thread::spawn(move || {
                 let res = sync_one(
                     &item.channel.id,
-                    &client,
                     image_index,
                     download_thumbnails,
                     syncconfig.sync_channel_info
@@ -114,7 +110,6 @@ impl Subscriptions {
     pub fn sync_one(
         &mut self,
         id: &str,
-        client: &InvidiousClient,
         image_index: usize,
         download_thumbnails: bool,
         syncconfig: &SyncConfig,
@@ -124,7 +119,6 @@ impl Subscriptions {
             Some(item) => {
                 let (videos, channel) = sync_one(
                     id,
-                    client,
                     image_index,
                     download_thumbnails,
                     syncconfig.sync_channel_info
@@ -141,8 +135,7 @@ impl Subscriptions {
                 }
             }
             None => {
-                let (videos, channel) =
-                    sync_one(id, client, image_index, download_thumbnails, true)?;
+                let (videos, channel) = sync_one(id, image_index, download_thumbnails, true)?;
                 self.0.push(SubItem {
                     channel: channel.unwrap(),
                     videos,
@@ -186,7 +179,6 @@ impl Subscriptions {
 
 fn sync_one(
     id: &str,
-    client: &InvidiousClient,
     image_index: usize,
     download_thumbnails: bool,
     sync_channel_info: bool,
@@ -194,22 +186,16 @@ fn sync_one(
     let (tx, rx) = mpsc::channel();
 
     if sync_channel_info {
-        let client2 = client.clone();
         let id2 = id.to_string();
         thread::spawn(move || {
             tx.send(
-                client2
-                    .0
-                    .channel(&id2, None)
+                SearchProviderWrapper::channel(&id2)
                     .map(|channel| Item::from_full_channel(channel, image_index).into_fullchannel())
                     .ok(),
             )
         });
     }
-    let mut videos = client
-        .0
-        .channel_videos(id, None)?
-        .videos
+    let mut videos = SearchProviderWrapper::channel_videos(id)?
         .into_iter()
         .map(|video| {
             Item::from_common_video(video, image_index)

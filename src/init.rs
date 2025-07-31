@@ -8,8 +8,13 @@ use std::{
     error::Error,
     fs::{self},
     io::Stdout,
+    sync::OnceLock,
 };
+use tokio::runtime::{Builder, Runtime};
 use tui_additions::framework::{Framework, FrameworkClean};
+
+pub static mut MAIN_CONFIG: OnceLock<MainConfig> = OnceLock::new();
+pub static RUNTIME: OnceLock<Runtime> = OnceLock::new();
 
 /// app to run before the app starts
 // init tasks:
@@ -22,6 +27,9 @@ pub fn init(
     command: Option<&str>,
 ) -> Result<(), Box<dyn Error>> {
     let home_dir = home_dir().unwrap();
+    RUNTIME
+        .set(Builder::new_current_thread().enable_all().build().unwrap())
+        .unwrap();
 
     // creating files
     [
@@ -112,10 +120,18 @@ pub fn load_configs(framework: &mut FrameworkClean) -> Result<(), Box<dyn Error>
     // inserting data
     let main_config = *MainConfig::load(WriteConfig::Try)?;
 
-    framework
-        .data
-        .global
-        .insert::<InvidiousClient>(InvidiousClient::new(main_config.invidious_instance.clone()));
+    SearchProviderWrapper::init();
+
+    unsafe {
+        if MAIN_CONFIG.get().is_some() {
+            *MAIN_CONFIG.get_mut().unwrap() = main_config.clone()
+        } else {
+            let _ = MAIN_CONFIG.set(main_config.clone());
+        }
+    }
+
+    SearchProviderWrapper::init();
+
     framework
         .data
         .global

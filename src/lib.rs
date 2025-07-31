@@ -1,3 +1,4 @@
+#![allow(static_mut_refs)]
 pub mod config;
 pub mod global;
 pub mod items;

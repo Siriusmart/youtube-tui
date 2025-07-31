@@ -328,13 +328,6 @@ pub fn run_single_command(
                 }
             };
 
-            let client = framework
-                .data
-                .global
-                .get::<InvidiousClient>()
-                .unwrap()
-                .clone();
-
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Message(String::from("Syncing..."));
             terminal.draw(|frame| framework.render(frame)).unwrap();
@@ -346,16 +339,11 @@ pub fn run_single_command(
 
             let subscriptions = framework.data.global.get_mut::<Subscriptions>().unwrap();
 
-            let message = match subscriptions.sync_one(
-                &id,
-                &client,
-                image_index,
-                download_thumbnails,
-                &syncing,
-            ) {
-                Ok(()) => Message::Success(String::from("Channel synced")),
-                Err(e) => Message::Error(format!("Sync failed: {e}")),
-            };
+            let message =
+                match subscriptions.sync_one(&id, image_index, download_thumbnails, &syncing) {
+                    Ok(()) => Message::Success(String::from("Channel synced")),
+                    Err(e) => Message::Error(format!("Sync failed: {e}")),
+                };
 
             if framework.data.state.get::<Page>().unwrap() == &Page::Feed {
                 let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
@@ -434,12 +422,6 @@ pub fn run_single_command(
                 Message::Message(String::from("Syncing..."));
             terminal.draw(|frame| framework.render(frame)).unwrap();
 
-            let client = framework
-                .data
-                .global
-                .get::<InvidiousClient>()
-                .unwrap()
-                .clone();
             let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
             let image_index = mainconfig.image_index;
             let download_thumbnails = mainconfig.images.display();
@@ -450,7 +432,7 @@ pub fn run_single_command(
                 .global
                 .get_mut::<Subscriptions>()
                 .unwrap()
-                .sync(&client, image_index, download_thumbnails, syncing);
+                .sync(image_index, download_thumbnails, syncing);
 
             let message = Message::Success(format!(
                 "Subscriptions synced: {success} success{} | {failed} fail | {cached} cached",

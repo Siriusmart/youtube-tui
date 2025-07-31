@@ -9,6 +9,7 @@ mod message;
 #[cfg(feature = "mpv")]
 mod mpv;
 mod page;
+mod rustypipe;
 mod state_env;
 mod status;
 mod subscriptions;
@@ -24,6 +25,7 @@ pub use message::*;
 #[cfg(feature = "mpv")]
 pub use mpv::*;
 pub use page::*;
+pub use rustypipe::*;
 pub use state_env::*;
 pub use status::*;
 pub use subscriptions::*;

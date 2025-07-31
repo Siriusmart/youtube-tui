@@ -1,9 +1,8 @@
 use super::ItemInfo;
 use crate::{
     config::*,
-    global::{functions::*, structs::*},
+    global::{functions::*, structs::*, traits::SearchProviderWrapper},
 };
-use invidious::ClientSyncTrait;
 use ratatui::{
     layout::{Constraint, Rect},
     style::Style,
@@ -504,13 +503,7 @@ impl FrameworkItem for ChannelDisplay {
         match page.r#type {
             ChannelDisplayPageType::Main => {
                 let channel = Item::from_full_channel(
-                    framework
-                        .data
-                        .global
-                        .get::<InvidiousClient>()
-                        .unwrap()
-                        .0
-                        .channel(&page.id, None)?,
+                    SearchProviderWrapper::channel(&page.id)?,
                     mainconfig.image_index,
                 );
                 if mainconfig.images.display() {
@@ -536,14 +529,7 @@ impl FrameworkItem for ChannelDisplay {
                 }
             }
             ChannelDisplayPageType::Videos => {
-                let videos = framework
-                    .data
-                    .global
-                    .get::<InvidiousClient>()
-                    .unwrap()
-                    .0
-                    .channel_videos(&page.id, None)?
-                    .videos
+                let videos = SearchProviderWrapper::channel_videos(&page.id)?
                     .into_iter()
                     .map(|video| Item::from_common_video(video, mainconfig.image_index))
                     .collect::<Vec<_>>();
@@ -566,14 +552,7 @@ impl FrameworkItem for ChannelDisplay {
                 };
             }
             ChannelDisplayPageType::Playlists => {
-                let playlists = framework
-                    .data
-                    .global
-                    .get::<InvidiousClient>()
-                    .unwrap()
-                    .0
-                    .channel_playlists(&page.id, None)?
-                    .playlists
+                let playlists = SearchProviderWrapper::channel_playlists(&page.id)?
                     .into_iter()
                     .map(Item::from_common_playlist)
                     .collect::<Vec<_>>();

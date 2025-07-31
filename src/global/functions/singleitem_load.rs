@@ -1,13 +1,12 @@
-use crate::{config::MainConfig, global::functions::download_all_images, global::structs::Item};
-use invidious::{ClientSync, ClientSyncTrait};
+use crate::{
+    config::MainConfig,
+    global::{functions::download_all_images, structs::Item, traits::SearchProviderWrapper},
+};
 use std::error::Error;
 
-pub fn load_playlist(
-    client: &ClientSync,
-    id: &str,
-    mainconfig: &MainConfig,
-) -> Result<Item, Box<dyn Error>> {
-    let playlist = Item::from_full_playlist(client.playlist(id, None)?, mainconfig.image_index);
+pub fn load_playlist(id: &str, mainconfig: &MainConfig) -> Result<Item, Box<dyn Error>> {
+    let playlist =
+        Item::from_full_playlist(SearchProviderWrapper::playlist(id)?, mainconfig.image_index);
     let videos = &playlist.fullplaylist()?.videos;
 
     if mainconfig.images.display() {
@@ -21,12 +20,8 @@ pub fn load_playlist(
     Ok(playlist)
 }
 
-pub fn load_video(
-    client: &ClientSync,
-    id: &str,
-    mainconfig: &MainConfig,
-) -> Result<Item, Box<dyn Error>> {
-    let video = Item::from_full_video(client.video(id, None)?, mainconfig.image_index);
+pub fn load_video(id: &str, mainconfig: &MainConfig) -> Result<Item, Box<dyn Error>> {
+    let video = Item::from_full_video(SearchProviderWrapper::video(id)?, mainconfig.image_index);
     if mainconfig.images.display() {
         download_all_images(vec![(&video).into()]);
     }
