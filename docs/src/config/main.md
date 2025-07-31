@@ -154,7 +154,7 @@ This changes the `${url}` and `${embed-url}` of videos, allowing you to watch vi
 
 What method to fetch video info: from an Invidious instance or using RustyPipe - a local webscraper.
 
-*Accept: `RustyPipe`/`Invidious`
+*Accept: `RustyPipe`/`Invidious`*
 
 ### shell
 
