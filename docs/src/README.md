@@ -34,7 +34,7 @@ Anything from layouts to colours and keybindings can be customised, more on that
 
 ## Dependency-free*
 
-<sub>See [installation#features](https://siriusmart.github.io/youtube-tui/installation.html#features) for more info on dependencies.</sub>
+<sub>See [installation#features](https://tui.siri.ws/youtube/installation.html#features) for more info on dependencies.</sub>
 
 The YouTube TUI does not work on its own, it is instead like a _TUI frontend_ for programs like `mpv` or `yt-dlp`/`youtube-dl`.
 

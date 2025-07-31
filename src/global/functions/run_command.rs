@@ -616,7 +616,7 @@ const HELLO_WORLDS: &[&str] = &[
 fn help_msg(cmdefines: &CommandsRemapConfig) -> String {
     format!("\x1b[32mYouTube TUI commands\x1b[0m
 
-\x1b[37mfor more visit https://siriusmart.github.io/youtube-tui/commands.html\x1b[0m
+\x1b[37mfor more visit https://tui.siri.ws/youtube/commands.html\x1b[0m
 
 \x1b[91mUSAGE:\x1b[0m
     youtube-tui (command)

@@ -7,7 +7,7 @@
 [![](https://img.shields.io/aur/version/youtube-tui)](https://aur.archlinux.org/packages/youtube-tui)
 ![](https://shields.io/github/stars/siriusmart/youtube-tui?style=social)
 
-***Read more in the [user manual](https://siriusmart.github.io/youtube-tui) (including installation guide and documentation).***
+***Read more in the [user manual](https://tui.siri.ws/youtube) (including installation guide and documentation).***
 
 # Overview
 
@@ -45,7 +45,7 @@ Anything from layouts to colours and keybindings can be customised, more on that
 
 ## Dependency-free*
 
-<sub>See [installation#features](https://siriusmart.github.io/youtube-tui/installation.html#features) for more info on dependencies.</sub>
+<sub>See [installation#features](https://tui.siri.ws/youtube/installation.html#features) for more info on dependencies.</sub>
 
 The YouTube TUI does not work on its own, it is instead like a _TUI frontend_ for programs like `mpv` or `yt-dlp`/`youtube-dl`.
 
