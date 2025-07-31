@@ -1,12 +1,23 @@
 # Changelogs
 
-## v0.8.3 (latest)
+## v0.9.0 (latest)
 
 ### Added
 
-- Added channel commands menu.
+- Support for RustyPipe in replacement of the Invidious API.
+- Separated out the code for fetching video info from the rest of the mess, making it easier to add new backends.
 
 ### Fixed
+
+- All Invidious issues, because no longer depends on it.
+
+### v0.8.3
+
+#### Added
+
+- Added channel commands menu.
+
+#### Fixed
 
 - Patched invidious-rs to fix [#80](https://github.com/Siriusmart/youtube-tui/issues/80).
 
@@ -45,15 +56,15 @@
 - Fixed multiple issues in [#35](https://github.com/Siriusmart/youtube-tui/issues/35)
 
 ### v0.7.3
- 
+
 #### Added
- 
+
 - Lazy feed syncing (configurable), so you are not actively ddosing the Invidious instance as badly.
- 
+
 #### Fixed
- 
+
 - Search bar no longer shows escaped search query: the original text string is displayed instead.
-- Fixed something about labeling channels with * although no new video is published.
+- Fixed something about labeling channels with \* although no new video is published.
 - Blank screen on loadpage if itemlist is empty.
 
 ### v0.7.2
