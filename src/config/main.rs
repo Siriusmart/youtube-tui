@@ -256,7 +256,7 @@ const fn write_to_config_default() -> WriteConfig {
 fn default_env() -> HashMap<String, String> {
     HashMap::from([
         (String::from("video-player"), String::from("mpv")),
-        (String::from("browser"), String::from("firefox")),
+        (String::from("browser"), String::from("xdg-open")),
         (
             String::from("terminal-emulator"),
             String::from("konsole -e"),

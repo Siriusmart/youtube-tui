@@ -61,7 +61,7 @@ While any "play audio" options will start playing the audio in the embedded audi
 
 You can also play audio and videos externally.
 
-> This part assumes that you use `mpv` as your video player, `konsole` as your terminal emulator, `yt-dlp` as your YouTube video downloader, and `firefox` as your browser.
+> This part assumes that you use `mpv` as your video player, `konsole` as your terminal emulator and `yt-dlp` as your YouTube video downloader.
 > 
 > If that is not the case, you can learn how to change that in the *custom commands* section.
 
