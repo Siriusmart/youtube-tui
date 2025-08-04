@@ -35,7 +35,7 @@ images: Sixels
 refresh_after_modifying_search_filters: true
 provider: YouTube
 env:
-  browser: firefox
+  browser: xdg-open
   video-player: mpv
   youtube-downloader: yt-dlp
   terminal-emulator: konsole -e

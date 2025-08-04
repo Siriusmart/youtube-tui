@@ -32,7 +32,7 @@ env:
   terminal-emulator: konsole -e
   youtube-downloader: yt-dlp
   save-path: ~/.local/share/youtube-tui/saved/
-  browser: firefox
+  browser: xdg-open
 ```
 
 <hr>
