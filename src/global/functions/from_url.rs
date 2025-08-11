@@ -29,13 +29,13 @@ pub fn from_video_url(identifier: &str) -> Result<String, String> {
     } else {
         // the id can come after "?v=" in an url
         let index = if let Some(index) = identifier.find("?v=") {
-            if identifier.len() < index + 15 {
+            if identifier.len() < index + 14 {
                 return Err(format!("Cannot find video id from string `{identifier}`"));
             }
             index + 3
         // and also "youtu.be/"
         } else if let Some(index) = identifier.find("youtu.be/") {
-            if identifier.len() < index + 21 {
+            if identifier.len() < index + 20 {
                 return Err(format!("Cannot find video id from string `{identifier}`"));
             }
             index + 9
