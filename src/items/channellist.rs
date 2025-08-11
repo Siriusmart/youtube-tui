@@ -218,7 +218,7 @@ impl FrameworkItem for ChannelList {
 
         if self.selector.items.len() == 1 {
             frame.render_widget(
-                Paragraph::new("Subscribe to some channels first, come back later.\n\nHey, Sirius here. This YouTube TUI project started when I was 16, trying to show off my mediocre terminal themes on r/unixporn. I am really grateful to have this as my first project - if it wasn't for your support , I wouldn't have kept pushing the project forward. And if it wasn't for encouragement and attention from the wider community, it might also have been my last. So I would just want to say a huge thank you to everything here on this screen.\n\nLong live Invidious,\nSirius - Cambridge offer holder 2025, Christ Colleage.\n\nP.S. The 16-year-old-code-quality technical debt is strong here, may the force be with you.").wrap(ratatui::widgets::Wrap { trim: true }),
+                Paragraph::new("Subscribe to some channels first, come back later.\n\n- Docs at tui.siri.ws/youtube\n- Follow me on GitHub! (@Siriusmart)").wrap(ratatui::widgets::Wrap { trim: true }),
                 chunks[0],
             );
             return;
@@ -259,6 +259,48 @@ impl FrameworkItem for ChannelList {
         }
         self.channel_display
             .render(frame, framework, chunks[0], popup_render, info);
+    }
+
+    fn message(
+        &mut self,
+        framework: &mut FrameworkClean,
+        data: std::collections::HashMap<String, Box<dyn std::any::Any>>,
+    ) -> bool {
+        if !data.contains_key("type") {
+            return false;
+        }
+
+        let updated = data.get("type").is_some_and(|v| {
+            v.downcast_ref::<String>()
+                .is_some_and(|v| match v.as_str() {
+                    "scrollup" => self.selector.up().is_ok(),
+                    "scrolldown" => self.selector.down().is_ok(),
+                    _ => false,
+                })
+        });
+
+        if updated {
+            framework
+                .data
+                .global
+                .get_mut::<Status>()
+                .unwrap()
+                .storage
+                .insert::<SubSelect>(SubSelect(self.selector.selected));
+
+            self.update_channel_item(framework);
+            self.update(framework);
+            self.set_env(framework);
+
+            framework
+                .data
+                .global
+                .get_mut::<Status>()
+                .unwrap()
+                .render_image = true;
+        }
+
+        updated
     }
 
     fn key_event(

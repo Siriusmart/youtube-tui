@@ -273,6 +273,54 @@ impl Default for ItemList {
 }
 
 impl FrameworkItem for ItemList {
+    fn message(
+        &mut self,
+        framework: &mut FrameworkClean,
+        data: std::collections::HashMap<String, Box<dyn std::any::Any>>,
+    ) -> bool {
+        if !data.contains_key("type") {
+            return false;
+        }
+
+        let updated = data.get("type").is_some_and(|v| {
+            v.downcast_ref::<String>()
+                .is_some_and(|v| match v.as_str() {
+                    "scrollup" => self.textlist.up().is_ok(),
+                    "scrolldown" => self.textlist.down().is_ok(),
+                    _ => false,
+                })
+        });
+
+        if updated && !self.items.is_empty() {
+            self.update(framework);
+            set_envs(
+                self.infalte_item_update(
+                    framework.data.global.get::<MainConfig>().unwrap(),
+                    framework.data.global.get::<Status>().unwrap(),
+                )
+                .into_iter(),
+                &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+            );
+
+            framework
+                .data
+                .global
+                .get_mut::<Status>()
+                .unwrap()
+                .render_image = true;
+            self.info.item = Some(self.items[self.textlist.selected].clone());
+            framework
+                .data
+                .state
+                .get_mut::<Tasks>()
+                .unwrap()
+                .priority
+                .push(Task::RenderAll);
+        }
+
+        updated
+    }
+
     fn render(
         &mut self,
         frame: &mut ratatui::Frame,

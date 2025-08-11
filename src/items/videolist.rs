@@ -200,6 +200,57 @@ fn get_options(is_channel: bool) -> &'static [&'static str] {
 }
 
 impl FrameworkItem for VideoList {
+    fn message(
+        &mut self,
+        framework: &mut FrameworkClean,
+        data: std::collections::HashMap<String, Box<dyn std::any::Any>>,
+    ) -> bool {
+        if !data.contains_key("type") {
+            return false;
+        }
+
+        let previously_selected = self.selector.selected;
+
+        let updated = data.get("type").is_some_and(|v| {
+            v.downcast_ref::<String>()
+                .is_some_and(|v| match v.as_str() {
+                    "scrollup" => self.selector.up().is_ok(),
+                    "scrolldown" => self.selector.down().is_ok(),
+                    _ => false,
+                })
+        });
+
+        if updated {
+            let offset = if self.channel_id.is_some() { 3 } else { 1 };
+            if self.selector.selected < offset {
+                self.display.item = None;
+                if previously_selected >= offset {
+                    let tasks = framework.data.state.get_mut::<Tasks>().unwrap();
+                    tasks.priority.push(Task::ClearPage);
+                }
+            } else {
+                self.display.item = self
+                    .items
+                    .get(self.selector.selected - offset)
+                    .map(|item| Item::MiniVideo(item.clone()));
+            }
+            framework
+                .data
+                .state
+                .insert::<VidSelect>(VidSelect(self.selector.selected > 1));
+            framework
+                .data
+                .global
+                .get_mut::<Status>()
+                .unwrap()
+                .render_image = true;
+
+            self.set_env(framework);
+        }
+
+        updated
+    }
+
     fn load_item(
         &mut self,
         framework: &mut tui_additions::framework::FrameworkClean,

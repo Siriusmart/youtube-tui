@@ -348,6 +348,105 @@ impl FrameworkItem for ChannelDisplay {
         self.selectable()
     }
 
+    fn message(
+        &mut self,
+        framework: &mut FrameworkClean,
+        data: std::collections::HashMap<String, Box<dyn std::any::Any>>,
+    ) -> bool {
+        if !data.contains_key("type") {
+            return false;
+        }
+
+        let updated = match self {
+            Self::None => false,
+            Self::Main { textlist, .. } => data.get("type").is_some_and(|v| {
+                v.downcast_ref::<String>()
+                    .is_some_and(|v| match v.as_str() {
+                        "scrollup" => textlist.up().is_ok(),
+                        "scrolldown" => textlist.down().is_ok(),
+                        _ => false,
+                    })
+            }),
+            Self::Videos {
+                textlist,
+                videos,
+                iteminfo,
+                ..
+            } => data.get("type").is_some_and(|v| {
+                let updated = v
+                    .downcast_ref::<String>()
+                    .is_some_and(|v| match v.as_str() {
+                        "scrollup" => textlist.up().is_ok(),
+                        "scrolldown" => textlist.down().is_ok(),
+                        _ => false,
+                    });
+
+                if updated && !videos.is_empty() {
+                    framework
+                        .data
+                        .state
+                        .get_mut::<Tasks>()
+                        .unwrap()
+                        .priority
+                        .push(Task::RenderAll);
+                    framework
+                        .data
+                        .global
+                        .get_mut::<Status>()
+                        .unwrap()
+                        .render_image = true;
+                    iteminfo.item = Some(videos[textlist.selected].clone());
+                }
+                updated
+            }),
+            Self::Playlists {
+                playlists,
+                textlist,
+                iteminfo,
+                ..
+            } => {
+                let updated = data.get("type").is_some_and(|v| {
+                    v.downcast_ref::<String>()
+                        .is_some_and(|v| match v.as_str() {
+                            "scrollup" => textlist.up().is_ok(),
+                            "scrolldown" => textlist.down().is_ok(),
+                            _ => false,
+                        })
+                });
+
+                if updated && !playlists.is_empty() {
+                    framework
+                        .data
+                        .state
+                        .get_mut::<Tasks>()
+                        .unwrap()
+                        .priority
+                        .push(Task::RenderAll);
+                    framework
+                        .data
+                        .global
+                        .get_mut::<Status>()
+                        .unwrap()
+                        .render_image = true;
+                    iteminfo.item = Some(playlists[textlist.selected].clone());
+                }
+
+                updated
+            }
+        };
+
+        set_envs(
+            self.infalte_item_update(
+                framework.data.global.get::<MainConfig>().unwrap(),
+                framework.data.global.get::<Status>().unwrap(),
+            )
+            .into_iter(),
+            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+        );
+
+        updated
+    }
+
     fn key_event(
         &mut self,
         framework: &mut tui_additions::framework::FrameworkClean,

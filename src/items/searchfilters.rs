@@ -80,6 +80,57 @@ impl SearchFilter {
 }
 
 impl FrameworkItem for SearchFilter {
+    fn message(
+        &mut self,
+        framework: &mut FrameworkClean,
+        data: std::collections::HashMap<String, Box<dyn std::any::Any>>,
+    ) -> bool {
+        if !data.contains_key("type") {
+            return false;
+        }
+
+        let hovered_textlist = if self.current_hover {
+            &mut self.right_textlist
+        } else {
+            &mut self.left_textlist
+        };
+
+        let current_hover_before = self.current_hover;
+
+        let updated = data.get("type").is_some_and(|v| {
+            v.downcast_ref::<String>()
+                .is_some_and(|v| match v.as_str() {
+                    "scrollup" => hovered_textlist.up().is_ok(),
+                    "scrolldown" => hovered_textlist.down().is_ok(),
+                    _ => false,
+                })
+        });
+
+        if updated {
+            if current_hover_before {
+                framework
+                    .data
+                    .state
+                    .get_mut::<Search>()
+                    .unwrap()
+                    .filters
+                    .set_index(
+                        self.left_textlist.selected,
+                        self.right_textlist.selected,
+                        framework.data.global.get_mut::<Message>().unwrap(),
+                    );
+            } else {
+                self.right_textlist
+                    .set_items(&self.right_options[self.left_textlist.selected])
+                    .unwrap();
+            }
+        }
+
+        self.update(framework);
+
+        updated
+    }
+
     fn render(
         &mut self,
         frame: &mut ratatui::Frame,

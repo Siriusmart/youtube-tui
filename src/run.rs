@@ -2,7 +2,12 @@ use crossterm::event::{self, Event, MouseButton, MouseEventKind};
 use ratatui::{backend::CrosstermBackend, Terminal};
 #[cfg(feature = "mpv")]
 use std::time::{Duration, Instant};
-use std::{any::TypeId, error::Error, io::Stdout};
+use std::{
+    any::{Any, TypeId},
+    collections::HashMap,
+    error::Error,
+    io::Stdout,
+};
 use tui_additions::framework::Framework;
 
 use crate::{
@@ -57,6 +62,8 @@ pub fn run(
 
         *framework.data.global.get_mut::<Message>().unwrap() = Message::None;
 
+        let mut updated = false;
+
         match event::read()? {
             Event::Mouse(mouse)
                 if framework
@@ -66,7 +73,44 @@ pub fn run(
                     .unwrap()
                     .mouse_support =>
             {
+                let command_capture = &mut framework
+                    .data
+                    .global
+                    .get_mut::<Status>()
+                    .unwrap()
+                    .command_capture;
+
+                match mouse.kind {
+                    MouseEventKind::ScrollUp if command_capture.is_some() => {
+                        updated = updated || command_capture.as_mut().unwrap().left().is_ok()
+                    }
+                    MouseEventKind::ScrollUp => {
+                        let data: Box<dyn Any> = Box::new("scrollup".to_string());
+                        updated = updated
+                            || framework.message(HashMap::from([("type".to_string(), data)]))
+                    }
+                    MouseEventKind::ScrollDown if command_capture.is_some() => {
+                        updated = updated || command_capture.as_mut().unwrap().right().is_ok()
+                    }
+                    MouseEventKind::ScrollDown => {
+                        let data: Box<dyn Any> = Box::new("scrolldown".to_string());
+                        updated = updated
+                            || framework.message(HashMap::from([("type".to_string(), data)]))
+                    }
+                    _ => {}
+                }
+
                 if mouse.kind != MouseEventKind::Down(MouseButton::Left) {
+                    if updated {
+                        framework
+                            .data
+                            .state
+                            .get_mut::<Tasks>()
+                            .unwrap()
+                            .priority
+                            .push(Task::RenderAll);
+                    }
+
                     continue;
                 }
 
@@ -81,7 +125,7 @@ pub fn run(
                     let (mut frameworkclean, state) = framework.split_clean();
                     for row in state.0.iter_mut() {
                         for item in row.items.iter_mut() {
-                            if item.item.type_id() == TypeId::of::<SearchFilter>()
+                            if (*item.item).type_id() == TypeId::of::<SearchFilter>()
                                 && item.item.mouse_event(
                                     &mut frameworkclean,
                                     0,
@@ -101,11 +145,12 @@ pub fn run(
                     }
                 }
 
-                let updated = if searchfilter_clicked {
-                    true
-                } else {
-                    framework.mouse_event(mouse.column, mouse.row)
-                };
+                updated = updated
+                    || if searchfilter_clicked {
+                        true
+                    } else {
+                        framework.mouse_event(mouse.column, mouse.row)
+                    };
 
                 if updated {
                     framework

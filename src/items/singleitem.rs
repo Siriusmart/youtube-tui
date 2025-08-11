@@ -531,6 +531,91 @@ impl SingleItem {
 }
 
 impl FrameworkItem for SingleItem {
+    fn message(
+        &mut self,
+        framework: &mut FrameworkClean,
+        data: std::collections::HashMap<String, Box<dyn std::any::Any>>,
+    ) -> bool {
+        if !data.contains_key("type") {
+            return false;
+        }
+
+        match &mut self.r#type {
+            SingleItemType::None => false,
+            SingleItemType::Video(SingleVideoItem { textlist, .. }) => {
+                data.get("type").is_some_and(|v| {
+                    v.downcast_ref::<String>()
+                        .is_some_and(|v| match v.as_str() {
+                            "scrollup" => textlist.up().is_ok(),
+                            "scrolldown" => textlist.down().is_ok(),
+                            _ => false,
+                        })
+                })
+            }
+            SingleItemType::Playlist(item) => {
+                if item.is_commands_view {
+                    data.get("type").is_some_and(|v| {
+                        v.downcast_ref::<String>()
+                            .is_some_and(|v| match v.as_str() {
+                                "scrollup" => item.commands_view.up().is_ok(),
+                                "scrolldown" => item.commands_view.down().is_ok(),
+                                _ => false,
+                            })
+                    })
+                } else {
+                    let updated = data.get("type").is_some_and(|v| {
+                        v.downcast_ref::<String>()
+                            .is_some_and(|v| match v.as_str() {
+                                "scrollup" => {
+                                    if item.videos_view.selected == 1 {
+                                        // going from a hovering video to not hovering will make the image
+                                        // stay on the screen, therefore it needs to be removed by clearing
+                                        // the screen
+                                        framework
+                                            .data
+                                            .state
+                                            .get_mut::<Tasks>()
+                                            .unwrap()
+                                            .priority
+                                            .push(Task::ClearPage);
+                                    }
+                                    item.videos_view.up().is_ok()
+                                }
+                                "scrolldown" => item.videos_view.down().is_ok(),
+                                _ => false,
+                            })
+                    });
+
+                    if updated {
+                        if item.videos_view.selected != 0 {
+                            item.hovered_video.item = Some(
+                                self.item.as_ref().unwrap().fullplaylist().unwrap().videos
+                                    [item.videos_view.selected - 1]
+                                    .clone(),
+                            );
+                        }
+
+                        framework
+                            .data
+                            .global
+                            .get_mut::<Status>()
+                            .unwrap()
+                            .render_image = true;
+                        set_envs(
+                            self.infalte_item_update(
+                                framework.data.global.get::<MainConfig>().unwrap(),
+                                framework.data.global.get::<Status>().unwrap(),
+                            )
+                            .into_iter(),
+                            &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
+                        );
+                    }
+
+                    updated
+                }
+            }
+        }
+    }
     fn render(
         &mut self,
         frame: &mut ratatui::Frame,

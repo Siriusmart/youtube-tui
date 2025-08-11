@@ -235,4 +235,23 @@ impl FrameworkItem for SearchBar {
     fn selectable(&self) -> bool {
         true
     }
+
+    fn message(
+        &mut self,
+        _framework: &mut tui_additions::framework::FrameworkClean,
+        data: std::collections::HashMap<String, Box<dyn std::any::Any>>,
+    ) -> bool {
+        if !data.contains_key("type") {
+            return false;
+        }
+
+        data.get("type").is_some_and(|v| {
+            v.downcast_ref::<String>()
+                .is_some_and(|v| match v.as_str() {
+                    "scrollup" => self.text_field.left().is_ok(),
+                    "scrolldown" => self.text_field.right().is_ok(),
+                    _ => false,
+                })
+        })
+    }
 }
