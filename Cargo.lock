@@ -3374,7 +3374,7 @@ dependencies = [
 
 [[package]]
 name = "youtube-tui"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "chrono",
  "clipboard",

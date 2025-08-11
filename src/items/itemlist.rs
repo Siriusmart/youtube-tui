@@ -499,7 +499,7 @@ impl FrameworkItem for ItemList {
 
         // clicking on rows after the last item
         if y > self.textlist.items.len() + 1 {
-            return false;
+            return self.textlist.last().is_ok();
         }
 
         // moving the cursor
