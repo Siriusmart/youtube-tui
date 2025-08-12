@@ -435,6 +435,8 @@ impl FrameworkItem for SearchFilter {
         } else if textlist.items.len() >= y - 1 {
             textlist.selected = y - 2;
             let _ = textlist.update();
+        } else {
+            let _ = textlist.last();
         }
 
         if is_left_list {

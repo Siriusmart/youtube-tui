@@ -737,11 +737,8 @@ impl FrameworkItem for ChannelDisplay {
 
                 // clicking on rows after the last item
                 if y > textlist.items.len() + 1 {
-                    return false;
-                }
-
-                // moving the cursor
-                if y <= textlist.selected {
+                    let _ = textlist.last();
+                } else if y <= textlist.selected {
                     textlist.selected = y;
                 } else if y >= textlist.selected + 2 {
                     textlist.selected = y - 2;

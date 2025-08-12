@@ -547,15 +547,10 @@ impl FrameworkItem for ItemList {
 
         // clicking on rows after the last item
         if y > self.textlist.items.len() + 1 {
-            return self.textlist.last().is_ok();
-        }
-
-        // moving the cursor
-        if y <= self.textlist.selected {
+            let _ = self.textlist.last();
+        } else if y <= self.textlist.selected {
             self.textlist.selected = y;
-        }
-
-        if y >= self.textlist.selected + 2 {
+        } else if y >= self.textlist.selected + 2 {
             self.textlist.selected = y - 2;
         }
 

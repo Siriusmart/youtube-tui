@@ -1084,15 +1084,10 @@ impl FrameworkItem for SingleItem {
 
         // clicking on rows after the last item
         if y > textlist.items.len() + 1 {
-            return false;
-        }
-
-        // moving the cursor
-        if y <= textlist.selected {
+            let _ = textlist.last();
+        } else if y <= textlist.selected {
             textlist.selected = y;
-        }
-
-        if y >= textlist.selected + 2 {
+        } else if y >= textlist.selected + 2 {
             textlist.selected = y - 2;
         }
 

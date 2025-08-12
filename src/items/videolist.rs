@@ -507,15 +507,10 @@ impl FrameworkItem for VideoList {
 
         // clicking on rows after the last item
         if y > self.selector.items.len() + 1 {
-            return false;
-        }
-
-        // moving the cursor
-        if y <= self.selector.selected {
+            let _ = self.selector.last();
+        } else if y <= self.selector.selected {
             self.selector.selected = y;
-        }
-
-        if y >= self.selector.selected + 2 {
+        } else if y >= self.selector.selected + 2 {
             self.selector.selected = y - 2;
         }
 
