@@ -30,6 +30,8 @@ pub struct MainConfig {
     pub syncing: SyncConfig,
     #[serde(default)]
     pub limits: Limits,
+    #[serde(default = "textbar_scroll_behaviour_default")]
+    pub textbar_scroll_behaviour: TextbarScrollBehaviour,
     #[serde(default = "image_index_default")]
     // The image to download from the array of images provided by the invidious api
     // 0 is usually `maxres` and 3 (default) is good enough for normal uses without having huge files sizes
@@ -65,6 +67,7 @@ impl Default for MainConfig {
             image_index: image_index_default(),
             refresh_after_modifying_search_filters: refresh_after_modifying_search_filters_default(
             ),
+            textbar_scroll_behaviour: textbar_scroll_behaviour_default(),
             limits: Limits::default(),
             syncing: sync_config_default(),
             provider: provider_default(),
@@ -299,4 +302,14 @@ const fn sync_videos_cooldown_secs_default() -> u64 {
 
 const fn legacy_input_handling_default() -> bool {
     false
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy)]
+pub enum TextbarScrollBehaviour {
+    Character,
+    Word,
+    History,
+}
+const fn textbar_scroll_behaviour_default() -> TextbarScrollBehaviour {
+    TextbarScrollBehaviour::History
 }

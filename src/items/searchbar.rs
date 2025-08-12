@@ -238,18 +238,73 @@ impl FrameworkItem for SearchBar {
 
     fn message(
         &mut self,
-        _framework: &mut tui_additions::framework::FrameworkClean,
+        framework: &mut tui_additions::framework::FrameworkClean,
         data: std::collections::HashMap<String, Box<dyn std::any::Any>>,
     ) -> bool {
         if !data.contains_key("type") {
             return false;
         }
 
+        let scroll_behaviour = framework
+            .data
+            .global
+            .get::<MainConfig>()
+            .unwrap()
+            .textbar_scroll_behaviour;
+
         data.get("type").is_some_and(|v| {
+            // copied from key_event
+            // if modify this, also modify it there
             v.downcast_ref::<String>()
                 .is_some_and(|v| match v.as_str() {
-                    "scrollup" => self.text_field.left().is_ok(),
-                    "scrolldown" => self.text_field.right().is_ok(),
+                    "scrollup" => match scroll_behaviour {
+                        TextbarScrollBehaviour::Character => self.text_field.left().is_ok(),
+                        TextbarScrollBehaviour::Word => {
+                            previous_word(&mut self.text_field);
+                            true
+                        }
+                        TextbarScrollBehaviour::History => {
+                            let history = framework.data.global.get::<SearchHistory>().unwrap();
+                            if self.history_index != Some(0) && !history.0.is_empty() {
+                                if self.history_index.is_none() {
+                                    self.custom_value_cache = self.text_field.content.clone();
+                                    self.history_index = None
+                                }
+                                self.history_index =
+                                    Some(self.history_index.unwrap_or(history.0.len()) - 1);
+                                self.text_field.content =
+                                    history.0[self.history_index.unwrap()].clone();
+                                let _ = self.text_field.last();
+                                true
+                            } else {
+                                false
+                            }
+                        }
+                    },
+                    "scrolldown" => match scroll_behaviour {
+                        TextbarScrollBehaviour::Character => self.text_field.right().is_ok(),
+                        TextbarScrollBehaviour::Word => {
+                            next_word(&mut self.text_field);
+                            true
+                        }
+                        TextbarScrollBehaviour::History => {
+                            let history = framework.data.global.get::<SearchHistory>().unwrap();
+                            if self.history_index.is_none() {
+                                false
+                            } else if self.history_index == Some(history.0.len() - 1) {
+                                self.history_index = None;
+                                self.text_field.content = self.custom_value_cache.clone();
+                                let _ = self.text_field.last();
+                                true
+                            } else {
+                                self.history_index = self.history_index.map(|n| n + 1);
+                                self.text_field.content =
+                                    history.0[self.history_index.unwrap()].clone();
+                                let _ = self.text_field.last();
+                                true
+                            }
+                        }
+                    },
                     _ => false,
                 })
         })

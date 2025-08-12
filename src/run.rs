@@ -73,6 +73,12 @@ pub fn run(
                     .unwrap()
                     .mouse_support =>
             {
+                let scroll_behaviour = framework
+                    .data
+                    .global
+                    .get::<MainConfig>()
+                    .unwrap()
+                    .textbar_scroll_behaviour;
                 let command_capture = &mut framework
                     .data
                     .global
@@ -81,8 +87,55 @@ pub fn run(
                     .command_capture;
 
                 match mouse.kind {
+                    // copied from messagebar.rs::key_event
+                    // if modify this, also modify it there
                     MouseEventKind::ScrollUp if command_capture.is_some() => {
-                        updated = updated || command_capture.as_mut().unwrap().left().is_ok()
+                        updated = updated
+                            || match scroll_behaviour {
+                                TextbarScrollBehaviour::Character => {
+                                    command_capture.as_mut().unwrap().left().is_ok()
+                                }
+                                TextbarScrollBehaviour::History => {
+                                    let status = framework.data.global.get::<Status>().unwrap();
+                                    let history =
+                                        framework.data.global.get::<CommandHistory>().unwrap();
+                                    if status.command_history_index != Some(0)
+                                        && !history.0.is_empty()
+                                    {
+                                        let new_index =
+                                            status.command_history_index.unwrap_or(history.0.len())
+                                                - 1;
+                                        let new_content = history.0[new_index].clone();
+
+                                        let status =
+                                            framework.data.global.get_mut::<Status>().unwrap();
+                                        let text_field = status.command_capture.as_mut().unwrap();
+                                        if status.command_history_index.is_none() {
+                                            status.command_editing_cache =
+                                                text_field.content.clone();
+                                        }
+                                        text_field.content = new_content;
+                                        status.command_history_index = Some(new_index);
+                                        let _ = text_field.last();
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                }
+                                TextbarScrollBehaviour::Word => {
+                                    previous_word(
+                                        framework
+                                            .data
+                                            .global
+                                            .get_mut::<Status>()
+                                            .unwrap()
+                                            .command_capture
+                                            .as_mut()
+                                            .unwrap(),
+                                    );
+                                    true
+                                }
+                            }
                     }
                     MouseEventKind::ScrollUp => {
                         let data: Box<dyn Any> = Box::new("scrollup".to_string());
@@ -90,7 +143,59 @@ pub fn run(
                             || framework.message(HashMap::from([("type".to_string(), data)]))
                     }
                     MouseEventKind::ScrollDown if command_capture.is_some() => {
-                        updated = updated || command_capture.as_mut().unwrap().right().is_ok()
+                        updated = updated
+                            || match scroll_behaviour {
+                                TextbarScrollBehaviour::Word => {
+                                    next_word(
+                                        framework
+                                            .data
+                                            .global
+                                            .get_mut::<Status>()
+                                            .unwrap()
+                                            .command_capture
+                                            .as_mut()
+                                            .unwrap(),
+                                    );
+                                    true
+                                }
+                                TextbarScrollBehaviour::History => {
+                                    let status = framework.data.global.get::<Status>().unwrap();
+                                    if status.command_history_index.is_none() {
+                                        false
+                                    } else {
+                                        let history =
+                                            framework.data.global.get::<CommandHistory>().unwrap();
+                                        if status.command_history_index == Some(history.0.len() - 1)
+                                        {
+                                            let status =
+                                                framework.data.global.get_mut::<Status>().unwrap();
+                                            let text_field =
+                                                status.command_capture.as_mut().unwrap();
+                                            status.command_history_index = None;
+                                            text_field.content =
+                                                status.command_editing_cache.clone();
+                                        } else {
+                                            let new_index = status
+                                                .command_history_index
+                                                .unwrap_or(history.0.len())
+                                                + 1;
+                                            let new_content = history.0[new_index].clone();
+
+                                            let status =
+                                                framework.data.global.get_mut::<Status>().unwrap();
+                                            let text_field =
+                                                status.command_capture.as_mut().unwrap();
+                                            text_field.content = new_content;
+                                            status.command_history_index = Some(new_index);
+                                            let _ = text_field.last();
+                                        }
+                                        true
+                                    }
+                                }
+                                TextbarScrollBehaviour::Character => {
+                                    command_capture.as_mut().unwrap().right().is_ok()
+                                }
+                            }
                     }
                     MouseEventKind::ScrollDown => {
                         let data: Box<dyn Any> = Box::new("scrolldown".to_string());
