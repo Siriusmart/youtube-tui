@@ -61,8 +61,14 @@ pub fn download_all_images(downloads: Vec<Option<DownloadRequest>>) {
     })
 }
 
+fn httpreq_get(url: &str) -> Result<Vec<u8>, http_req::error::Error> {
+    let mut buffer = Vec::new();
+    http_req::request::get(url, &mut buffer)?;
+    Ok(buffer)
+}
+
 fn download_single(url: &str, path: PathBuf) -> Result<(), Box<dyn Error>> {
-    let res = invidious::functions::httpreq_get(url)?;
+    let res = httpreq_get(url)?;
     let mut file = fs::File::create(path)?;
     let mut content = Cursor::new(res);
     std::io::copy(&mut content, &mut file)?;

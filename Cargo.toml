@@ -16,11 +16,13 @@ exclude = ["/docs", "/LICENSE", "/threadcounter.sh", "/PKGBUILD"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["sixel", "halfblock", "clipboard", "mpv"]
+default = ["sixel", "halfblock", "clipboard", "mpv", "rustypipe"]
 sixel = ["viuer/sixel"]
 halfblock = ["viuer"]
 clipboard = ["dep:clipboard"]
 mpv = ["dep:libmpv-sirno"]
+invidious = ["invidious/httpreq_sync"]
+rustypipe = []
 
 [dependencies]
 serde = {version = "1.0", default-features = false, features = ["derive"]}
@@ -30,7 +32,7 @@ home = "0.5"
 chrono = {version = "0.4", default-features = false, features = ["clock"]}
 typemap = {version = "0.3", default-features = false}
 tui-additions = {version = "0.4", default-features = false, features = ["framework", "widgets"]}
-invidious = {version = "0.7"}
+invidious = { version = "0.7", default-features = false }
 serde_yaml_ng = {version = "0.10", default-features = false}
 dyn-clone = {version = "1.0", default-features = false}
 serde_json = {version = "1.0", default-features = false}
@@ -43,6 +45,7 @@ libmpv-sirno = { version = "2.0.2-fork.1", optional = true }
 rustypipe = "0.11"
 futures = { version = "0.3", features = [ "executor" ] }
 tokio = { version = "1", features = [ "rt" ]}
+http_req = "0.14.1"
 
 # libmpv = { path = "libmpv-rs", optional = true, version = "2" }
 # tui-additions = {path = "../Rust/tui-additions", default-features = false, features = ["framework", "widgets"]}

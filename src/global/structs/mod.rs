@@ -1,6 +1,7 @@
 //! enums and structs
 mod errors;
 mod history;
+#[cfg(feature = "invidious")]
 mod invidiousclient;
 mod item;
 mod keyaction;
@@ -17,6 +18,7 @@ mod tasks;
 
 pub use errors::*;
 pub use history::*;
+#[cfg(feature = "invidious")]
 pub use invidiousclient::*;
 pub use item::*;
 pub use keyaction::*;

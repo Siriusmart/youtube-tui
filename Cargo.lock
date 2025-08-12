@@ -987,6 +987,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "http_req"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bec91a96dfaaf08e42e32408d01988e2578c78e8017fd9484a6b213d0e802ee6"
+dependencies = [
+ "base64",
+ "native-tls",
+ "unicase",
+ "zeroize",
+]
+
+[[package]]
 name = "httparse"
 version = "1.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1272,7 +1284,7 @@ version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fa2cff01a915c4780785828f6bec4ad5f8d03f34307d4183ca210830a8a6d88d"
 dependencies = [
- "http_req",
+ "http_req 0.12.0",
  "serde",
  "serde_json",
 ]
@@ -3470,6 +3482,7 @@ dependencies = [
  "dyn-clone",
  "futures",
  "home",
+ "http_req 0.14.1",
  "invidious",
  "libmpv-sirno",
  "ratatui",
@@ -3531,6 +3544,20 @@ name = "zeroize"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde"
+dependencies = [
+ "zeroize_derive",
+]
+
+[[package]]
+name = "zeroize_derive"
+version = "1.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "zerotrie"

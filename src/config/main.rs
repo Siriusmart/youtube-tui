@@ -1,10 +1,4 @@
-use crate::{
-    global::{
-        structs::{InvidiousClient, RustyPipeWrapper},
-        traits::{ConfigTrait, SearchProviderTrait},
-    },
-    MAIN_CONFIG,
-};
+use crate::global::traits::{ConfigTrait, SearchProviderTrait};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use typemap::Key;
@@ -152,20 +146,24 @@ pub enum Provider {
 
 #[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum SearchProvider {
+    #[cfg(feature = "invidious")]
     Invidious,
+    #[cfg(feature = "rustypipe")]
     RustyPipe,
 }
 
 impl SearchProvider {
     pub fn create(&self) -> Box<dyn SearchProviderTrait> {
         match self {
-            Self::Invidious => Box::new(InvidiousClient::new(
-                unsafe { MAIN_CONFIG.get() }
+            #[cfg(feature = "invidious")]
+            Self::Invidious => Box::new(crate::global::structs::InvidiousClient::new(
+                unsafe { crate::MAIN_CONFIG.get() }
                     .unwrap()
                     .invidious_instance
                     .clone(),
             )),
-            Self::RustyPipe => Box::new(RustyPipeWrapper::default()),
+            #[cfg(feature = "rustypipe")]
+            Self::RustyPipe => Box::new(crate::global::structs::RustyPipeWrapper::default()),
         }
     }
 }
@@ -173,7 +171,9 @@ impl SearchProvider {
 impl SearchProvider {
     pub fn as_str(&self) -> &str {
         match self {
+            #[cfg(feature = "invidious")]
             Self::Invidious => "Invidious",
+            #[cfg(feature = "rustypipe")]
             Self::RustyPipe => "RustyPipe",
         }
     }
@@ -232,8 +232,19 @@ const fn provider_default() -> Provider {
     Provider::YouTube
 }
 
+#[cfg(not(any(feature = "rustypipe", feature = "invidious")))]
+compile_error!(
+    "You must include a search provider in your feature list, they are `rustypipe` and `invidious`"
+);
+
+#[cfg(feature = "rustypipe")]
 const fn search_provider_default() -> SearchProvider {
     SearchProvider::RustyPipe
+}
+
+#[cfg(all(feature = "invidious", not(feature = "rustypipe")))]
+const fn search_provider_default() -> SearchProvider {
+    SearchProvider::Invidious
 }
 
 const fn search_history_default() -> usize {
