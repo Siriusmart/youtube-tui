@@ -73,3 +73,26 @@ impl CollectionNoId<String> for CommandHistory {
         Self(items)
     }
 }
+
+#[derive(Clone, Default, Serialize, Deserialize)]
+pub struct ChannelHistory(pub Vec<String>);
+
+impl Key for ChannelHistory {
+    type Value = Self;
+}
+
+impl CollectionNoId<String> for ChannelHistory {
+    const INDEX_PATH: &'static str = ".local/share/youtube-tui/channel_history.json";
+
+    fn items(&self) -> &Vec<String> {
+        &self.0
+    }
+
+    fn items_mut(&mut self) -> &mut Vec<String> {
+        &mut self.0
+    }
+
+    fn from_items(items: Vec<String>) -> Self {
+        Self(items)
+    }
+}
