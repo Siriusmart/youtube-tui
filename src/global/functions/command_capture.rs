@@ -137,6 +137,10 @@ pub fn command_capture(framework: &mut FrameworkClean, key: KeyEvent) -> bool {
                     let text_field = status.command_capture.as_mut().unwrap();
                     status.command_history_index = None;
                     text_field.content = status.command_editing_cache.clone();
+                    text_field.cursor = text_field.cursor.min(text_field.content.len());
+                    if !text_field.content.is_empty() {
+                        let _ = text_field.last();
+                    }
                 } else {
                     let new_index = status.command_history_index.unwrap_or(history.0.len()) + 1;
                     let new_content = history.0[new_index].clone();

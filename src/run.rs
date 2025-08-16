@@ -174,6 +174,11 @@ pub fn run(
                                             status.command_history_index = None;
                                             text_field.content =
                                                 status.command_editing_cache.clone();
+                                            text_field.cursor =
+                                                text_field.cursor.min(text_field.content.len());
+                                            if !text_field.content.is_empty() {
+                                                let _ = text_field.last();
+                                            }
                                         } else {
                                             let new_index = status
                                                 .command_history_index
