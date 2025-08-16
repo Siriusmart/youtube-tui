@@ -5,44 +5,86 @@ use std::{
     sync::OnceLock,
 };
 
-use dyn_clone::DynClone;
-use invidious::{
+use crate::global::common::{
     channel::Channel,
     hidden::{PopularItem, SearchItem},
     universal::Playlist,
     video::Video,
     CommonPlaylist, CommonVideo,
 };
+use dyn_clone::DynClone;
 
 use crate::{
     config::{Search, SearchProvider},
     MAIN_CONFIG,
 };
 
+#[allow(unused_variables)]
 pub trait SearchProviderTrait: DynClone + Send {
-    fn supports_channel(&self) -> bool;
-    fn channel(&self, id: &str) -> Result<Channel, Box<dyn Error>>;
+    fn supports_channel(&self) -> bool {
+        false
+    }
+    fn channel(&self, id: &str) -> Result<Channel, Box<dyn Error>> {
+        unimplemented!("channel not implemented")
+    }
 
-    fn supports_channel_videos(&self) -> bool;
-    fn channel_videos(&self, id: &str) -> Result<Vec<CommonVideo>, Box<dyn Error>>;
+    fn supports_channel_videos(&self) -> bool {
+        false
+    }
+    fn channel_videos(&self, id: &str) -> Result<Vec<CommonVideo>, Box<dyn Error>> {
+        unimplemented!("channel_videos not implemented")
+    }
 
-    fn supports_channel_playlists(&self) -> bool;
-    fn channel_playlists(&self, id: &str) -> Result<Vec<CommonPlaylist>, Box<dyn Error>>;
+    fn supports_channel_playlists(&self) -> bool {
+        false
+    }
+    fn channel_playlists(&self, id: &str) -> Result<Vec<CommonPlaylist>, Box<dyn Error>> {
+        unimplemented!("channel_playlists not implemented")
+    }
 
-    fn supports_trending(&self) -> bool;
-    fn trending(&self) -> Result<Vec<CommonVideo>, Box<dyn Error>>;
+    fn supports_trending(&self) -> bool {
+        false
+    }
+    fn trending(&self) -> Result<Vec<CommonVideo>, Box<dyn Error>> {
+        unimplemented!("trending not implemented")
+    }
 
-    fn supports_popular(&self) -> bool;
-    fn popular(&self) -> Result<Vec<PopularItem>, Box<dyn Error>>;
+    fn supports_popular(&self) -> bool {
+        false
+    }
+    fn popular(&self) -> Result<Vec<PopularItem>, Box<dyn Error>> {
+        unimplemented!("popular not implemented")
+    }
 
-    fn supports_search(&self) -> bool;
-    fn search(&self, filters: &Search) -> Result<Vec<SearchItem>, Box<dyn Error>>;
+    fn supports_search(&self) -> bool {
+        false
+    }
+    fn search(&self, filters: &Search) -> Result<Vec<SearchItem>, Box<dyn Error>> {
+        unimplemented!("search not implemented")
+    }
 
-    fn supports_video(&self) -> bool;
-    fn video(&self, id: &str) -> Result<Video, Box<dyn Error>>;
+    fn supports_video(&self) -> bool {
+        false
+    }
+    fn video(&self, id: &str) -> Result<Video, Box<dyn Error>> {
+        unimplemented!("video not implemented")
+    }
 
-    fn supports_playlist(&self) -> bool;
-    fn playlist(&self, id: &str) -> Result<Playlist, Box<dyn Error>>;
+    fn supports_playlist(&self) -> bool {
+        false
+    }
+    fn playlist(&self, id: &str) -> Result<Playlist, Box<dyn Error>> {
+        unimplemented!("playlist not implemented")
+    }
+
+    /*
+    fn supports_album(&self) -> bool {
+        false
+    }
+    fn album(&self) -> Result {
+
+    }
+    */
 }
 
 dyn_clone::clone_trait_object!(SearchProviderTrait);

@@ -19,7 +19,7 @@ use tui_additions::framework::Framework;
 /// runs text command - command from the command line (not TUI) which response is just a string
 pub fn text_command(command: &str) -> Option<String> {
     let command_parts: Vec<&str> = command.split_ascii_whitespace().collect();
-    
+
     match command_parts.as_slice() {
         ["help"] => Some(help_msg(
             &CommandsRemapConfig::load(WriteConfig::Dont).unwrap(),
@@ -72,12 +72,18 @@ pub fn text_command(command: &str) -> Option<String> {
                             }
                             "channel" | "video" | "playlist" => {
                                 if command_parts.len() != 2 {
-                                    return Some(format!("Usage: `{} {{id/url}}`", command_parts[0]));
+                                    return Some(format!(
+                                        "Usage: `{} {{id/url}}`",
+                                        command_parts[0]
+                                    ));
                                 }
                             }
                             "search" => {
                                 if command_parts.len() < 2 {
-                                    return Some(format!("Usage: `{} {{query}}`", command_parts[0]));
+                                    return Some(format!(
+                                        "Usage: `{} {{query}}`",
+                                        command_parts[0]
+                                    ));
                                 }
                             }
                             _ => {}

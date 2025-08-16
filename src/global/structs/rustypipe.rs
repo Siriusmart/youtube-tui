@@ -1,4 +1,4 @@
-use invidious::{
+use crate::global::common::{
     channel::Channel, hidden::SearchItem, universal::Playlist, video::Video, CommonChannel,
     CommonImage, CommonPlaylist, CommonThumbnail, CommonVideo,
 };
@@ -49,7 +49,7 @@ fn image_convert(thumb: Thumbnail) -> CommonImage {
 }
 
 fn video_item_convert(video: VideoItem) -> CommonVideo {
-    invidious::CommonVideo {
+    crate::global::common::CommonVideo {
         title: video.name,
         id: video.id,
         author: video
@@ -86,7 +86,7 @@ fn video_item_convert(video: VideoItem) -> CommonVideo {
 }
 
 fn playlist_item_convert(playlist: PlaylistItem) -> CommonPlaylist {
-    invidious::CommonPlaylist {
+    crate::global::common::CommonPlaylist {
         title: playlist.name,
         id: playlist.id,
         thumbnail: playlist
@@ -114,7 +114,7 @@ fn playlist_item_convert(playlist: PlaylistItem) -> CommonPlaylist {
 }
 
 fn channel_item_convert(channel: ChannelItem) -> CommonChannel {
-    invidious::CommonChannel {
+    crate::global::common::CommonChannel {
         name: channel.name,
         url: format!("https://www.youtube.com/channel/{}", channel.id),
         id: channel.id,
@@ -133,7 +133,10 @@ impl SearchProviderTrait for RustyPipeWrapper {
         true
     }
 
-    fn video(&self, id: &str) -> Result<invidious::video::Video, Box<dyn std::error::Error>> {
+    fn video(
+        &self,
+        id: &str,
+    ) -> Result<crate::global::common::video::Video, Box<dyn std::error::Error>> {
         let query = self.0.query();
         let (player, details) = RUNTIME
             .get()
@@ -210,7 +213,7 @@ impl SearchProviderTrait for RustyPipeWrapper {
     fn search(
         &self,
         filters: &crate::config::Search,
-    ) -> Result<Vec<invidious::hidden::SearchItem>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<crate::global::common::hidden::SearchItem>, Box<dyn std::error::Error>> {
         let date = match filters.filters.date {
             SearchFilterDate::None => None,
             SearchFilterDate::Hour => Some(UploadDate::Hour),
@@ -270,7 +273,10 @@ impl SearchProviderTrait for RustyPipeWrapper {
         true
     }
 
-    fn channel(&self, id: &str) -> Result<invidious::channel::Channel, Box<dyn std::error::Error>> {
+    fn channel(
+        &self,
+        id: &str,
+    ) -> Result<crate::global::common::channel::Channel, Box<dyn std::error::Error>> {
         let q = self.0.query();
         let (info, artist) = RUNTIME
             .get()
@@ -302,19 +308,13 @@ impl SearchProviderTrait for RustyPipeWrapper {
         })
     }
 
-    fn supports_popular(&self) -> bool {
-        false
-    }
-
-    fn popular(&self) -> Result<Vec<invidious::hidden::PopularItem>, Box<dyn std::error::Error>> {
-        unimplemented!("not supported")
-    }
-
     fn supports_trending(&self) -> bool {
         true
     }
 
-    fn trending(&self) -> Result<Vec<invidious::CommonVideo>, Box<dyn std::error::Error>> {
+    fn trending(
+        &self,
+    ) -> Result<Vec<crate::global::common::CommonVideo>, Box<dyn std::error::Error>> {
         let res = RUNTIME.get().unwrap().block_on(self.0.query().trending())?;
 
         Ok(res.into_iter().map(video_item_convert).collect())
@@ -327,7 +327,7 @@ impl SearchProviderTrait for RustyPipeWrapper {
     fn playlist(
         &self,
         id: &str,
-    ) -> Result<invidious::universal::Playlist, Box<dyn std::error::Error>> {
+    ) -> Result<crate::global::common::universal::Playlist, Box<dyn std::error::Error>> {
         let res = RUNTIME
             .get()
             .unwrap()
@@ -365,7 +365,7 @@ impl SearchProviderTrait for RustyPipeWrapper {
                 .videos
                 .items
                 .into_iter()
-                .map(|item| invidious::hidden::PlaylistItem {
+                .map(|item| crate::global::common::hidden::PlaylistItem {
                     title: item.name,
                     id: item.id,
                     author: res

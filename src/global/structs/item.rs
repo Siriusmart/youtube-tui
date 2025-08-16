@@ -1,8 +1,8 @@
-use crate::global::{functions::*, traits::CollectionItem};
-use invidious::{
+use crate::global::common::{
     channel::Channel, hidden::*, universal::Playlist as FullPlaylist, video::Video, CommonChannel,
     CommonPlaylist, CommonVideo,
 };
+use crate::global::{functions::*, traits::CollectionItem};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 

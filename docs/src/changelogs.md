@@ -1,15 +1,28 @@
 # Changelogs
 
-## v0.9.0 (latest)
-
+## v0.9.1 (Latest)
+ 
 ### Added
+- Mouse scroll behavior (configurable) for SearchBar and command capture.
+
+### Fixed
+- The `:video [url]` command unable to identify video ID.
+- Clicking on area below text list does what you expect it to.
+
+---
+
+### v0.9.0
+
+#### Added
 
 - Support for RustyPipe in replacement of the Invidious API.
 - Separated out the code for fetching video info from the rest of the mess, making it easier to add new backends.
 
-### Fixed
+#### Fixed
 
 - All Invidious issues, because no longer depends on it.
+
+---
 
 ### v0.8.3
 

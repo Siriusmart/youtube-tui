@@ -21,6 +21,7 @@ limits:
   watch_history: 50
   search_history: 75
   commands_history: 75
+textbar_scroll_behaviour: Word
 image_index: 4
 provider: YouTube
 search_provider: RustyPipe
@@ -119,6 +120,12 @@ Sync all do not sync videos from channel if it has been synced in the past *n* s
 The maximum length that the watch/search/command history can hold, a value higher will record more items, but will also result in a larger file size in storage.
 
 *Accept: positive integer below 2<sup>*your CPU architecture*</sup> - 1*
+
+### textbar_scroll_behaviour
+
+What to do when mouse scrolls when the message bar or search bar is selected?
+
+*Accept: `Character`/`Word`/`History`*
 
 ### image_index
 
