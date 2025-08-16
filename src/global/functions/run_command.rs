@@ -18,11 +18,9 @@ use tui_additions::framework::Framework;
 
 /// runs text command - command from the command line (not TUI) which response is just a string
 pub fn text_command(command: &str) -> Option<String> {
-    match command
-        .split_ascii_whitespace()
-        .collect::<Vec<_>>()
-        .as_slice()
-    {
+    let command_parts: Vec<&str> = command.split_ascii_whitespace().collect();
+    
+    match command_parts.as_slice() {
         ["help"] => Some(help_msg(
             &CommandsRemapConfig::load(WriteConfig::Dont).unwrap(),
         )),
@@ -31,7 +29,64 @@ pub fn text_command(command: &str) -> Option<String> {
             env!("CARGO_PKG_NAME"),
             env!("CARGO_PKG_VERSION")
         )),
-        _ => None,
+        ["loadpage", page, ..] => {
+            // Validate loadpage commands from command line to prevent hanging in raw screen
+            match *page {
+                "popular" | "trending" | "watchhistory" | "feed" | "library" => {
+                    if command_parts.len() != 2 {
+                        return Some(format!("Usage: `loadpage {}`", page));
+                    }
+                    None // Let it proceed to TUI
+                }
+                "channel" | "video" | "playlist" => {
+                    if command_parts.len() != 3 {
+                        return Some(format!("Usage: `loadpage {} {{id/url}}`", page));
+                    }
+                    None // Let it proceed to TUI
+                }
+                "search" => {
+                    if command_parts.len() < 3 {
+                        return Some("Usage: `loadpage search {query}`".to_string());
+                    }
+                    None // Let it proceed to TUI
+                }
+                _ => Some(format!("Unknown page: `{}`", page)),
+            }
+        }
+        _ => {
+            // Check if this is a remapped command that would become a loadpage command
+            if let Some(remapped_cmd) = CommandsRemapConfig::load(WriteConfig::Dont)
+                .unwrap()
+                .get(&command_parts)
+            {
+                // If it remaps to a loadpage command, validate it
+                if remapped_cmd.starts_with("loadpage ") {
+                    let remapped_parts: Vec<&str> = remapped_cmd.split_ascii_whitespace().collect();
+                    if remapped_parts.len() >= 2 {
+                        let page = remapped_parts[1];
+                        match page {
+                            "popular" | "trending" | "watchhistory" | "feed" | "library" => {
+                                if command_parts.len() != 1 {
+                                    return Some(format!("Usage: `{}`", command_parts[0]));
+                                }
+                            }
+                            "channel" | "video" | "playlist" => {
+                                if command_parts.len() != 2 {
+                                    return Some(format!("Usage: `{} {{id/url}}`", command_parts[0]));
+                                }
+                            }
+                            "search" => {
+                                if command_parts.len() < 2 {
+                                    return Some(format!("Usage: `{} {{query}}`", command_parts[0]));
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+            None
+        }
     }
 }
 
@@ -127,7 +182,7 @@ pub fn run_single_command(
                 "feed" => Some(Page::Feed),
                 "library" => Some(Page::MainMenu(MainMenuPage::Library)),
                 "channel" => {
-                    if command.len() == 2 {
+                    if command.len() != 3 {
                         *framework.data.global.get_mut::<Message>().unwrap() =
                             Message::Message(String::from("Usage: `loadpage channel {id/url}`"));
                         return;
@@ -146,7 +201,7 @@ pub fn run_single_command(
                     }
                 }
                 "video" => {
-                    if command.len() == 2 {
+                    if command.len() != 3 {
                         *framework.data.global.get_mut::<Message>().unwrap() =
                             Message::Message(String::from("Usage: `loadpage video {id/url}`"));
                         return;
@@ -162,7 +217,7 @@ pub fn run_single_command(
                     }
                 }
                 "playlist" => {
-                    if command.len() == 2 {
+                    if command.len() != 3 {
                         *framework.data.global.get_mut::<Message>().unwrap() =
                             Message::Message(String::from("Usage: `loadpage playlist {id/url}`"));
                         return;
