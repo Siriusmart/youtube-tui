@@ -235,8 +235,29 @@ fn sync_one(
             })]);
         }
     }
+    
+    if let Some(channel) = &channel {
+        let _ = update_channel_cache(channel, image_index);
+    }
 
     Ok((videos, channel))
+}
+
+fn update_channel_cache(channel: &FullChannelItem, image_index: usize) -> Result<(), Box<dyn Error>> {
+    let home_dir = home_dir().unwrap();
+    let cache_path = home_dir.join(format!(".cache/youtube-tui/channels/{}.json", channel.id));
+    
+    if let Some(parent) = cache_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    
+    let item = crate::global::structs::Item::from_full_channel(
+        crate::global::traits::SearchProviderWrapper::channel(&channel.id)?,
+        image_index,
+    );
+    
+    fs::write(&cache_path, serde_json::to_string(&item)?)?;
+    Ok(())
 }
 
 #[derive(Clone, Serialize, Deserialize)]

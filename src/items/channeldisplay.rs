@@ -1,7 +1,7 @@
 use super::ItemInfo;
 use crate::{
     config::*,
-    global::{functions::*, structs::*, traits::SearchProviderWrapper},
+    global::{functions::*, structs::*, traits::{SearchProviderWrapper, CollectionNoId}},
 };
 use ratatui::{
     layout::{Constraint, Rect},
@@ -598,16 +598,12 @@ impl FrameworkItem for ChannelDisplay {
         let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
         let page = framework.data.state.get::<Page>().unwrap().channeldisplay();
+        let page_id = page.id.clone();
+        let is_main_page = matches!(page.r#type, ChannelDisplayPageType::Main);
 
         match page.r#type {
             ChannelDisplayPageType::Main => {
-                let channel = Item::from_full_channel(
-                    SearchProviderWrapper::channel(&page.id)?,
-                    mainconfig.image_index,
-                );
-                if mainconfig.images.display() {
-                    download_all_images(vec![(&channel).into()]);
-                }
+                let channel = load_channel(&page.id, mainconfig)?;
                 let commands = framework
                     .data
                     .global
@@ -615,6 +611,7 @@ impl FrameworkItem for ChannelDisplay {
                     .unwrap()
                     .channel
                     .clone();
+                
                 *self = Self::Main {
                     iteminfo: Box::new(ItemInfo::new(Some(channel.clone()))),
                     channel: Box::new(channel),
@@ -625,7 +622,7 @@ impl FrameworkItem for ChannelDisplay {
                     .border_type(appearance.borders),
                     textlist: Self::new_textlist_with_map(commands.clone()),
                     commands,
-                }
+                };
             }
             ChannelDisplayPageType::Videos => {
                 let videos = SearchProviderWrapper::channel_videos(&page.id)?
@@ -686,6 +683,14 @@ impl FrameworkItem for ChannelDisplay {
                 .into_iter(),
             &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
         );
+
+        if is_main_page {
+            let channel_history = framework.data.global.get_mut::<ChannelHistory>().unwrap();
+            if !channel_history.0.contains(&page_id) {
+                channel_history.0.push(page_id);
+                let _ = channel_history.save();
+            }
+        }
 
         Ok(())
     }

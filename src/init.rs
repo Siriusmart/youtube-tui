@@ -35,6 +35,7 @@ pub fn init(
     [
         ".cache/youtube-tui/thumbnails/",
         ".cache/youtube-tui/info/",
+        ".cache/youtube-tui/channels/",
         ".local/share/youtube-tui/thumbnails/",
         ".local/share/youtube-tui/info/",
         ".local/share/youtube-tui/saved/",
@@ -63,6 +64,10 @@ pub fn init(
         .data
         .global
         .insert::<WatchHistory>(WatchHistory::load());
+    framework
+        .data
+        .global
+        .insert::<ChannelHistory>(ChannelHistory::load());
     framework
         .data
         .global
