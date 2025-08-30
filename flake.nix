@@ -46,7 +46,7 @@
 
           postInstall = ''
             wrapProgram $out/bin/youtube-tui \
-              --prefix PATH : ${nixpkgs.lib.makeBinPath [ pkgs.mpv pkgs.libsixel ]}
+              --prefix PATH : ${nixpkgs.lib.makeBinPath [ pkgs.mpv ]}
           '';
         };
       in {
