@@ -113,7 +113,9 @@ impl SearchFilters {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Default)]
 pub enum SearchFilterSort {
+    #[default]
     Relevance,
     Rating,
     Date,
@@ -121,7 +123,9 @@ pub enum SearchFilterSort {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Default)]
 pub enum SearchFilterDate {
+    #[default]
     None,
     Hour,
     Day,
@@ -131,7 +135,9 @@ pub enum SearchFilterDate {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Default)]
 pub enum SearchFilterDuration {
+    #[default]
     None,
     Short,
     Medium,
@@ -139,36 +145,18 @@ pub enum SearchFilterDuration {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Default)]
 pub enum SearchFilterType {
+    #[default]
     All,
     Video,
     Channel,
     Playlist,
 }
 
-impl Default for SearchFilterSort {
-    fn default() -> Self {
-        Self::Relevance
-    }
-}
 
-impl Default for SearchFilterDate {
-    fn default() -> Self {
-        Self::None
-    }
-}
 
-impl Default for SearchFilterDuration {
-    fn default() -> Self {
-        Self::None
-    }
-}
 
-impl Default for SearchFilterType {
-    fn default() -> Self {
-        Self::All
-    }
-}
 
 impl Display for SearchFilterSort {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

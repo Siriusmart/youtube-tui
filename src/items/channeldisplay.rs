@@ -1,3 +1,4 @@
+
 use super::ItemInfo;
 use crate::{
     config::*,
@@ -14,9 +15,10 @@ use tui_additions::{
 };
 
 /// the 4 pages that a channel has (including the default "blank" page when loading)
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub enum ChannelDisplay {
     /// a blank item, will turn into one of the other variants when `.load()` depending on the page
+    #[default]
     None,
     /// main channel display page
     Main {
@@ -40,12 +42,6 @@ pub enum ChannelDisplay {
         iteminfo: Box<ItemInfo>,
         grid: Grid,
     },
-}
-
-impl Default for ChannelDisplay {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 impl ChannelDisplay {

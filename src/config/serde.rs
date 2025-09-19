@@ -5,18 +5,15 @@ use serde::{Deserialize, Serialize};
 
 /// `BorderType` but impl `serde`
 #[derive(Serialize, Deserialize, Clone, Copy)]
+#[derive(Default)]
 pub enum BorderTypeSerde {
     Plain,
+    #[default]
     Rounded,
     Double,
     Thick,
 }
 
-impl Default for BorderTypeSerde {
-    fn default() -> Self {
-        Self::Rounded
-    }
-}
 
 impl From<BorderTypeSerde> for BorderType {
     fn from(origianl: BorderTypeSerde) -> BorderType {

@@ -1,11 +1,16 @@
 # Changelogs
 
-## v0.9.1 (Latest)
+### v0.9.2 (Latest)
+
+#### Fixed
+- [#111](https://github.com/Siriusmart/youtube-tui/issues/111) don't know how did that line got there.
+
+### v0.9.1
  
-### Added
+#### Added
 - Mouse scroll behavior (configurable) for SearchBar and command capture.
 
-### Fixed
+#### Fixed
 - The `:video [url]` command unable to identify video ID.
 - Clicking on area below text list does what you expect it to.
 

@@ -11,7 +11,7 @@ use home::home_dir;
 use serde::*;
 use std::{
     error::Error,
-    fmt::Display,
+    fmt::{Display, Formatter},
     fs::{self, OpenOptions},
     io::Write,
     sync::{atomic::AtomicU32, mpsc, Arc},
@@ -281,7 +281,7 @@ impl Ord for SubItem {
 }
 
 impl Display for SubItem {
-    fn fmt(&self, f: &mut __private::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.channel.name)
     }
 }

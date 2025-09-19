@@ -58,7 +58,9 @@ pub struct MiniVideoItem {
 }
 
 impl PartialOrd for MiniVideoItem {
+    #[allow(clippy::non_canonical_partial_ord_impl)]
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        // order with recent on top
         Some(other.cmp(self))
     }
 }

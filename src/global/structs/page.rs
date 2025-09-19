@@ -52,18 +52,13 @@ impl Key for Page {
 }
 
 /// page variants for the main menu
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Default)]
 pub enum MainMenuPage {
+    #[default]
     Trending,
     Popular,
     History,
     Library,
-}
-
-impl Default for MainMenuPage {
-    fn default() -> Self {
-        Self::Trending
-    }
 }
 
 /// variants of the coannel display page

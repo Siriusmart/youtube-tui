@@ -128,7 +128,7 @@ pub enum PageRow {
 }
 
 impl PageRow {
-    pub fn iter(&self) -> slice::Iter<PageItems> {
+    pub fn iter(&self) -> slice::Iter<'_, PageItems> {
         match self {
             Self::CenteredRow(iter) | Self::NonCenteredRow(iter) => iter.iter(),
         }
