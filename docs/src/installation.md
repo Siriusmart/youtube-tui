@@ -72,9 +72,7 @@ The TUI has features that can be enabled/disabled when compiling.
 
 ```sh
 cargo install youtube-tui # install with all default features
-cargo install youtube-tui --no-default-features # install without any features enabled
-cargo install youtube-tui --no-default-features -F 'halfblock' # install with only HalfBlocks support (but not Sixels)
-cargo install youtube-tui --no-default-features -F 'clipboard' -F 'sixel' # can install with multiple features by doing this
+cargo install youtube-tui --no-default-features -F feature1 -F feature2 # install with only the specified features
 cargo install youtube-tui --all-features # install with all features (even if not included in default)
 ```
 
@@ -101,3 +99,13 @@ Requires <a href="https://xcb.freedesktop.org/" target=_blank>`libxcb`</a>.
 Embedded audio player
 
 Requires <a href="https://mpv.io/" target=_blank>`mpv`</a> (libmpv) to be installed in your system.
+
+### rustypipe (default)
+
+Rustypipe backend for fetching video information, Rustypipe runs on your local machine, it's a bit like yt-dlp.
+
+### invidious
+
+invidious backend for fetching video information, requires a working Invidious instance with API enabled set in [`main.yml`](./config/main.md).
+
+> You *must* enable at least one of the two backends.
