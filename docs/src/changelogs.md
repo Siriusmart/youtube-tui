@@ -1,5 +1,11 @@
 # Changelogs
 
+### v0.9.3 (Latest)
+
+#### Fixed
+- Album playlists doesn't load
+- Re-implemented invidious support alongside rustypipe.
+
 ### v0.9.2 (Latest)
 
 #### Fixed
