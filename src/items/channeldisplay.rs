@@ -1,8 +1,11 @@
-
 use super::ItemInfo;
 use crate::{
     config::*,
-    global::{functions::*, structs::*, traits::{SearchProviderWrapper, CollectionNoId}},
+    global::{
+        functions::*,
+        structs::*,
+        traits::{CollectionNoId, SearchProviderWrapper},
+    },
 };
 use ratatui::{
     layout::{Constraint, Rect},
@@ -607,7 +610,7 @@ impl FrameworkItem for ChannelDisplay {
                     .unwrap()
                     .channel
                     .clone();
-                
+
                 *self = Self::Main {
                     iteminfo: Box::new(ItemInfo::new(Some(channel.clone()))),
                     channel: Box::new(channel),

@@ -4,8 +4,7 @@ use ratatui::{style::Color, widgets::BorderType};
 use serde::{Deserialize, Serialize};
 
 /// `BorderType` but impl `serde`
-#[derive(Serialize, Deserialize, Clone, Copy)]
-#[derive(Default)]
+#[derive(Serialize, Deserialize, Clone, Copy, Default)]
 pub enum BorderTypeSerde {
     Plain,
     #[default]
@@ -13,7 +12,6 @@ pub enum BorderTypeSerde {
     Double,
     Thick,
 }
-
 
 impl From<BorderTypeSerde> for BorderType {
     fn from(origianl: BorderTypeSerde) -> BorderType {

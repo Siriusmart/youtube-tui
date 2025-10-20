@@ -303,7 +303,7 @@ impl SearchProviderTrait for RustyPipeWrapper {
             description: info.description.clone(),
             description_html: info.description,
             allowed_regions: Vec::new(), // TODO
-            lastest_videos: Vec::new(),
+            latest_videos: Vec::new(),
             related_channels: Vec::new(),
         })
     }

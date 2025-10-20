@@ -31,7 +31,7 @@ pub struct Channel {
     pub allowed_regions: Vec<CountryCode>,
 
     #[serde(rename = "latestVideos")]
-    pub lastest_videos: Vec<CommonVideo>,
+    pub latest_videos: Vec<CommonVideo>,
 
     #[serde(rename = "relatedChannels")]
     pub related_channels: Vec<RelatedChannel>,

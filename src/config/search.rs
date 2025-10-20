@@ -112,8 +112,7 @@ impl SearchFilters {
     }
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub enum SearchFilterSort {
     #[default]
     Relevance,
@@ -122,8 +121,7 @@ pub enum SearchFilterSort {
     Views,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub enum SearchFilterDate {
     #[default]
     None,
@@ -134,8 +132,7 @@ pub enum SearchFilterDate {
     Year,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub enum SearchFilterDuration {
     #[default]
     None,
@@ -144,8 +141,7 @@ pub enum SearchFilterDuration {
     Long,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub enum SearchFilterType {
     #[default]
     All,
@@ -153,10 +149,6 @@ pub enum SearchFilterType {
     Channel,
     Playlist,
 }
-
-
-
-
 
 impl Display for SearchFilterSort {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
