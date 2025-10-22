@@ -74,15 +74,21 @@ impl SingleVideoItem {
     }
 
     pub fn new_with_map(commands: Vec<(String, String)>) -> Self {
+        let mut textlist = TextList::default()
+            .items(
+                &commands
+                    .iter()
+                    .map(|command| &command.0)
+                    .collect::<Vec<_>>(),
+            )
+            .unwrap();
+        
+        if commands.len() > 1 {
+            let _ = textlist.down();
+        }
+        
         Self {
-            textlist: TextList::default()
-                .items(
-                    &commands
-                        .iter()
-                        .map(|command| &command.0)
-                        .collect::<Vec<_>>(),
-                )
-                .unwrap(),
+            textlist,
             commands,
         }
     }
