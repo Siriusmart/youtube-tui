@@ -127,7 +127,7 @@ pub fn run_single_command(
                 Ok(serde_json::from_str(&fs::read_to_string(
                     home_dir()
                         .unwrap()
-                        .join(format!(".cache/youtube-tui/info/{id}.json")),
+                        .join(format!(".local/share/youtube-tui/info/{id}.json")),
                 )?)?)
             })() {
                 Ok(item) => {

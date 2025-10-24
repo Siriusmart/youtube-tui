@@ -55,7 +55,7 @@ where
 
     /// add an item to watch history
     fn push(&mut self, item: T) -> Result<(), Box<dyn Error>> {
-        let info = home_dir().unwrap().join(".cache/youtube-tui/info/");
+        let info = home_dir().unwrap().join(".local/share/youtube-tui/info/");
 
         // removes duplicates and place them on top (if exists)
         let id = item.id().unwrap_or("invalid-dump");
@@ -91,7 +91,7 @@ where
         // if res is err, then the file either doesn't exist of has be altered incorrectly, in
         // which case returns Self::default()
         let items = if let Ok(deserialized) = res {
-            let info = home_dir().unwrap().join(".cache/youtube-tui/info/");
+            let info = home_dir().unwrap().join(".local/share/youtube-tui/info/");
             deserialized
                 .into_iter()
                 .filter_map(|id| fs::read_to_string(info.join(format!("{id}.json"))).ok())

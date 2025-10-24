@@ -33,9 +33,9 @@ pub fn init(
 
     // creating files
     [
-        ".cache/youtube-tui/thumbnails/",
-        ".cache/youtube-tui/info/",
-        ".cache/youtube-tui/channels/",
+        // ".cache/youtube-tui/thumbnails/",
+        // ".cache/youtube-tui/info/",
+        // ".cache/youtube-tui/channels/",
         ".local/share/youtube-tui/thumbnails/",
         ".local/share/youtube-tui/info/",
         ".local/share/youtube-tui/saved/",
@@ -48,7 +48,7 @@ pub fn init(
         }
     });
 
-    init_move();
+    // init_move();
 
     load_configs(&mut framework.split_clean().0)?;
 

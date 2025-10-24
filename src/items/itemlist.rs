@@ -165,7 +165,7 @@ impl ItemList {
         let page_to_load = if home_dir()
             .unwrap()
             .join(format!(
-                ".cache/youtube-tui/info/{}.json",
+                ".local/share/youtube-tui/info/{}.json",
                 self.items[self.textlist.selected].id().unwrap_or_default()
             ))
             .exists()

@@ -32,7 +32,7 @@ pub fn load_video(id: &str, mainconfig: &MainConfig) -> Result<Item, Box<dyn Err
 
 pub fn load_channel(id: &str, mainconfig: &MainConfig) -> Result<Item, Box<dyn Error>> {
     let home_dir = home_dir().unwrap();
-    let cache_path = home_dir.join(format!(".cache/youtube-tui/channels/{id}.json"));
+    let cache_path = home_dir.join(format!(".local/share/youtube-tui/channels/{id}.json"));
 
     if cache_path.exists() {
         if let Ok(content) = fs::read_to_string(&cache_path) {

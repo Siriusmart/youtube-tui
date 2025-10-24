@@ -48,7 +48,7 @@ pub fn download_all_images(downloads: Vec<Option<DownloadRequest>>) {
 
     let path = home::home_dir()
         .expect("Cannot get your home directory")
-        .join(".cache/youtube-tui/thumbnails/");
+        .join(".local/share/youtube-tui/thumbnails/");
 
     downloads.into_iter().flatten().for_each(|req| {
         let path = path.clone().join(req.id);

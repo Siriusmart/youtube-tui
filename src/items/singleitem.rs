@@ -746,7 +746,7 @@ impl FrameworkItem for SingleItem {
         let (item, r#type) = match r#type {
             SingleItemPage::Video(id) => {
                 let home_dir = home_dir().unwrap();
-                let path = home_dir.join(format!(".cache/youtube-tui/info/{id}.json"));
+                let path = home_dir.join(format!(".local/youtube-tui/info/{id}.json"));
 
                 let video = if path.exists() {
                     serde_json::from_str(&fs::read_to_string(path)?)?

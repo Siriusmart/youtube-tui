@@ -18,12 +18,12 @@ pub fn exit(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
     let limits = framework.data.global.get::<MainConfig>().unwrap().limits;
     let watchhistory = framework.data.global.get_mut::<WatchHistory>().unwrap();
     watchhistory.trim(limits.watch_history);
-    watchhistory.exit_move();
+    // watchhistory.exit_move();
     let _ = watchhistory.save();
     let subscriptions = framework.data.global.get::<Subscriptions>().unwrap();
-    subscriptions.exit_move();
+    // subscriptions.exit_move();
     let _ = subscriptions.save();
-    framework.data.global.get::<Library>().unwrap().exit_move();
+    // framework.data.global.get::<Library>().unwrap().exit_move();
     let searchhistory = framework.data.global.get_mut::<SearchHistory>().unwrap();
     searchhistory.trim(limits.search_history);
     let _ = searchhistory.save();
@@ -31,12 +31,14 @@ pub fn exit(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
     commandhistory.trim(limits.commands_history);
     let _ = commandhistory.save();
 
-    let home_dir = home_dir().unwrap();
-    let cache_path = home_dir.join(".cache/youtube-tui/");
+    // let home_dir = home_dir().unwrap();
+    // let cache_path = home_dir.join(".cache/youtube-tui/");
 
+    /*
     if cache_path.exists() {
         fs::remove_dir_all(cache_path)?;
     }
+    */
 
     Ok(())
 }
