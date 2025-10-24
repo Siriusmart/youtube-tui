@@ -122,27 +122,19 @@ pub fn run_single_command(
     // match a command splitted by space to a bunch of avaliable commands
     match command {
         [] => {}
-        ["bookmark", id] => {
-            match (|| -> Result<Item, Box<dyn Error>> {
-                Ok(serde_json::from_str(&fs::read_to_string(
-                    home_dir()
-                        .unwrap()
-                        .join(format!(".local/share/youtube-tui/info/{id}.json")),
-                )?)?)
-            })() {
-                Ok(item) => {
-                    let library = framework.data.global.get_mut::<Library>().unwrap();
-                    let _ = library.push(item);
-                    let _ = library.save();
-                    *framework.data.global.get_mut::<Message>().unwrap() =
-                        Message::Success(String::from("Bookmark added"))
-                }
-                Err(e) => {
-                    *framework.data.global.get_mut::<Message>().unwrap() =
-                        Message::Error(format!("Unknown item: {e}"))
-                }
+        ["bookmark", id] => match (|| LocalStore::get_info(&id))() {
+            Some(item) => {
+                let library = framework.data.global.get_mut::<Library>().unwrap();
+                let _ = library.push(item);
+                let _ = library.save();
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Success(String::from("Bookmark added"))
             }
-        }
+            None => {
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Error(format!("Unknown item: {id}"))
+            }
+        },
         ["unmark", id] => {
             let library = framework.data.global.get_mut::<Library>().unwrap();
 

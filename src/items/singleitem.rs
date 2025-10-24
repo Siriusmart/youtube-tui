@@ -745,11 +745,8 @@ impl FrameworkItem for SingleItem {
         // gets the item that it needs to load from `data.state.Page`
         let (item, r#type) = match r#type {
             SingleItemPage::Video(id) => {
-                let home_dir = home_dir().unwrap();
-                let path = home_dir.join(format!(".local/youtube-tui/info/{id}.json"));
-
-                let video = if path.exists() {
-                    serde_json::from_str(&fs::read_to_string(path)?)?
+                let video = if let Some(item) = LocalStore::get_info(id) {
+                    item
                 } else {
                     load_video(id, mainconfig)?
                 };
@@ -765,7 +762,7 @@ impl FrameworkItem for SingleItem {
             SingleItemPage::Playlist(id) => {
                 let path = home_dir()
                     .unwrap()
-                    .join(format!(".cache/youtube-tui/info/{id}.json"));
+                    .join(format!(".local/share/youtube-tui/info/{id}.json"));
 
                 let playlist = if path.exists() {
                     serde_json::from_str(&fs::read_to_string(path)?)?
@@ -785,6 +782,8 @@ impl FrameworkItem for SingleItem {
                 (playlist, r#type)
             }
         };
+
+        LocalStore::set_info(item.id().unwrap().to_string(), item.clone());
 
         self.item = Some(item);
         self.r#type = r#type;

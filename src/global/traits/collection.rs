@@ -55,7 +55,7 @@ where
 
     /// add an item to watch history
     fn push(&mut self, item: T) -> Result<(), Box<dyn Error>> {
-        let info = home_dir().unwrap().join(".local/share/youtube-tui/info/");
+        // let info = home_dir().unwrap().join(".local/share/youtube-tui/info/");
 
         // removes duplicates and place them on top (if exists)
         let id = item.id().unwrap_or("invalid-dump");
@@ -66,6 +66,8 @@ where
         {
             self.items_mut().remove(index);
         }
+
+        /*
         let mut file = OpenOptions::new()
             .write(true)
             .create(true)
@@ -75,6 +77,7 @@ where
         file.write_all(item_string.as_bytes())?;
 
         self.items_mut().push(item);
+        */
 
         Ok(())
     }

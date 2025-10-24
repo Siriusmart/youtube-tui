@@ -162,88 +162,84 @@ impl ItemList {
 
     /// handles select (enter)
     fn select_at_cursor(&self, framework: &mut FrameworkClean) {
-        let page_to_load = if home_dir()
-            .unwrap()
-            .join(format!(
-                ".local/share/youtube-tui/info/{}.json",
-                self.items[self.textlist.selected].id().unwrap_or_default()
-            ))
-            .exists()
-        {
-            match &self.items[self.textlist.selected] {
-                Item::MiniVideo(MiniVideoItem { id, .. })
-                | Item::FullVideo(FullVideoItem { id, .. }) => {
-                    Some(Page::SingleItem(SingleItemPage::Video(id.clone())))
+        let page_to_load =
+            if LocalStore::get_info(self.items[self.textlist.selected].id().unwrap_or_default())
+                .is_some()
+            {
+                match &self.items[self.textlist.selected] {
+                    Item::MiniVideo(MiniVideoItem { id, .. })
+                    | Item::FullVideo(FullVideoItem { id, .. }) => {
+                        Some(Page::SingleItem(SingleItemPage::Video(id.clone())))
+                    }
+                    Item::MiniPlaylist(MiniPlaylistItem { id, .. })
+                    | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
+                        Some(Page::SingleItem(SingleItemPage::Playlist(id.clone())))
+                    }
+                    Item::MiniChannel(MiniChannelItem { id, .. })
+                    | Item::FullChannel(FullChannelItem { id, .. }) => {
+                        Some(Page::ChannelDisplay(ChannelDisplayPage {
+                            id: id.to_string(),
+                            r#type: ChannelDisplayPageType::Main,
+                        }))
+                    }
+                    // Item::Unknown(_) => {
+                    //     *framework.data.global.get_mut::<Message>().unwrap() =
+                    //         Message::Message(String::from("Unknown item"));
+                    //     framework
+                    //         .data
+                    //         .state
+                    //         .get_mut::<Tasks>()
+                    //         .unwrap()
+                    //         .priority
+                    //         .push(Task::RenderAll);
+                    //     None
+                    // }
+                    Item::Page(b) => match framework.data.state.get::<Page>().unwrap() {
+                        Page::Search(search) => Some(Page::Search(Search {
+                            page: if *b { search.page + 1 } else { search.page - 1 },
+                            ..search.clone()
+                        })),
+                        _ => unreachable!("Page turners can only be used in search pages"),
+                    },
                 }
-                Item::MiniPlaylist(MiniPlaylistItem { id, .. })
-                | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
-                    Some(Page::SingleItem(SingleItemPage::Playlist(id.clone())))
+            } else {
+                match &self.items[self.textlist.selected] {
+                    Item::MiniVideo(MiniVideoItem { id, .. })
+                    | Item::FullVideo(FullVideoItem { id, .. }) => {
+                        Some(Page::SingleItem(SingleItemPage::Video(id.clone())))
+                    }
+                    Item::MiniPlaylist(MiniPlaylistItem { id, .. })
+                    | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
+                        Some(Page::SingleItem(SingleItemPage::Playlist(id.clone())))
+                    }
+                    Item::MiniChannel(MiniChannelItem { id, .. })
+                    | Item::FullChannel(FullChannelItem { id, .. }) => {
+                        Some(Page::ChannelDisplay(ChannelDisplayPage {
+                            id: id.clone(),
+                            r#type: ChannelDisplayPageType::Main,
+                        }))
+                    }
+                    // Item::Unknown(_) => {
+                    //     *framework.data.global.get_mut::<Message>().unwrap() =
+                    //         Message::Message(String::from("Unknown item"));
+                    //     framework
+                    //         .data
+                    //         .state
+                    //         .get_mut::<Tasks>()
+                    //         .unwrap()
+                    //         .priority
+                    //         .push(Task::RenderAll);
+                    //     None
+                    // }
+                    Item::Page(b) => match framework.data.state.get::<Page>().unwrap() {
+                        Page::Search(search) => Some(Page::Search(Search {
+                            page: if *b { search.page + 1 } else { search.page - 1 },
+                            ..search.clone()
+                        })),
+                        _ => unreachable!("Page turners can only be used in search pages"),
+                    },
                 }
-                Item::MiniChannel(MiniChannelItem { id, .. })
-                | Item::FullChannel(FullChannelItem { id, .. }) => {
-                    Some(Page::ChannelDisplay(ChannelDisplayPage {
-                        id: id.to_string(),
-                        r#type: ChannelDisplayPageType::Main,
-                    }))
-                }
-                // Item::Unknown(_) => {
-                //     *framework.data.global.get_mut::<Message>().unwrap() =
-                //         Message::Message(String::from("Unknown item"));
-                //     framework
-                //         .data
-                //         .state
-                //         .get_mut::<Tasks>()
-                //         .unwrap()
-                //         .priority
-                //         .push(Task::RenderAll);
-                //     None
-                // }
-                Item::Page(b) => match framework.data.state.get::<Page>().unwrap() {
-                    Page::Search(search) => Some(Page::Search(Search {
-                        page: if *b { search.page + 1 } else { search.page - 1 },
-                        ..search.clone()
-                    })),
-                    _ => unreachable!("Page turners can only be used in search pages"),
-                },
-            }
-        } else {
-            match &self.items[self.textlist.selected] {
-                Item::MiniVideo(MiniVideoItem { id, .. })
-                | Item::FullVideo(FullVideoItem { id, .. }) => {
-                    Some(Page::SingleItem(SingleItemPage::Video(id.clone())))
-                }
-                Item::MiniPlaylist(MiniPlaylistItem { id, .. })
-                | Item::FullPlaylist(FullPlaylistItem { id, .. }) => {
-                    Some(Page::SingleItem(SingleItemPage::Playlist(id.clone())))
-                }
-                Item::MiniChannel(MiniChannelItem { id, .. })
-                | Item::FullChannel(FullChannelItem { id, .. }) => {
-                    Some(Page::ChannelDisplay(ChannelDisplayPage {
-                        id: id.clone(),
-                        r#type: ChannelDisplayPageType::Main,
-                    }))
-                }
-                // Item::Unknown(_) => {
-                //     *framework.data.global.get_mut::<Message>().unwrap() =
-                //         Message::Message(String::from("Unknown item"));
-                //     framework
-                //         .data
-                //         .state
-                //         .get_mut::<Tasks>()
-                //         .unwrap()
-                //         .priority
-                //         .push(Task::RenderAll);
-                //     None
-                // }
-                Item::Page(b) => match framework.data.state.get::<Page>().unwrap() {
-                    Page::Search(search) => Some(Page::Search(Search {
-                        page: if *b { search.page + 1 } else { search.page - 1 },
-                        ..search.clone()
-                    })),
-                    _ => unreachable!("Page turners can only be used in search pages"),
-                },
-            }
-        };
+            };
 
         if let Some(page_to_load) = page_to_load {
             framework
