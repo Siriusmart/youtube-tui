@@ -1,13 +1,12 @@
 use home::home_dir;
-use std::{error::Error, fs};
+use std::{collections::HashSet, error::Error, fs};
 use tui_additions::framework::Framework;
 
 use crate::{
-    config::MainConfig,
-    global::{
+    CACHED_BEFORE, config::MainConfig, global::{
         structs::*,
         traits::{Collection, CollectionNoId},
-    },
+    }
 };
 
 /// function to run when the app ends
@@ -15,8 +14,8 @@ use crate::{
 //  - move thumbnails of videos in watch history to `~/.local/share/youtube-tui/watch_history/thumbnails`
 //  - remove `~/.cache`
 pub fn exit(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
-    let limits = framework.data.global.get::<MainConfig>().unwrap().limits;
-    let watchhistory = framework.data.global.get_mut::<WatchHistory>().unwrap();
+    let mut limits = framework.data.global.remove::<MainConfig>().unwrap().limits;
+    let mut watchhistory = framework.data.global.remove::<WatchHistory>().unwrap();
     watchhistory.trim(limits.watch_history);
     // watchhistory.exit_move();
     let _ = watchhistory.save();
@@ -27,9 +26,37 @@ pub fn exit(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
     let searchhistory = framework.data.global.get_mut::<SearchHistory>().unwrap();
     searchhistory.trim(limits.search_history);
     let _ = searchhistory.save();
-    let commandhistory = framework.data.global.get_mut::<CommandHistory>().unwrap();
+    let mut commandhistory = framework.data.global.remove::<CommandHistory>().unwrap();
     commandhistory.trim(limits.commands_history);
     let _ = commandhistory.save();
+    let library = framework.data.global.get_mut::<Library>().unwrap();
+    let _ = library.save();
+
+    let cached_after: HashSet<String> = HashSet::from_iter(
+        library
+            .items()
+            .iter()
+            .filter_map(|item| item.id())
+            .map(str::to_string)
+            .chain(
+                watchhistory
+                    .items()
+                    .iter()
+                    .filter_map(|item| item.id())
+                    .map(str::to_string),
+            ),
+    );
+
+    let cached_before = CACHED_BEFORE.get().unwrap();
+
+    let info_path = home_dir().unwrap().join(".local/share/youtube-tui/info/");
+    let thumbnail_path = home_dir().unwrap().join(".local/share/youtube-tui/info/");
+
+    // remove cache that no longer exists
+    for deleted in cached_before.iter().filter(|id| !cached_after.contains(*id)) {
+        let _ = fs::remove_file(info_path.join(deleted).with_extension("json"));
+        let _ = fs::remove_file(thumbnail_path.join(deleted));
+    }
 
     // let home_dir = home_dir().unwrap();
     // let cache_path = home_dir.join(".cache/youtube-tui/");

@@ -58,10 +58,13 @@ where
         // removes duplicates and place them on top (if exists)
         let id = match item.id() {
             Some(t) => t,
-            None => return Ok(()) // TODO make error message
+            None => return Ok(()), // TODO make error message
         };
 
-        let info = home_dir().unwrap().join(".local/share/youtube-tui/info/").join(format!("{id}.json"));
+        let info = home_dir()
+            .unwrap()
+            .join(".local/share/youtube-tui/info/")
+            .join(format!("{id}.json"));
 
         if let Some(index) = self
             .items_mut()

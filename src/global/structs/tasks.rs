@@ -194,16 +194,16 @@ impl TaskQueue {
 
             Self::render_force_clear(framework, terminal)?;
             // reload simply runs `.load()` on all items
-                *framework.data.global.get_mut::<Message>().unwrap() =
-                    Message::Message(String::from("Reloading page..."));
-                Self::render_force_clear(framework, terminal)?;
-                *framework.data.global.get_mut::<Message>().unwrap() =
-                    if let Err(e) = framework.load() {
-                        Message::Error(e.to_string())
-                    } else {
-                        Message::None
-                    };
-                self.render = RenderTask::All;
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Message(String::from("Reloading page..."));
+            Self::render_force_clear(framework, terminal)?;
+            *framework.data.global.get_mut::<Message>().unwrap() = if let Err(e) = framework.load()
+            {
+                Message::Error(e.to_string())
+            } else {
+                Message::None
+            };
+            self.render = RenderTask::All;
 
             let status = framework.data.global.get_mut::<Status>().unwrap();
             status.provider_updated = true;
