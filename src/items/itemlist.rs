@@ -161,6 +161,10 @@ impl ItemList {
 
     /// handles select (enter)
     fn select_at_cursor(&self, framework: &mut FrameworkClean) {
+        if self.items.is_empty() {
+            return
+        }
+
         let page_to_load =
             if LocalStore::get_info(self.items[self.textlist.selected].id().unwrap_or_default())
                 .is_some()
