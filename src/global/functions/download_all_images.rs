@@ -1,5 +1,5 @@
 use crate::global::structs::{Item, LocalStore};
-use std::{collections::HashSet, error::Error, fs, io::Cursor, path::PathBuf, sync::OnceLock, thread};
+use std::{error::Error, fs, io::Cursor, path::PathBuf, thread};
 
 pub struct DownloadRequest {
     pub url: String,

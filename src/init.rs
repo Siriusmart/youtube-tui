@@ -83,10 +83,12 @@ pub fn init(
         .global
         .insert::<SearchHistory>(SearchHistory::load());
     framework.data.global.insert::<WatchHistory>(watchhistory);
+    /*
     framework
         .data
         .global
         .insert::<ChannelHistory>(ChannelHistory::load());
+    */
     framework
         .data
         .global

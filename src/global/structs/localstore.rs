@@ -30,7 +30,10 @@ pub struct LocalStore {
 
 impl LocalStore {
     pub fn add_image(id: String) {
-        unsafe { LOCALSTORE.get_mut() }.unwrap().downloaded_images.insert(id);
+        unsafe { LOCALSTORE.get_mut() }
+            .unwrap()
+            .downloaded_images
+            .insert(id);
     }
 
     pub fn init() {
@@ -39,8 +42,20 @@ impl LocalStore {
         }
     }
 
-    pub fn rm_cache(id: &str) {
-        unsafe { LOCALSTORE.get_mut() }.unwrap().info.remove(id);
+    pub fn rm_cache(id: &str) -> bool {
+        let res = unsafe { LOCALSTORE.get_mut() }.unwrap().info.remove(id);
+        unsafe { LOCALSTORE.get_mut() }
+            .unwrap()
+            .downloaded_images
+            .remove(id);
+        let info_path = home_dir().unwrap().join(".local/share/youtube-tui/info/");
+        let thumbnail_path = home_dir()
+            .unwrap()
+            .join(".local/share/youtube-tui/thumbnails/");
+        let _ = fs::remove_file(info_path.join(id).with_extension("json"));
+        let _ = fs::remove_file(thumbnail_path.join(id));
+
+        res.is_some()
     }
 
     pub fn get_info(id: &str) -> Option<Item> {

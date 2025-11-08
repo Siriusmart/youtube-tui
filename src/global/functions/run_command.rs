@@ -7,7 +7,12 @@ use crossterm::event::{KeyEvent, KeyModifiers};
 use home::home_dir;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{
-    env, error::Error, fs, io::Stdout, process::{Command, Stdio}, sync::Arc
+    env,
+    error::Error,
+    fs,
+    io::Stdout,
+    process::{Command, Stdio},
+    sync::Arc,
 };
 use tui_additions::framework::Framework;
 
@@ -150,9 +155,27 @@ pub fn run_single_command(
             }
         }
         ["rmcache", id] => {
-            LocalStore::rm_cache(id);
-            let _ = fs::remove_file(home_dir().unwrap().join(".local/share/youtube-tui/info/").join(id).with_extension("json"));
-            let _ = fs::remove_file(home_dir().unwrap().join(".local/share/youtube-tui/thumbnails/").join(id));
+            let res = LocalStore::rm_cache(id);
+            let _ = fs::remove_file(
+                home_dir()
+                    .unwrap()
+                    .join(".local/share/youtube-tui/info/")
+                    .join(id)
+                    .with_extension("json"),
+            );
+            let _ = fs::remove_file(
+                home_dir()
+                    .unwrap()
+                    .join(".local/share/youtube-tui/thumbnails/")
+                    .join(id),
+            );
+            if res {
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Success(String::from("Cache cleared"))
+            } else {
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Error(String::from("Item not in cache, nothing changed"))
+            }
         }
         ["help"] => {
             *framework.data.global.get_mut::<Message>().unwrap() = Message::Message(String::from(

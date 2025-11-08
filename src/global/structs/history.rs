@@ -74,6 +74,7 @@ impl CollectionNoId<String> for CommandHistory {
     }
 }
 
+/*
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct ChannelHistory(pub Vec<String>);
 
@@ -96,3 +97,4 @@ impl CollectionNoId<String> for ChannelHistory {
         Self(items)
     }
 }
+*/

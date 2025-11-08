@@ -7,7 +7,7 @@ The commands config file decides what options (that will run a certain command o
 ```yaml
 launch_command: loadpage library ;; flush ;; history clear ;; key Esc 0 ;; key Up 0 ;; key Up 0 ;; key Left 0 ;; key Enter 0 # the key commands select the searchbar on launch
 video:
-- Reload updated video: run rm '~/.cache/youtube-tui/info/${id}.json' ;; video ${id} # remove the cached info first, then reload the page
+- Reload updated video: rmcache ${id} ;; video ${id} # remove the cached info first, then reload the page
 - Play video: parrun ${video-player} '${embed-url}'
 - Play audio: mpv stop ;; resume ;; mpv sprop loop-file no ;; mpv loadfile '${embed-url}' ;; echo mpv Player started
 - Play audio (loop): mpv stop ;; resume ;; mpv sprop loop-file inf ;; mpv loadfile '${embed-url}' ;; echo mpv Player started

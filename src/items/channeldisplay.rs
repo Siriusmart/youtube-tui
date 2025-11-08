@@ -4,7 +4,7 @@ use crate::{
     global::{
         functions::*,
         structs::*,
-        traits::{Collection, CollectionNoId, SearchProviderWrapper},
+        traits::{Collection, SearchProviderWrapper},
     },
 };
 use ratatui::{
@@ -598,7 +598,7 @@ impl FrameworkItem for ChannelDisplay {
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
         let page = framework.data.state.get::<Page>().unwrap().channeldisplay();
         let page_id = page.id.clone();
-        let is_main_page = matches!(page.r#type, ChannelDisplayPageType::Main);
+        // let is_main_page = matches!(page.r#type, ChannelDisplayPageType::Main);
 
         match page.r#type {
             ChannelDisplayPageType::Main => {
@@ -632,7 +632,6 @@ impl FrameworkItem for ChannelDisplay {
 
                 let watch_history = framework.data.global.get_mut::<WatchHistory>().unwrap();
                 watch_history.push(channel)?;
-
             }
             ChannelDisplayPageType::Videos => {
                 let videos = SearchProviderWrapper::channel_videos(&page.id)?
@@ -696,6 +695,7 @@ impl FrameworkItem for ChannelDisplay {
             &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
         );
 
+        /*
         if is_main_page {
             let channel_history = framework.data.global.get_mut::<ChannelHistory>().unwrap();
             if !channel_history.0.contains(&page_id) {
@@ -703,6 +703,7 @@ impl FrameworkItem for ChannelDisplay {
                 let _ = channel_history.save();
             }
         }
+        */
 
         Ok(())
     }
