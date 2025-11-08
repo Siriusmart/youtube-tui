@@ -16,7 +16,7 @@ use crate::{
 //  - move thumbnails of videos in watch history to `~/.local/share/youtube-tui/watch_history/thumbnails`
 //  - remove `~/.cache`
 pub fn exit(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
-    let mut limits = framework.data.global.remove::<MainConfig>().unwrap().limits;
+    let limits = framework.data.global.remove::<MainConfig>().unwrap().limits;
     let mut watchhistory = framework.data.global.remove::<WatchHistory>().unwrap();
     watchhistory.trim(limits.watch_history);
     // watchhistory.exit_move();

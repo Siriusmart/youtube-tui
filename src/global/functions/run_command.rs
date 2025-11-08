@@ -4,12 +4,10 @@ use crate::{
     load_configs,
 };
 use crossterm::event::{KeyEvent, KeyModifiers};
-use home::home_dir;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{
     env,
     error::Error,
-    fs,
     io::Stdout,
     process::{Command, Stdio},
     sync::Arc,
@@ -122,7 +120,7 @@ pub fn run_single_command(
     // match a command splitted by space to a bunch of avaliable commands
     match command {
         [] => {}
-        ["bookmark", id] => match (|| LocalStore::get_info(&id))() {
+        ["bookmark", id] => match LocalStore::get_info(id) {
             Some(item) => {
                 let library = framework.data.global.get_mut::<Library>().unwrap();
                 let _ = library.push(item);

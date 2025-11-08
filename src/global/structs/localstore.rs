@@ -12,7 +12,7 @@ static mut LOCALSTORE: OnceLock<LocalStore> = OnceLock::new();
 
 pub struct LocalRecord {
     item: Item,
-    is_new: bool
+    is_new: bool,
 }
 
 /// cached access and write files to ~/.local/share

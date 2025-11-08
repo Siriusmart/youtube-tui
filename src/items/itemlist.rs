@@ -5,7 +5,6 @@ use crate::{
     global::{functions::*, structs::*, traits::SearchProviderWrapper},
     items::ItemInfo,
 };
-use home::home_dir;
 use ratatui::{
     layout::{Constraint, Rect},
     style::Style,
