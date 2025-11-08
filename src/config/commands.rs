@@ -101,7 +101,7 @@ fn video_default() -> Vec<HashMap<String, String>> {
     vec![
         HashMap::from([(
             String::from("Reload updated video"),
-            String::from("run rm '~/.cache/youtube-tui/info/${id}.json' ;; video ${id}"),
+            String::from("rmcache ${id} ;; video ${id}"),
         )]),
         HashMap::from([(
             String::from("Play video"),
@@ -154,7 +154,7 @@ fn saved_video_default() -> Vec<HashMap<String, String>> {
     vec![
         HashMap::from([(
             String::from("Reload updated video"),
-            String::from("run rm '~/.cache/youtube-tui/info/${id}.json' ;; video ${id}"),
+            String::from("rmcache ${id} ;; video ${id}"),
         )]),
         HashMap::from([(
             String::from("[Offline] Play saved file"),
@@ -208,7 +208,7 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
         HashMap::from([(String::from("Switch view"), String::from("%switch-view%"))]),
         HashMap::from([(
             String::from("Reload updated playlist"),
-            String::from("run rm ~/.cache/youtube-tui/info/${id}.json ;; reload"),
+            String::from("rmcache ${id} ;; playlist ${id}"),
         )]),
         HashMap::from([(
             String::from("Play all (videos)"),
@@ -262,7 +262,7 @@ fn saved_playlist_default() -> Vec<HashMap<String, String>> {
         HashMap::from([(String::from("Switch view"), String::from("%switch-view%"))]),
         HashMap::from([(
             String::from("Reload updated playlist"),
-            String::from("run rm ~/.cache/youtube-tui/info/${id}.json ;; reload"),
+            String::from("rmcache ${id} ;; playlist ${id}"),
         )]),
         HashMap::from([(
             String::from("[Offline] Play all (videos)"),
@@ -313,6 +313,10 @@ fn saved_playlist_default() -> Vec<HashMap<String, String>> {
 
 fn channel_default() -> Vec<HashMap<String, String>> {
     vec![
+        HashMap::from([(
+            String::from("Reload updated channel"),
+            String::from("rmcache ${id} ;; channel ${id}"),
+        )]),
         HashMap::from([(
             String::from("Subscribe to channel"),
             String::from("sync ${id}"),

@@ -1,5 +1,5 @@
-use crate::global::structs::Item;
-use std::{error::Error, fs, io::Cursor, path::PathBuf, thread};
+use crate::global::structs::{Item, LocalStore};
+use std::{collections::HashSet, error::Error, fs, io::Cursor, path::PathBuf, sync::OnceLock, thread};
 
 pub struct DownloadRequest {
     pub url: String,
@@ -51,10 +51,12 @@ pub fn download_all_images(downloads: Vec<Option<DownloadRequest>>) {
         .join(".local/share/youtube-tui/thumbnails/");
 
     downloads.into_iter().flatten().for_each(|req| {
+        LocalStore::add_image(req.id.clone());
         let path = path.clone().join(req.id);
         if path.exists() {
             return;
         }
+
         thread::spawn(move || {
             let _ = download_single(&req.url, path);
         });

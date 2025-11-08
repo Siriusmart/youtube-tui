@@ -125,7 +125,8 @@ impl Default for Limits {
 pub enum Images {
     r#None,
     HalfBlocks,
-    Sixels,
+    #[serde(alias = "Sixels")]
+    Sixel,
 }
 
 impl Images {
@@ -134,7 +135,7 @@ impl Images {
     }
 
     pub fn use_sixels(&self) -> bool {
-        self == &Self::Sixels
+        self == &Self::Sixel
     }
 }
 
@@ -213,7 +214,7 @@ fn message_bar_default_default() -> String {
 }
 
 const fn images_default() -> Images {
-    Images::Sixels
+    Images::Sixel
 }
 
 const fn image_index_default() -> usize {

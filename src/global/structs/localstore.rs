@@ -1,3 +1,9 @@
+// currently 3 copies of the same item is stored in ram
+// - in localstore
+// - in watch history
+// - in the actual state
+//
+// this needs to change
 use std::{
     collections::{HashMap, HashSet},
     env::home_dir,
@@ -19,13 +25,22 @@ pub struct LocalRecord {
 #[derive(Default)]
 pub struct LocalStore {
     info: HashMap<String, LocalRecord>,
+    downloaded_images: HashSet<String>,
 }
 
 impl LocalStore {
+    pub fn add_image(id: String) {
+        unsafe { LOCALSTORE.get_mut() }.unwrap().downloaded_images.insert(id);
+    }
+
     pub fn init() {
         unsafe {
             let _ = LOCALSTORE.set(Self::default());
         }
+    }
+
+    pub fn rm_cache(id: &str) {
+        unsafe { LOCALSTORE.get_mut() }.unwrap().info.remove(id);
     }
 
     pub fn get_info(id: &str) -> Option<Item> {
@@ -71,5 +86,9 @@ impl LocalStore {
                 let _ = file.write_all(item_string.as_bytes());
             }
         }
+    }
+
+    pub fn list_downloaded_images() -> &'static HashSet<String> {
+        &unsafe { LOCALSTORE.get() }.unwrap().downloaded_images
     }
 }

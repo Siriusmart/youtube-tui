@@ -797,7 +797,7 @@ impl FrameworkItem for SingleItem {
             // push to watch history
             let watch_history = framework.data.global.get_mut::<WatchHistory>().unwrap();
             watch_history.push(item)?;
-            watch_history.save()?;
+            // watch_history.save()?;
         }
 
         let mainconfig = framework.data.global.get::<MainConfig>().unwrap();

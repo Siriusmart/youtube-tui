@@ -4,13 +4,10 @@ use crate::{
     load_configs,
 };
 use crossterm::event::{KeyEvent, KeyModifiers};
+use home::home_dir;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{
-    env,
-    error::Error,
-    io::Stdout,
-    process::{Command, Stdio},
-    sync::Arc,
+    env, error::Error, fs, io::Stdout, process::{Command, Stdio}, sync::Arc
 };
 use tui_additions::framework::Framework;
 
@@ -151,6 +148,11 @@ pub fn run_single_command(
             } else {
                 run_single_command(&["bookmark", id], framework, terminal);
             }
+        }
+        ["rmcache", id] => {
+            LocalStore::rm_cache(id);
+            let _ = fs::remove_file(home_dir().unwrap().join(".local/share/youtube-tui/info/").join(id).with_extension("json"));
+            let _ = fs::remove_file(home_dir().unwrap().join(".local/share/youtube-tui/thumbnails/").join(id));
         }
         ["help"] => {
             *framework.data.global.get_mut::<Message>().unwrap() = Message::Message(String::from(
