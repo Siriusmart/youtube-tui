@@ -61,11 +61,6 @@ where
             None => return Ok(()), // TODO make error message
         };
 
-        let info = home_dir()
-            .unwrap()
-            .join(".local/share/youtube-tui/info/")
-            .join(format!("{id}.json"));
-
         if let Some(index) = self
             .items_mut()
             .iter_mut()
@@ -74,7 +69,7 @@ where
             self.items_mut().remove(index);
         }
 
-        // TODO use central cache struct
+        /* TODO is this a good approach?
         if !info.exists() {
             let mut file = OpenOptions::new()
                 .write(true)
@@ -84,6 +79,7 @@ where
             let item_string = serde_json::to_string(&item)?;
             file.write_all(item_string.as_bytes())?;
         }
+        */
 
         self.items_mut().push(item);
 

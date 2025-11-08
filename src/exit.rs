@@ -3,10 +3,12 @@ use std::{collections::HashSet, error::Error, fs};
 use tui_additions::framework::Framework;
 
 use crate::{
-    CACHED_BEFORE, config::MainConfig, global::{
+    config::MainConfig,
+    global::{
         structs::*,
         traits::{Collection, CollectionNoId},
-    }
+    },
+    CACHED_BEFORE,
 };
 
 /// function to run when the app ends
@@ -53,10 +55,15 @@ pub fn exit(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
     let thumbnail_path = home_dir().unwrap().join(".local/share/youtube-tui/info/");
 
     // remove cache that no longer exists
-    for deleted in cached_before.iter().filter(|id| !cached_after.contains(*id)) {
+    for deleted in cached_before
+        .iter()
+        .filter(|id| !cached_after.contains(*id))
+    {
         let _ = fs::remove_file(info_path.join(deleted).with_extension("json"));
         let _ = fs::remove_file(thumbnail_path.join(deleted));
     }
+
+    LocalStore::save_only(&cached_after);
 
     // let home_dir = home_dir().unwrap();
     // let cache_path = home_dir.join(".cache/youtube-tui/");

@@ -1,15 +1,24 @@
-use std::{collections::HashMap, fs, sync::OnceLock};
-
-use home::home_dir;
+use std::{
+    collections::{HashMap, HashSet},
+    env::home_dir,
+    fs::{self, OpenOptions},
+    io::Write,
+    sync::OnceLock,
+};
 
 use crate::global::structs::Item;
 
 static mut LOCALSTORE: OnceLock<LocalStore> = OnceLock::new();
 
+pub struct LocalRecord {
+    item: Item,
+    is_new: bool
+}
+
 /// cached access and write files to ~/.local/share
 #[derive(Default)]
 pub struct LocalStore {
-    info: HashMap<String, Item>,
+    info: HashMap<String, LocalRecord>,
 }
 
 impl LocalStore {
@@ -23,7 +32,7 @@ impl LocalStore {
         let localstore = unsafe { LOCALSTORE.get_mut() }.unwrap();
 
         match localstore.info.get(id) {
-            Some(item) => Some(item.clone()),
+            Some(LocalRecord { item, .. }) => Some(item.clone()),
             None => {
                 let path = home_dir()
                     .unwrap()
@@ -38,8 +47,29 @@ impl LocalStore {
         }
     }
 
-    pub fn set_info(id: String, item: Item) {
+    pub fn set_info(id: String, item: Item, is_new: bool) {
         let localstore = unsafe { LOCALSTORE.get_mut() }.unwrap();
-        localstore.info.insert(id, item);
+        localstore.info.insert(id, LocalRecord { item, is_new });
+    }
+
+    pub fn save_only(ids: &HashSet<String>) {
+        let info_path = home_dir().unwrap().join(".local/share/youtube-tui/info/");
+
+        for (id, LocalRecord { item, is_new }) in unsafe { LOCALSTORE.get() }.unwrap().info.iter() {
+            let info = info_path.join(id).with_extension("json");
+            if *is_new && ids.contains(id) {
+                let mut file = match OpenOptions::new()
+                    .write(true)
+                    .create(true)
+                    .truncate(true)
+                    .open(info)
+                {
+                    Ok(f) => f,
+                    Err(_) => continue,
+                };
+                let item_string = serde_json::to_string(&item).unwrap();
+                let _ = file.write_all(item_string.as_bytes());
+            }
+        }
     }
 }
