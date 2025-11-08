@@ -122,32 +122,22 @@ pub fn run_single_command(
     // match a command splitted by space to a bunch of avaliable commands
     match command {
         [] => {}
-        ["bookmark", id] => {
-            match (|| -> Result<Item, Box<dyn Error>> {
-                Ok(serde_json::from_str(&fs::read_to_string(
-                    home_dir()
-                        .unwrap()
-                        .join(format!(".cache/youtube-tui/info/{id}.json")),
-                )?)?)
-            })() {
-                Ok(item) => {
-                    let library = framework.data.global.get_mut::<Library>().unwrap();
-                    let _ = library.push(item);
-                    let _ = library.save();
-                    *framework.data.global.get_mut::<Message>().unwrap() =
-                        Message::Success(String::from("Bookmark added"))
-                }
-                Err(e) => {
-                    *framework.data.global.get_mut::<Message>().unwrap() =
-                        Message::Error(format!("Unknown item: {e}"))
-                }
+        ["bookmark", id] => match LocalStore::get_info(id) {
+            Some(item) => {
+                let library = framework.data.global.get_mut::<Library>().unwrap();
+                let _ = library.push(item);
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Success(String::from("Bookmark added"))
             }
-        }
+            None => {
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Error(format!("Unknown item: {id}"))
+            }
+        },
         ["unmark", id] => {
             let library = framework.data.global.get_mut::<Library>().unwrap();
 
             if library.remove(id) {
-                let _ = library.save();
                 *framework.data.global.get_mut::<Message>().unwrap() =
                     Message::Success(String::from("Bookmark removed"))
             } else {
@@ -158,11 +148,33 @@ pub fn run_single_command(
         ["togglemark", id] => {
             let library = framework.data.global.get_mut::<Library>().unwrap();
             if library.remove(id) {
-                let _ = library.save();
                 *framework.data.global.get_mut::<Message>().unwrap() =
                     Message::Success(String::from("Bookmark removed"))
             } else {
                 run_single_command(&["bookmark", id], framework, terminal);
+            }
+        }
+        ["rmcache", id] => {
+            let res = LocalStore::rm_cache(id);
+            let _ = fs::remove_file(
+                home_dir()
+                    .unwrap()
+                    .join(".local/share/youtube-tui/info/")
+                    .join(id)
+                    .with_extension("json"),
+            );
+            let _ = fs::remove_file(
+                home_dir()
+                    .unwrap()
+                    .join(".local/share/youtube-tui/thumbnails/")
+                    .join(id),
+            );
+            if res {
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Success(String::from("Cache cleared"))
+            } else {
+                *framework.data.global.get_mut::<Message>().unwrap() =
+                    Message::Error(String::from("Item not in cache, nothing changed"))
             }
         }
         ["help"] => {
@@ -466,7 +478,7 @@ pub fn run_single_command(
                         *framework.data.global.get_mut::<Message>().unwrap() = message.clone();
                     },
                 ))));
-                tasks.last.push(Task::RenderAll);
+                // tasks.last.push(Task::RenderAll);
             } else {
                 *framework.data.global.get_mut::<Message>().unwrap() = message;
                 framework

@@ -4,7 +4,7 @@ use crate::{
     global::{
         functions::*,
         structs::*,
-        traits::{CollectionNoId, SearchProviderWrapper},
+        traits::{Collection, SearchProviderWrapper},
     },
 };
 use ratatui::{
@@ -598,11 +598,18 @@ impl FrameworkItem for ChannelDisplay {
         let appearance = framework.data.global.get::<AppearanceConfig>().unwrap();
         let page = framework.data.state.get::<Page>().unwrap().channeldisplay();
         let page_id = page.id.clone();
-        let is_main_page = matches!(page.r#type, ChannelDisplayPageType::Main);
+        // let is_main_page = matches!(page.r#type, ChannelDisplayPageType::Main);
 
         match page.r#type {
             ChannelDisplayPageType::Main => {
-                let channel = load_channel(&page.id, mainconfig)?;
+                let (channel, is_new) = if let Some(item) = LocalStore::get_info(&page.id) {
+                    (item, false)
+                } else {
+                    (load_channel(&page.id, mainconfig)?, true)
+                };
+
+                LocalStore::set_info(page_id.clone(), channel.clone(), is_new);
+
                 let commands = framework
                     .data
                     .global
@@ -613,7 +620,7 @@ impl FrameworkItem for ChannelDisplay {
 
                 *self = Self::Main {
                     iteminfo: Box::new(ItemInfo::new(Some(channel.clone()))),
-                    channel: Box::new(channel),
+                    channel: Box::new(channel.clone()), // TODO the clone seem rather wasteful here
                     grid: Grid::new(
                         vec![Constraint::Percentage(60), Constraint::Percentage(40)],
                         vec![Constraint::Percentage(100)],
@@ -622,6 +629,9 @@ impl FrameworkItem for ChannelDisplay {
                     textlist: Self::new_textlist_with_map(commands.clone()),
                     commands,
                 };
+
+                let watch_history = framework.data.global.get_mut::<WatchHistory>().unwrap();
+                watch_history.push(channel)?;
             }
             ChannelDisplayPageType::Videos => {
                 let videos = SearchProviderWrapper::channel_videos(&page.id)?
@@ -671,6 +681,8 @@ impl FrameworkItem for ChannelDisplay {
             }
         }
 
+        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
+
         set_envs(
             self.inflate_load(mainconfig, framework.data.global.get::<Status>().unwrap())
                 .into_iter(),
@@ -683,6 +695,7 @@ impl FrameworkItem for ChannelDisplay {
             &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
         );
 
+        /*
         if is_main_page {
             let channel_history = framework.data.global.get_mut::<ChannelHistory>().unwrap();
             if !channel_history.0.contains(&page_id) {
@@ -690,6 +703,7 @@ impl FrameworkItem for ChannelDisplay {
                 let _ = channel_history.save();
             }
         }
+        */
 
         Ok(())
     }

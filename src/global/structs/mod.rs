@@ -4,6 +4,7 @@ mod history;
 mod item;
 mod keyaction;
 mod library;
+mod localstore;
 mod message;
 #[cfg(feature = "mpv")]
 mod mpv;
@@ -20,6 +21,7 @@ pub use history::*;
 pub use item::*;
 pub use keyaction::*;
 pub use library::*;
+pub use localstore::LocalStore;
 pub use message::*;
 #[cfg(feature = "mpv")]
 pub use mpv::*;

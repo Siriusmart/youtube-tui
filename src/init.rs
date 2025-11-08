@@ -5,6 +5,7 @@ use crate::{
 use home::home_dir;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{
+    collections::HashSet,
     error::Error,
     fs::{self},
     io::Stdout,
@@ -15,6 +16,7 @@ use tui_additions::framework::{Framework, FrameworkClean};
 
 pub static mut MAIN_CONFIG: OnceLock<MainConfig> = OnceLock::new();
 pub static RUNTIME: OnceLock<Runtime> = OnceLock::new();
+pub static CACHED_BEFORE: OnceLock<HashSet<String>> = OnceLock::new();
 
 /// app to run before the app starts
 // init tasks:
@@ -26,6 +28,7 @@ pub fn init(
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     command: Option<&str>,
 ) -> Result<(), Box<dyn Error>> {
+    LocalStore::init();
     let home_dir = home_dir().unwrap();
     RUNTIME
         .set(Builder::new_current_thread().enable_all().build().unwrap())
@@ -33,9 +36,9 @@ pub fn init(
 
     // creating files
     [
-        ".cache/youtube-tui/thumbnails/",
-        ".cache/youtube-tui/info/",
-        ".cache/youtube-tui/channels/",
+        // ".cache/youtube-tui/thumbnails/",
+        // ".cache/youtube-tui/info/",
+        // ".cache/youtube-tui/channels/",
         ".local/share/youtube-tui/thumbnails/",
         ".local/share/youtube-tui/info/",
         ".local/share/youtube-tui/saved/",
@@ -48,9 +51,28 @@ pub fn init(
         }
     });
 
-    init_move();
+    // init_move();
 
     load_configs(&mut framework.split_clean().0)?;
+
+    let library = Library::load();
+    let watchhistory = WatchHistory::load();
+
+    let cached_set: HashSet<String> = HashSet::from_iter(
+        library
+            .items()
+            .iter()
+            .filter_map(|item| item.id())
+            .map(str::to_string)
+            .chain(
+                watchhistory
+                    .items()
+                    .iter()
+                    .filter_map(|item| item.id())
+                    .map(str::to_string),
+            ),
+    );
+    CACHED_BEFORE.set(cached_set).unwrap();
 
     framework
         .data
@@ -60,19 +82,18 @@ pub fn init(
         .data
         .global
         .insert::<SearchHistory>(SearchHistory::load());
-    framework
-        .data
-        .global
-        .insert::<WatchHistory>(WatchHistory::load());
+    framework.data.global.insert::<WatchHistory>(watchhistory);
+    /*
     framework
         .data
         .global
         .insert::<ChannelHistory>(ChannelHistory::load());
+    */
     framework
         .data
         .global
         .insert::<Subscriptions>(Subscriptions::load());
-    framework.data.global.insert::<Library>(Library::load());
+    framework.data.global.insert::<Library>(library);
     framework.data.global.insert::<Message>(Message::None);
 
     framework.data.global.insert::<Status>(Status {

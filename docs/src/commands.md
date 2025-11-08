@@ -44,6 +44,7 @@ run [command]
 parrun [command]
 key [keycode] [keymodifier]
 echo [mode] (message) # run youtube-tui help to learn more about modes
+rmcache [id]
 ```
 
 > The `flush` command is used to run all tasks in queue immediately, this is usually done automatically.

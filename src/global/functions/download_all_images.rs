@@ -1,4 +1,4 @@
-use crate::global::structs::Item;
+use crate::global::structs::{Item, LocalStore};
 use std::{error::Error, fs, io::Cursor, path::PathBuf, thread};
 
 pub struct DownloadRequest {
@@ -48,13 +48,15 @@ pub fn download_all_images(downloads: Vec<Option<DownloadRequest>>) {
 
     let path = home::home_dir()
         .expect("Cannot get your home directory")
-        .join(".cache/youtube-tui/thumbnails/");
+        .join(".local/share/youtube-tui/thumbnails/");
 
     downloads.into_iter().flatten().for_each(|req| {
+        LocalStore::add_image(req.id.clone());
         let path = path.clone().join(req.id);
         if path.exists() {
             return;
         }
+
         thread::spawn(move || {
             let _ = download_single(&req.url, path);
         });

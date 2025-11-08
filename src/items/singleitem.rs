@@ -5,7 +5,6 @@ use crate::{
     config::*,
     global::{functions::*, structs::*, traits::Collection},
 };
-use home::home_dir;
 use ratatui::{
     layout::{Constraint, Rect},
     style::Style,
@@ -743,13 +742,12 @@ impl FrameworkItem for SingleItem {
         let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
         // load items using the invidious api
         // gets the item that it needs to load from `data.state.Page`
+        let mut is_new = true;
         let (item, r#type) = match r#type {
             SingleItemPage::Video(id) => {
-                let home_dir = home_dir().unwrap();
-                let path = home_dir.join(format!(".cache/youtube-tui/info/{id}.json"));
-
-                let video = if path.exists() {
-                    serde_json::from_str(&fs::read_to_string(path)?)?
+                let video = if let Some(item) = LocalStore::get_info(id) {
+                    is_new = false;
+                    item
                 } else {
                     load_video(id, mainconfig)?
                 };
@@ -763,15 +761,13 @@ impl FrameworkItem for SingleItem {
                 )
             }
             SingleItemPage::Playlist(id) => {
-                let path = home_dir()
-                    .unwrap()
-                    .join(format!(".cache/youtube-tui/info/{id}.json"));
-
-                let playlist = if path.exists() {
-                    serde_json::from_str(&fs::read_to_string(path)?)?
+                let playlist = if let Some(item) = LocalStore::get_info(id) {
+                    is_new = false;
+                    item
                 } else {
                     load_playlist(id, mainconfig)?
                 };
+
                 let r#type = SingleItemType::Playlist(
                     SinglePlaylistItem::new(
                         framework.data.global.get::<CommandsConfig>().unwrap(),
@@ -786,6 +782,8 @@ impl FrameworkItem for SingleItem {
             }
         };
 
+        LocalStore::set_info(item.id().unwrap().to_string(), item.clone(), is_new);
+
         self.item = Some(item);
         self.r#type = r#type;
         self.iteminfo.item = self.item.clone();
@@ -799,7 +797,7 @@ impl FrameworkItem for SingleItem {
             // push to watch history
             let watch_history = framework.data.global.get_mut::<WatchHistory>().unwrap();
             watch_history.push(item)?;
-            watch_history.save()?;
+            // watch_history.save()?;
         }
 
         let mainconfig = framework.data.global.get::<MainConfig>().unwrap();

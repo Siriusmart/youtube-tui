@@ -248,7 +248,10 @@ fn update_channel_cache(
     image_index: usize,
 ) -> Result<(), Box<dyn Error>> {
     let home_dir = home_dir().unwrap();
-    let cache_path = home_dir.join(format!(".cache/youtube-tui/channels/{}.json", channel.id));
+    let cache_path = home_dir.join(format!(
+        ".local/share/youtube-tui/channels/{}.json",
+        channel.id
+    ));
 
     if let Some(parent) = cache_path.parent() {
         fs::create_dir_all(parent)?;

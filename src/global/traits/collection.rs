@@ -55,10 +55,12 @@ where
 
     /// add an item to watch history
     fn push(&mut self, item: T) -> Result<(), Box<dyn Error>> {
-        let info = home_dir().unwrap().join(".cache/youtube-tui/info/");
-
         // removes duplicates and place them on top (if exists)
-        let id = item.id().unwrap_or("invalid-dump");
+        let id = match item.id() {
+            Some(t) => t,
+            None => return Ok(()), // TODO make error message
+        };
+
         if let Some(index) = self
             .items_mut()
             .iter_mut()
@@ -66,13 +68,18 @@ where
         {
             self.items_mut().remove(index);
         }
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(info.join(format!("{id}.json")))?;
-        let item_string = serde_json::to_string(&item)?;
-        file.write_all(item_string.as_bytes())?;
+
+        /* TODO is this a good approach?
+        if !info.exists() {
+            let mut file = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(info)?;
+            let item_string = serde_json::to_string(&item)?;
+            file.write_all(item_string.as_bytes())?;
+        }
+        */
 
         self.items_mut().push(item);
 
@@ -91,7 +98,7 @@ where
         // if res is err, then the file either doesn't exist of has be altered incorrectly, in
         // which case returns Self::default()
         let items = if let Ok(deserialized) = res {
-            let info = home_dir().unwrap().join(".cache/youtube-tui/info/");
+            let info = home_dir().unwrap().join(".local/share/youtube-tui/info/");
             deserialized
                 .into_iter()
                 .filter_map(|id| fs::read_to_string(info.join(format!("{id}.json"))).ok())

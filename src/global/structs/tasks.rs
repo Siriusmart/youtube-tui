@@ -60,7 +60,6 @@ pub struct TaskQueue {
     pub load_page: Option<Page>,
     pub clear_all: bool,
     pub lazy_rendered: bool,
-    pub reload_render: bool,
     pub commands: Vec<String>,
     pub custom_functions: Vec<TaskFunction>,
 }
@@ -73,7 +72,6 @@ impl Default for TaskQueue {
             load_page: None,
             clear_all: false,
             lazy_rendered: false,
-            reload_render: true,
             commands: Vec::new(),
             custom_functions: Vec::new(),
         }
@@ -194,19 +192,18 @@ impl TaskQueue {
                 &mut framework.data.state.get_mut::<StateEnvs>().unwrap().0,
             );
 
+            Self::render_force_clear(framework, terminal)?;
             // reload simply runs `.load()` on all items
-            if self.reload_render {
-                *framework.data.global.get_mut::<Message>().unwrap() =
-                    Message::Message(String::from("Reloading page..."));
-                Self::render_force_clear(framework, terminal)?;
-                *framework.data.global.get_mut::<Message>().unwrap() =
-                    if let Err(e) = framework.load() {
-                        Message::Error(e.to_string())
-                    } else {
-                        Message::None
-                    };
-                self.render = RenderTask::All;
-            }
+            *framework.data.global.get_mut::<Message>().unwrap() =
+                Message::Message(String::from("Reloading page..."));
+            Self::render_force_clear(framework, terminal)?;
+            *framework.data.global.get_mut::<Message>().unwrap() = if let Err(e) = framework.load()
+            {
+                Message::Error(e.to_string())
+            } else {
+                Message::None
+            };
+            self.render = RenderTask::All;
 
             let status = framework.data.global.get_mut::<Status>().unwrap();
             status.provider_updated = true;
