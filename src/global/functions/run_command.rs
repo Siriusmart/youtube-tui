@@ -458,7 +458,7 @@ pub fn run_single_command(
                         *framework.data.global.get_mut::<Message>().unwrap() = message.clone();
                     },
                 ))));
-                tasks.last.push(Task::RenderAll);
+                // tasks.last.push(Task::RenderAll);
             } else {
                 *framework.data.global.get_mut::<Message>().unwrap() = message;
                 framework

@@ -55,10 +55,14 @@ where
 
     /// add an item to watch history
     fn push(&mut self, item: T) -> Result<(), Box<dyn Error>> {
-        // let info = home_dir().unwrap().join(".local/share/youtube-tui/info/");
-
         // removes duplicates and place them on top (if exists)
-        let id = item.id().unwrap_or("invalid-dump");
+        let id = match item.id() {
+            Some(t) => t,
+            None => return Ok(()) // TODO make error message
+        };
+
+        let info = home_dir().unwrap().join(".local/share/youtube-tui/info/").join(format!("{id}.json"));
+
         if let Some(index) = self
             .items_mut()
             .iter_mut()
@@ -67,17 +71,18 @@ where
             self.items_mut().remove(index);
         }
 
-        /*
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(info.join(format!("{id}.json")))?;
-        let item_string = serde_json::to_string(&item)?;
-        file.write_all(item_string.as_bytes())?;
+        // TODO use central cache struct
+        if !info.exists() {
+            let mut file = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(info)?;
+            let item_string = serde_json::to_string(&item)?;
+            file.write_all(item_string.as_bytes())?;
+        }
 
         self.items_mut().push(item);
-        */
 
         Ok(())
     }
