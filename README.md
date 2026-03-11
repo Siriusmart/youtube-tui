@@ -17,7 +17,7 @@ Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for 
 
 It is like an _app launcher_, it launches other programs to do the heavy lifting (for example, `mpv` for playing videos).
 
-<sub>It also have an embedded mpv music player, but that can be disabled in compile time.</sub>
+<sub>It also has an embedded mpv music player, but that can be disabled in compile time.</sub>
 
 > Consider regenerating config files on updates to allow new features.
 
