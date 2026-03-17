@@ -1,12 +1,16 @@
 # Changelogs
 
-### v0.9.3 (Latest)
+### v0.9.4 (latest)
+#### Added
+- Mouse seeking in embedded player ([as suggested by seanaye](https://github.com/Siriusmart/youtube-tui/issues/144))
+
+### v0.9.3
 
 #### Fixed
 - Album playlists doesn't load
 - Re-implemented invidious support alongside rustypipe.
 
-### v0.9.2 (Latest)
+### v0.9.2
 
 #### Fixed
 - [#111](https://github.com/Siriusmart/youtube-tui/issues/111) don't know how did that line got there.

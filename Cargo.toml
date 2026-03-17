@@ -1,6 +1,6 @@
 [package]
 name = "youtube-tui"
-version = "0.9.3"
+version = "0.9.4"
 authors = ["Siriusmart <siriusmart@tuta.io>"]
 edition = "2021"
 description = "An aesthetically pleasing YouTube TUI written in Rust"
@@ -31,7 +31,7 @@ viuer = {version = "0.9", default-features = false, optional = true, features = 
 home = "0.5"
 chrono = {version = "0.4", default-features = false, features = ["clock"]}
 typemap = {version = "0.3", default-features = false}
-tui-additions = {version = "0.4", default-features = false, features = ["framework", "widgets"]}
+tui-additions = {version = "0.4.3", default-features = false, features = ["framework", "widgets"]}
 invidious = { version = "0.7", default-features = false, optional = true }
 serde_yaml_ng = {version = "0.10", default-features = false}
 dyn-clone = {version = "1.0", default-features = false}
@@ -48,7 +48,7 @@ tokio = { version = "1", features = [ "rt" ]}
 http_req = "0.14.1"
 
 # libmpv = { path = "libmpv-rs", optional = true, version = "2" }
-# tui-additions = {path = "../Rust/tui-additions", default-features = false, features = ["framework", "widgets"]}
+# tui-additions = {path = "../tui-additions", default-features = false, features = ["framework", "widgets"]}
 # invidious = {path = "../Rust/invidious-rs"}
 
 [package.metadata.docs.rs]
