@@ -162,7 +162,7 @@ impl ItemList {
     /// handles select (enter)
     fn select_at_cursor(&self, framework: &mut FrameworkClean) {
         if self.items.is_empty() {
-            return
+            return;
         }
 
         let page_to_load =

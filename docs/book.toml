@@ -1,7 +1,6 @@
 [book]
 authors = ["Siriusmart"]
 language = "en"
-multilingual = false
 src = "src"
 title = "YouTube TUI User Manual"
 description = "The user manual, documentation and contribution guide for YouTube TUI"

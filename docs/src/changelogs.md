@@ -1,6 +1,10 @@
 # Changelogs
 
-### v0.9.4 (latest)
+### v0.9.5 (latest)
+#### Fixed
+- Bumped dependencies to correctly use kitty image protocol.
+
+### v0.9.4
 #### Added
 - Mouse seeking in embedded player ([as suggested by seanaye](https://github.com/Siriusmart/youtube-tui/issues/144))
 
