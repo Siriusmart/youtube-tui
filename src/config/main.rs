@@ -2,6 +2,7 @@ use crate::global::traits::{ConfigTrait, SearchProviderTrait};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use typemap::Key;
+use crate::config::serde::ColorVariantSerde::Black;
 
 /// `main.yml`, the main config file
 #[derive(Serialize, Deserialize, Clone)]
@@ -43,6 +44,23 @@ pub struct MainConfig {
     pub legacy_input_handling: bool,
     #[serde(default = "default_env")]
     pub env: HashMap<String, String>,
+    #[serde(default = "blacklist")]
+    pub block_list: BlockList,
+}
+
+#[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct BlockList {
+    #[serde(default = "channels")]
+    pub channels: Vec<String>
+}
+
+const fn channels() -> Vec<String> {
+    return vec![]
+}
+const fn blacklist() -> BlockList {
+    BlockList {
+        channels: vec![]
+    }
 }
 
 impl Key for MainConfig {
@@ -71,6 +89,7 @@ impl Default for MainConfig {
             legacy_input_handling: legacy_input_handling_default(),
 
             env: default_env(),
+            block_list: blacklist(),
         }
     }
 }
