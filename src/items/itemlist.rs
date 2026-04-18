@@ -419,15 +419,18 @@ impl FrameworkItem for ItemList {
                     .map(|item| Item::from_search_item(item, image_index))
                     .filter(|item| {
                         let channel_id = match item.clone() {
-                            Item::MiniVideo(video) => video.channel_id,
-                            Item::MiniPlaylist(playlist) => playlist.channel_id,
-                            Item::MiniChannel(channel) => channel.id,
-                            Item::FullVideo(video) => video.id,
-                            Item::FullPlaylist(playlist) => playlist.id,
-                            Item::FullChannel(channel) => channel.id,
-                            _ => "".to_string(),
+                            Item::MiniVideo(video) => Some(video.channel_id),
+                            Item::MiniPlaylist(playlist) => Some(playlist.channel_id),
+                            Item::MiniChannel(channel) => Some(channel.id),
+                            Item::FullVideo(video) => Some(video.channel_id),
+                            Item::FullPlaylist(playlist) => Some(playlist.channel_id),
+                            Item::FullChannel(channel) => Some(channel.id),
+                            _ => None,
                         };
-                        !mainconfig.block_list.channels.contains(&channel_id)
+
+                        !channel_id.is_some_and(|channel_id| {
+                            mainconfig.block_list.channels.contains(&channel_id)
+                        })
                     })
                     .collect();
                 if !self.items.is_empty() {

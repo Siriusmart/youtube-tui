@@ -2,7 +2,6 @@ use crate::global::traits::{ConfigTrait, SearchProviderTrait};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use typemap::Key;
-use crate::config::serde::ColorVariantSerde::Black;
 
 /// `main.yml`, the main config file
 #[derive(Serialize, Deserialize, Clone)]
