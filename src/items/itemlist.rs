@@ -387,6 +387,8 @@ impl FrameworkItem for ItemList {
             .unwrap()
             .image_index;
 
+        let mainconfig = framework.data.global.get::<MainConfig>().unwrap();
+
         // fetch the items using the invidious api
         match page {
             Page::MainMenu(MainMenuPage::Trending) => {
@@ -415,6 +417,18 @@ impl FrameworkItem for ItemList {
                 self.items = SearchProviderWrapper::search(search)?
                     .into_iter()
                     .map(|item| Item::from_search_item(item, image_index))
+                    .filter(|item| {
+                        let channel_id = match item.clone() {
+                            Item::MiniVideo(video) => video.channel_id,
+                            Item::MiniPlaylist(playlist) => playlist.channel_id,
+                            Item::MiniChannel(channel) => channel.id,
+                            Item::FullVideo(video) => video.id,
+                            Item::FullPlaylist(playlist) => playlist.id,
+                            Item::FullChannel(channel) => channel.id,
+                            _ => "".to_string(),
+                        };
+                        !mainconfig.block_list.channels.contains(&channel_id)
+                    })
                     .collect();
                 if !self.items.is_empty() {
                     self.items.push(Item::Page(true));
