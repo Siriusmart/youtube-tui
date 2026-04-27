@@ -68,15 +68,20 @@ If installed correctly, a TUI should be launched. Press `q` to close the TUI.
 
 ## Installation on Windows
 
-Install using `cargo`:
+Install using `cargo` exactly as you would on Linux:
 
 ```sh
 cargo install youtube-tui
 ```
 
-All default features work on Windows. The `sixel` feature uses a pure Rust encoder on Windows (no native dependencies). The `clipboard` feature uses native Windows clipboard APIs.
+All default features work on Windows. On the first build, the `mpv` feature will automatically download the required `libmpv` dev library (~30MB) and place `libmpv-2.dll` next to the installed binary — no manual steps needed.
 
-If you do not have `mpv` installed, you can disable the `mpv` feature:
+Prerequisites:
+- [Rust / cargo](https://www.rust-lang.org/tools/install)
+- [MSVC build tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) ("Desktop development with C++" workload) — required to compile Rust on Windows
+- Internet access on the first build (to download `libmpv`)
+
+To build without the embedded mpv audio player (skips the download):
 
 ```sh
 cargo install youtube-tui --no-default-features -F sixel -F halfblock -F clipboard -F rustypipe
@@ -121,9 +126,11 @@ On Linux, requires <a href="https://xcb.freedesktop.org/" target=_blank>`libxcb`
 
 ### `mpv` (default)
 
-Embedded audio player
+Embedded audio player.
 
-Requires <a href="https://mpv.io/" target=_blank>`mpv`</a> (libmpv) to be installed in your system. On Windows, `mpv.dll` must be available in your PATH or next to the executable.
+On Linux, requires <a href="https://mpv.io/" target=_blank>`libmpv`</a> to be installed (`libmpv-dev` on Debian/Ubuntu, `mpv` on Arch).
+
+On Windows, the build system downloads `libmpv` automatically on first build and copies `libmpv-2.dll` next to the installed binary. No manual steps are required.
 
 ### rustypipe (default)
 
