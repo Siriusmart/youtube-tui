@@ -11,7 +11,7 @@
 
 # Overview
 
-Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal. Works out of the box and easily configurable.
+Written in Rust, the **YouTube TUI** is a lightweight and user friendly TUI for browsing YouTube content from the terminal. Works out of the box and easily configurable. Supports Linux and Windows.
 
 ![](./docs/src/images/readme1.png)
 
@@ -23,7 +23,7 @@ It is like an _app launcher_, it launches other programs to do the heavy lifting
 
 ## Customisable
 
-The YouTube TUI can be customised through config files, they are located in `~/.config/youtube-tui` and are in the YAML format.
+The YouTube TUI can be customised through config files, located in `~/.config/youtube-tui` on Linux or `%APPDATA%\youtube-tui` on Windows, in the YAML format.
 
 Here's an example of the config file:
 

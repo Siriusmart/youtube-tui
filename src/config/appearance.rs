@@ -1,5 +1,4 @@
-use crate::{config::serde::*, global::traits::*};
-use home::home_dir;
+use crate::{config::serde::*, global::functions::paths, global::traits::*};
 use ratatui::{style::Color, widgets::BorderType};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -38,8 +37,8 @@ impl AppearanceConfig {
             return Ok(appearance);
         }
 
-        let config_path = home_dir().unwrap().join(format!(
-            ".config/youtube-tui/{}.{}",
+        let config_path = paths::config_dir().join(format!(
+            "{}.{}",
             AppearanceConfigSerde::LABEL,
             EXTENSION
         ));

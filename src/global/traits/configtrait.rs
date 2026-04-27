@@ -1,4 +1,3 @@
-use home::home_dir;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     error::Error,
@@ -6,7 +5,7 @@ use std::{
     io::Write,
 };
 
-use crate::config::WriteConfig;
+use crate::{config::WriteConfig, global::functions::paths};
 
 pub const EXTENSION: &str = "yml";
 
@@ -18,9 +17,8 @@ pub trait ConfigTrait {
     where
         Self: Serialize + DeserializeOwned + Default + Clone,
     {
-        let home_dir = home_dir().unwrap();
         let config_path =
-            home_dir.join(format!(".config/youtube-tui/{}.{}", Self::LABEL, EXTENSION));
+            paths::config_dir().join(format!("{}.{}", Self::LABEL, EXTENSION));
 
         // The config struct
         let config: Self = {

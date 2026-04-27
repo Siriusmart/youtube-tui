@@ -1,10 +1,10 @@
-use home::home_dir;
 use std::{collections::HashSet, error::Error, fs};
 use tui_additions::framework::Framework;
 
 use crate::{
     config::MainConfig,
     global::{
+        functions::paths,
         structs::*,
         traits::{Collection, CollectionNoId},
     },
@@ -51,10 +51,9 @@ pub fn exit(framework: &mut Framework) -> Result<(), Box<dyn Error>> {
 
     let cached_before = CACHED_BEFORE.get().unwrap();
 
-    let info_path = home_dir().unwrap().join(".local/share/youtube-tui/info/");
-    let thumbnail_path = home_dir()
-        .unwrap()
-        .join(".local/share/youtube-tui/thumbnails/");
+    let data = paths::data_dir();
+    let info_path = data.join("info");
+    let thumbnail_path = data.join("thumbnails");
 
     // remove cache that no longer exists
     for deleted in cached_before

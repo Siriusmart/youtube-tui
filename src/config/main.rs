@@ -287,27 +287,59 @@ const fn write_to_config_default() -> WriteConfig {
 }
 
 fn default_env() -> HashMap<String, String> {
-    HashMap::from([
-        (String::from("video-player"), String::from("mpv")),
-        (String::from("browser"), String::from("xdg-open")),
-        (
-            String::from("terminal-emulator"),
-            String::from("konsole -e"),
-        ),
-        (String::from("youtube-downloader"), String::from("yt-dlp")),
-        (
-            String::from("download-path"),
-            String::from("~/Downloads/%(title)s-%(id)s.%(ext)s"),
-        ),
-        (
-            String::from("save-path"),
-            String::from("~/.local/share/youtube-tui/saved/"),
-        ),
-    ])
+    use crate::global::functions::paths;
+
+    #[cfg(target_os = "windows")]
+    {
+        HashMap::from([
+            (String::from("video-player"), String::from("mpv")),
+            (String::from("browser"), String::from("explorer")),
+            (
+                String::from("terminal-emulator"),
+                String::from("cmd /c start cmd /k"),
+            ),
+            (String::from("youtube-downloader"), String::from("yt-dlp")),
+            (
+                String::from("download-path"),
+                paths::default_download_path(),
+            ),
+            (
+                String::from("save-path"),
+                paths::default_save_path(),
+            ),
+        ])
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        HashMap::from([
+            (String::from("video-player"), String::from("mpv")),
+            (String::from("browser"), String::from("xdg-open")),
+            (
+                String::from("terminal-emulator"),
+                String::from("konsole -e"),
+            ),
+            (String::from("youtube-downloader"), String::from("yt-dlp")),
+            (
+                String::from("download-path"),
+                String::from("~/Downloads/%(title)s-%(id)s.%(ext)s"),
+            ),
+            (
+                String::from("save-path"),
+                String::from("~/.local/share/youtube-tui/saved/"),
+            ),
+        ])
+    }
 }
 
 fn shell_default() -> String {
-    String::from("sh")
+    #[cfg(target_os = "windows")]
+    {
+        String::from("cmd")
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        String::from("sh")
+    }
 }
 
 fn api_key_default() -> String {

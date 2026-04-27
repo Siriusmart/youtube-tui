@@ -2,7 +2,6 @@ use crate::{
     config::*,
     global::{functions::*, structs::*, traits::*},
 };
-use home::home_dir;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{
     collections::HashSet,
@@ -29,23 +28,19 @@ pub fn init(
     command: Option<&str>,
 ) -> Result<(), Box<dyn Error>> {
     LocalStore::init();
-    let home_dir = home_dir().unwrap();
     RUNTIME
         .set(Builder::new_current_thread().enable_all().build().unwrap())
         .unwrap();
 
     // creating files
+    let data = paths::data_dir();
     [
-        // ".cache/youtube-tui/thumbnails/",
-        // ".cache/youtube-tui/info/",
-        // ".cache/youtube-tui/channels/",
-        ".local/share/youtube-tui/thumbnails/",
-        ".local/share/youtube-tui/info/",
-        ".local/share/youtube-tui/saved/",
+        data.join("thumbnails"),
+        data.join("info"),
+        data.join("saved"),
     ]
     .into_iter()
-    .for_each(|s| {
-        let dir = home_dir.join(s);
+    .for_each(|dir| {
         if !dir.exists() {
             fs::create_dir_all(dir).unwrap();
         }
@@ -136,8 +131,7 @@ pub fn init(
 
 /// reload all config files
 pub fn load_configs(framework: &mut FrameworkClean) -> Result<(), Box<dyn Error>> {
-    let home_dir = home_dir().unwrap();
-    let config_path = home_dir.join(".config/youtube-tui/");
+    let config_path = paths::config_dir();
 
     if !&config_path.exists() {
         fs::create_dir_all(&config_path).unwrap();

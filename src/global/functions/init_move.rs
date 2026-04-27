@@ -1,11 +1,10 @@
 use std::fs;
 
-use home::home_dir;
+use super::paths;
 
 pub fn init_move() {
-    let home_dir = home_dir().unwrap();
-    let store_dir = home_dir.join(".local/share/youtube-tui/");
-    let cache_dir = home_dir.join(".cache/youtube-tui");
+    let store_dir = paths::data_dir();
+    let cache_dir = paths::cache_dir();
 
     let store_info_dir = store_dir.join("info/");
     let cache_info_dir = cache_dir.join("info/");

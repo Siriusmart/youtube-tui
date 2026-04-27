@@ -1,6 +1,6 @@
 # Installation
 
-The YouTube TUI is *not* intended for Windows, pull requests to make it work are welcome.
+The YouTube TUI supports both Linux and Windows.
 
 ## Install from Crates.io (recommended)
 
@@ -66,6 +66,33 @@ youtube-tui
 
 If installed correctly, a TUI should be launched. Press `q` to close the TUI.
 
+## Installation on Windows
+
+Install using `cargo`:
+
+```sh
+cargo install youtube-tui
+```
+
+All default features work on Windows. The `sixel` feature uses a pure Rust encoder on Windows (no native dependencies). The `clipboard` feature uses native Windows clipboard APIs.
+
+If you do not have `mpv` installed, you can disable the `mpv` feature:
+
+```sh
+cargo install youtube-tui --no-default-features -F sixel -F halfblock -F clipboard -F rustypipe
+```
+
+### Windows configuration
+
+The default config directory on Windows is `%APPDATA%\youtube-tui\`. Data files (history, thumbnails, etc.) are stored in `%LOCALAPPDATA%\youtube-tui\`.
+
+Default tools on Windows:
+- **Browser**: `explorer` (opens URLs in default browser)
+- **Terminal emulator**: `cmd /c start cmd /k`
+- **Shell**: `cmd`
+
+These can be changed in `main.yml`.
+
 ## Features
 
 The TUI has features that can be enabled/disabled when compiling.
@@ -82,23 +109,21 @@ Display images through HalfBlocks, work best in terminals with TrueColour suppor
 
 ### `sixel` (default)
 
-Display images with Sixels, allows the display of images at full definition. Not present on windows.
+Display images with Sixels, allows the display of images at full definition.
 
-Enabling this will also enable `halfblock`.
-
-Requires <a href="https://github.com/saitoha/libsixel" target=_blank>`libsixel`</a>.
+On Linux, this uses the C `libsixel` library for best performance (requires <a href="https://github.com/saitoha/libsixel" target=_blank>`libsixel`</a>). On Windows, a pure Rust encoder is used automatically (no native dependencies).
 
 ### `clipboard` (default)
 
 Allows clipboard pasting in commands and search bar.
 
-Requires <a href="https://xcb.freedesktop.org/" target=_blank>`libxcb`</a>.
+On Linux, requires <a href="https://xcb.freedesktop.org/" target=_blank>`libxcb`</a>. On Windows, uses native clipboard APIs (no extra dependencies).
 
 ### `mpv` (default)
 
 Embedded audio player
 
-Requires <a href="https://mpv.io/" target=_blank>`mpv`</a> (libmpv) to be installed in your system.
+Requires <a href="https://mpv.io/" target=_blank>`mpv`</a> (libmpv) to be installed in your system. On Windows, `mpv.dll` must be available in your PATH or next to the executable.
 
 ### rustypipe (default)
 
