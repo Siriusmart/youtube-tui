@@ -1,17 +1,31 @@
 # Downloads mpv dev library for Windows (required to build with the `mpv` feature)
-# Usage: .\setup-mpv-dev.ps1
-# This downloads ~30MB and extracts mpv.lib + libmpv-2.dll into a local 'mpv-dev' folder.
-# Then sets MPV_LIB_DIR for the current session.
+#
+# Usage:
+#   .\setup-mpv-dev.ps1                          # outputs to .\mpv-dev\
+#   .\setup-mpv-dev.ps1 -OutputDir "C:\some\dir" # outputs to a custom directory
+#
+# When called from build.rs, -OutputDir is set to %LOCALAPPDATA%\youtube-tui\mpv-dev
+# so the files persist across `cargo install` invocations.
+
+param(
+    [string]$OutputDir = ""
+)
 
 $ErrorActionPreference = "Stop"
 
-$mpvDevDir = Join-Path $PSScriptRoot "mpv-dev"
-$mpvLib = Join-Path $mpvDevDir "mpv.lib"
+# Determine output directory:
+#   - Explicit -OutputDir argument (used by build.rs)
+#   - Otherwise default to a sibling mpv-dev\ next to this script
+if ($OutputDir -eq "") {
+    $OutputDir = Join-Path $PSScriptRoot "mpv-dev"
+}
+
+$mpvLib = Join-Path $OutputDir "mpv.lib"
 
 if (Test-Path $mpvLib) {
-    Write-Host "mpv.lib already exists at $mpvDevDir, skipping download."
-    $env:MPV_LIB_DIR = $mpvDevDir
-    Write-Host "MPV_LIB_DIR set to $mpvDevDir"
+    Write-Host "mpv.lib already exists at $OutputDir, skipping download."
+    $env:MPV_LIB_DIR = $OutputDir
+    Write-Host "MPV_LIB_DIR set to $OutputDir"
     return
 }
 
@@ -19,14 +33,18 @@ if (Test-Path $mpvLib) {
 $arch = if ([Environment]::Is64BitOperatingSystem) { "x86_64" } else { "i686" }
 $url = "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20260412/mpv-dev-${arch}-20260412-git-062f4bf.7z"
 
+# Use the user-local temp directory (always writable, unlike C:\Windows\Temp)
+$userTemp = [System.IO.Path]::GetTempPath()
+$tempFile = Join-Path $userTemp "mpv-dev.7z"
+$tempExtract = Join-Path $userTemp "mpv-dev-extract"
+
 Write-Host "Downloading mpv-dev for $arch..."
-$tempFile = Join-Path $env:TEMP "mpv-dev.7z"
 Invoke-WebRequest -Uri $url -OutFile $tempFile -UserAgent "Mozilla/5.0"
 
 # Create output directory
-New-Item -ItemType Directory -Force -Path $mpvDevDir | Out-Null
+New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
-# Extract using 7z (ships with scoop, git, or can be installed via scoop install 7zip)
+# Locate 7z — check PATH first, then common install locations
 $7zPaths = @(
     "7z",
     "$env:ProgramFiles\7-Zip\7z.exe",
@@ -53,7 +71,6 @@ if (-not $7zExe) {
 }
 
 Write-Host "Extracting mpv-dev..."
-$tempExtract = Join-Path $env:TEMP "mpv-dev-extract"
 if (Test-Path $tempExtract) { Remove-Item -Recurse -Force $tempExtract }
 & $7zExe x $tempFile -o"$tempExtract" -y | Out-Null
 
@@ -63,7 +80,7 @@ $dllFile = Get-ChildItem -Path $tempExtract -Filter "libmpv-2.dll" -Recurse | Se
 
 if (-not $libFile) {
     # The shinchiro builds ship libmpv.dll.a (GCC format), not mpv.lib (MSVC format).
-    # Generate mpv.lib from the DLL using dumpbin + lib (MSVC tools).
+    # Generate mpv.lib from the DLL using MSVC dumpbin + lib tools.
     Write-Host "mpv.lib not found in archive. Generating from libmpv-2.dll..."
 
     $dllForLib = Get-ChildItem -Path $tempExtract -Filter "libmpv-2.dll" -Recurse | Select-Object -First 1
@@ -71,7 +88,7 @@ if (-not $libFile) {
         Write-Error "Could not find libmpv-2.dll in the archive!"
     }
 
-    # Find MSVC tools (dumpbin, lib) - they're installed but not in PATH
+    # Find MSVC tools — installed but not in PATH by default
     $vsBase = "${env:ProgramFiles(x86)}\Microsoft Visual Studio"
     if (-not (Test-Path $vsBase)) { $vsBase = "$env:ProgramFiles\Microsoft Visual Studio" }
     $dumpbin = Get-ChildItem -Path $vsBase -Recurse -Filter "dumpbin.exe" -ErrorAction SilentlyContinue |
@@ -85,55 +102,46 @@ if (-not $libFile) {
         Write-Error "Could not find MSVC build tools (dumpbin.exe, lib.exe). Install 'Desktop development with C++' workload."
     }
 
-    # Export function names from DLL
-    $defPath = Join-Path $mpvDevDir "mpv.def"
+    # Export function names from DLL and write .def file
+    $defPath = Join-Path $OutputDir "mpv.def"
     $exports = & $dumpbin /exports "$($dllForLib.FullName)" 2>&1 |
         Select-String "^\s+\d+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+(\S+)" |
         ForEach-Object { $_.Matches[0].Groups[1].Value }
 
-    # Write .def file
     $defContent = "LIBRARY libmpv-2`nEXPORTS`n"
     $defContent += ($exports | ForEach-Object { "    $_" }) -join "`n"
     Set-Content -Path $defPath -Value $defContent -Encoding ASCII
 
     # Generate .lib from .def
     $machine = if ($arch -eq "x86_64") { "x64" } else { "x86" }
-    & $libExe /def:"$defPath" /machine:$machine /out:"$mpvDevDir\mpv.lib" 2>&1 | Out-Null
+    & $libExe /def:"$defPath" /machine:$machine /out:"$OutputDir\mpv.lib" 2>&1 | Out-Null
 
-    if (-not (Test-Path "$mpvDevDir\mpv.lib")) {
+    if (-not (Test-Path "$OutputDir\mpv.lib")) {
         Write-Error "Failed to generate mpv.lib!"
     } else {
         Write-Host "Generated mpv.lib successfully."
     }
 } else {
-    Copy-Item $libFile.FullName $mpvDevDir
+    Copy-Item $libFile.FullName $OutputDir
 }
 
 if ($dllFile) {
-    Copy-Item $dllFile.FullName $mpvDevDir
-    # Also copy DLL next to the built binary location
-    $targetRelease = Join-Path $PSScriptRoot "target\release"
-    if (Test-Path $targetRelease) {
-        Copy-Item $dllFile.FullName $targetRelease
-    }
+    Copy-Item $dllFile.FullName $OutputDir
 }
 
-# Also grab any other DLLs we might need
+# Also grab any other DLLs from the archive
 Get-ChildItem -Path $tempExtract -Filter "*.dll" -Recurse | ForEach-Object {
-    Copy-Item $_.FullName $mpvDevDir -Force
+    Copy-Item $_.FullName $OutputDir -Force
 }
 
-# Cleanup
+# Cleanup temp files
 Remove-Item -Force $tempFile -ErrorAction SilentlyContinue
 Remove-Item -Recurse -Force $tempExtract -ErrorAction SilentlyContinue
 
-$env:MPV_LIB_DIR = $mpvDevDir
+$env:MPV_LIB_DIR = $OutputDir
 Write-Host ""
-Write-Host "Done! mpv dev files extracted to: $mpvDevDir"
-Write-Host "MPV_LIB_DIR set to: $mpvDevDir"
+Write-Host "Done! mpv dev files extracted to: $OutputDir"
+Write-Host "MPV_LIB_DIR set to: $OutputDir"
 Write-Host ""
-Write-Host "You can now build with:"
-Write-Host "  cargo build --release"
-Write-Host ""
-Write-Host "To make this permanent, add to your PowerShell profile:"
-Write-Host "  `$env:MPV_LIB_DIR = '$mpvDevDir'"
+Write-Host "To make MPV_LIB_DIR permanent, add to your PowerShell profile:"
+Write-Host "  `$env:MPV_LIB_DIR = '$OutputDir'"
