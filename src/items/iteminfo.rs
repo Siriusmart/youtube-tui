@@ -53,9 +53,8 @@ impl FrameworkItem for ItemInfo {
 
             #[cfg(any(feature = "sixel", feature = "halfblock"))]
             {
-                let thumbnail_path = home::home_dir()
-                    .unwrap()
-                    .join(".local/share/youtube-tui/thumbnails/")
+                let thumbnail_path = crate::global::functions::paths::data_dir()
+                    .join("thumbnails")
                     .join(item.thumbnail_id());
                 if thumbnail_path.exists() {
                     #[cfg(any(feature = "sixel", feature = "halfblock"))]

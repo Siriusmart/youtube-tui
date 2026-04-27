@@ -7,7 +7,6 @@ use crate::{
     },
 };
 use chrono::Utc;
-use home::home_dir;
 use serde::*;
 use std::{
     error::Error,
@@ -247,9 +246,8 @@ fn update_channel_cache(
     channel: &FullChannelItem,
     image_index: usize,
 ) -> Result<(), Box<dyn Error>> {
-    let home_dir = home_dir().unwrap();
-    let cache_path = home_dir.join(format!(
-        ".local/share/youtube-tui/channels/{}.json",
+    let cache_path = crate::global::functions::paths::data_dir().join(format!(
+        "channels/{}.json",
         channel.id
     ));
 
@@ -318,7 +316,7 @@ impl CollectionItem for SubItem {
 }
 
 impl Collection<SubItem> for Subscriptions {
-    const INDEX_PATH: &'static str = ".local/share/youtube-tui/subscriptions.json";
+    const INDEX_PATH: &'static str = "subscriptions.json";
 
     fn items(&self) -> &Vec<SubItem> {
         &self.0
@@ -337,7 +335,7 @@ impl Collection<SubItem> for Subscriptions {
             .truncate(true)
             .write(true)
             .create(true)
-            .open(home_dir().unwrap().join(Self::INDEX_PATH))?;
+            .open(crate::global::functions::paths::data_dir().join(Self::INDEX_PATH))?;
 
         let save_string = serde_json::to_string_pretty(self)?;
         file.write_all(save_string.as_bytes())?;
@@ -349,7 +347,7 @@ impl Collection<SubItem> for Subscriptions {
     }
 
     fn load() -> Self {
-        let path = home_dir().unwrap().join(Self::INDEX_PATH);
+        let path = crate::global::functions::paths::data_dir().join(Self::INDEX_PATH);
         let res = (|| -> Result<Self, Box<dyn Error>> {
             let file_string = fs::read_to_string(&path)?;
             let deserialized = serde_json::from_str(&file_string)?;

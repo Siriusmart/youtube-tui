@@ -1,10 +1,11 @@
-use home::home_dir;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     error::Error,
     fs::{self, OpenOptions},
     io::Write,
 };
+
+use crate::global::functions::paths;
 
 pub trait CollectionItem {
     fn id(&self) -> Option<&str>;
@@ -40,7 +41,7 @@ where
                 .filter(|id| !id.is_empty())
                 .collect::<Vec<&str>>(),
         )?;
-        let path = home_dir().unwrap().join(Self::INDEX_PATH);
+        let path = paths::data_dir().join(Self::INDEX_PATH);
 
         let mut file = OpenOptions::new()
             .write(true)
@@ -88,7 +89,7 @@ where
 
     /// loads watch history from file
     fn load() -> Self {
-        let path = home_dir().unwrap().join(Self::INDEX_PATH);
+        let path = paths::data_dir().join(Self::INDEX_PATH);
         let res = (|| -> Result<Vec<String>, Box<dyn Error>> {
             let file_string = fs::read_to_string(&path)?;
             let deserialized = serde_json::from_str(&file_string)?;
@@ -98,7 +99,7 @@ where
         // if res is err, then the file either doesn't exist of has be altered incorrectly, in
         // which case returns Self::default()
         let items = if let Ok(deserialized) = res {
-            let info = home_dir().unwrap().join(".local/share/youtube-tui/info/");
+            let info = paths::data_dir().join("info");
             deserialized
                 .into_iter()
                 .filter_map(|id| fs::read_to_string(info.join(format!("{id}.json"))).ok())
@@ -124,11 +125,12 @@ where
 
     /// moves thumbnails of videos in watch history from cache back to storage when exiting, so that thumbnails can be viewed offline
     fn exit_move(&self) {
-        let home_dir = home_dir().unwrap();
-        let store_thumbnails_path = home_dir.join(".local/share/youtube-tui/thumbnails/");
-        let store_info_path = home_dir.join(".local/share/youtube-tui/info/");
-        let cache_thumbnails_path = home_dir.join(".cache/youtube-tui/thumbnails/");
-        let cache_info_path = home_dir.join(".cache/youtube-tui/info");
+        let data = paths::data_dir();
+        let cache = paths::cache_dir();
+        let store_thumbnails_path = data.join("thumbnails");
+        let store_info_path = data.join("info");
+        let cache_thumbnails_path = cache.join("thumbnails");
+        let cache_info_path = cache.join("info");
 
         self.items().iter().for_each(|item| {
             let id = item.id().unwrap_or("invalid-dump");
@@ -189,7 +191,7 @@ where
     /// saves the current state of watch history into a file
     fn save(&self) -> Result<(), Box<dyn Error>> {
         let save_string = serde_json::to_string_pretty(&self)?;
-        let path = home_dir().unwrap().join(Self::INDEX_PATH);
+        let path = paths::data_dir().join(Self::INDEX_PATH);
 
         let mut file = OpenOptions::new()
             .write(true)
@@ -218,7 +220,7 @@ where
 
     /// loads watch history from file
     fn load() -> Self {
-        let path = home_dir().unwrap().join(Self::INDEX_PATH);
+        let path = paths::data_dir().join(Self::INDEX_PATH);
         let res = (|| -> Result<Vec<T>, Box<dyn Error>> {
             let file_string = fs::read_to_string(&path)?;
             let deserialized = serde_json::from_str(&file_string)?;

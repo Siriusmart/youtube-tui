@@ -98,6 +98,16 @@ fn launch_command_default() -> String {
 }
 
 fn video_default() -> Vec<HashMap<String, String>> {
+    #[cfg(target_os = "windows")]
+    let q = "\"";
+    #[cfg(not(target_os = "windows"))]
+    let q = "'";
+
+    #[cfg(target_os = "windows")]
+    let rm_cmd = |pattern: &str| format!("run cmd /c del /q /s \"{pattern}\"");
+    #[cfg(not(target_os = "windows"))]
+    let rm_cmd = |pattern: &str| format!("run rm -rf '{pattern}'");
+
     vec![
         HashMap::from([(
             String::from("Reload updated video"),
@@ -105,20 +115,16 @@ fn video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Play video"),
-            String::from("parrun ${video-player} '${embed-url}'"),
+            format!("parrun ${{video-player}} {q}${{embed-url}}{q}"),
         )]),
         HashMap::from([(
             String::from("Play audio"),
-            String::from("mpv stop ;; resume ;; mpv sprop loop-file no ;; mpv loadfile '${embed-url}' ;; echo mpv Player started"),
+            format!("mpv stop ;; resume ;; mpv sprop loop-file no ;; mpv loadfile {q}${{embed-url}}{q} ;; echo mpv Player started"),
         )]),
         HashMap::from([(
             String::from("Play audio (loop)"),
-            String::from("mpv stop ;; resume ;; mpv sprop loop-file inf ;; mpv loadfile '${embed-url}' ;; echo mpv Player started"),
+            format!("mpv stop ;; resume ;; mpv sprop loop-file inf ;; mpv loadfile {q}${{embed-url}}{q} ;; echo mpv Player started"),
         )]),
-        // HashMap::from([(
-        //     String::from("Add to queue"),
-        //     String::from("mpv loadfile '${embed-url}' appendplay;; echo mpv Added to queue"),
-        // )]),
         HashMap::from([(
             String::from("View channel"),
             String::from("channel ${channel-id}"),
@@ -129,7 +135,7 @@ fn video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Open in browser"),
-            String::from("parrun ${browser} '${url}'"),
+            format!("parrun ${{browser}} {q}${{url}}{q}"),
         )]),
         HashMap::from([(
             String::from("Toggle bookmark"),
@@ -137,11 +143,11 @@ fn video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Save video to library"),
-            String::from("bookmark ${id} ;; run rm -rf '${save-path}${id}.*' ;; parrun ${terminal-emulator} ${youtube-downloader} '${embed-url}' -o '${save-path}%(title)s[%(id)s].%(ext)s'")
+            format!("bookmark ${{id}} ;; {} ;; parrun ${{terminal-emulator}} ${{youtube-downloader}} {q}${{embed-url}}{q} -o {q}${{save-path}}%(title)s[${{id}}].%(ext)s{q}", rm_cmd("${save-path}${id}.*"))
         )]),
         HashMap::from([(
             String::from("Save audio to library"),
-            String::from("bookmark ${id} ;; parrun rm -rf '${save-path}${id}.*' ;; parrun ${terminal-emulator} ${youtube-downloader} '${embed-url}' -x -o '${save-path}%(title)s[%(id)s].%(ext)s'")
+            format!("bookmark ${{id}} ;; {} ;; parrun ${{terminal-emulator}} ${{youtube-downloader}} {q}${{embed-url}}{q} -x -o {q}${{save-path}}%(title)s[${{id}}].%(ext)s{q}", rm_cmd("${save-path}${id}.*"))
         )]),
         HashMap::from([(
             String::from("Mode: ${provider}"),
@@ -151,6 +157,16 @@ fn video_default() -> Vec<HashMap<String, String>> {
 }
 
 fn saved_video_default() -> Vec<HashMap<String, String>> {
+    #[cfg(target_os = "windows")]
+    let q = "\"";
+    #[cfg(not(target_os = "windows"))]
+    let q = "'";
+
+    #[cfg(target_os = "windows")]
+    let rm_cmd = |pattern: &str| format!("run cmd /c del /q /s \"{pattern}\"");
+    #[cfg(not(target_os = "windows"))]
+    let rm_cmd = |pattern: &str| format!("run rm {pattern}");
+
     vec![
         HashMap::from([(
             String::from("Reload updated video"),
@@ -158,20 +174,16 @@ fn saved_video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("[Offline] Play saved file"),
-            String::from("parrun ${video-player} '${offline-path}' --force-window"),
+            format!("parrun ${{video-player}} {q}${{offline-path}}{q} --force-window"),
         )]),
         HashMap::from([(
             String::from("[Offline] Play saved file (audio)"),
-            String::from("mpv stop ;; resume ;; mpv sprop loop-file no ;; mpv loadfile '${offline-path}' ;; echo mpv Player started"),
+            format!("mpv stop ;; resume ;; mpv sprop loop-file no ;; mpv loadfile {q}${{offline-path}}{q} ;; echo mpv Player started"),
         )]),
         HashMap::from([(
             String::from("[Offline] Play saved file (audio loop)"),
-            String::from("mpv stop ;; resume ;; mpv sprop loop-file inf ;; mpv loadfile '${offline-path}' ;; echo mpv Player started"),
+            format!("mpv stop ;; resume ;; mpv sprop loop-file inf ;; mpv loadfile {q}${{offline-path}}{q} ;; echo mpv Player started"),
         )]),
-        // HashMap::from([(
-        //     String::from("[Offline] Add to queue"),
-        //     String::from("mpv loadfile '${offline-path}' appendplay ;; echo mpv Added to queue"),
-        // )]),
         HashMap::from([(
             String::from("View channel"),
             String::from("channel ${channel-id}"),
@@ -182,7 +194,7 @@ fn saved_video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Open in browser"),
-            String::from("parrun ${browser} '${url}'"),
+            format!("parrun ${{browser}} {q}${{url}}{q}"),
         )]),
         HashMap::from([(
             String::from("Toggle bookmark"),
@@ -190,20 +202,25 @@ fn saved_video_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Redownload video to library"),
-            String::from("bookmark ${id} ;; run rm ${save-path}*${id}*.* ;; parrun ${terminal-emulator} ${youtube-downloader} ${embed-url} -o '${save-path}%(title)s[%(id)s].%(ext)s'"),
+            format!("bookmark ${{id}} ;; {} ;; parrun ${{terminal-emulator}} ${{youtube-downloader}} ${{embed-url}} -o {q}${{save-path}}%(title)s[${{id}}].%(ext)s{q}", rm_cmd("${save-path}*${id}*.*")),
         )]),
         HashMap::from([(
             String::from("Redownload audio to library"),
-            String::from("bookmark ${id} ;; run rm ${save-path}*${id}*.* ;; parrun ${terminal-emulator} ${youtube-downloader} ${embed-url} -x -o '${save-path}%(title)s[%(id)s].%(ext)s'")
+            format!("bookmark ${{id}} ;; {} ;; parrun ${{terminal-emulator}} ${{youtube-downloader}} ${{embed-url}} -x -o {q}${{save-path}}%(title)s[${{id}}].%(ext)s{q}", rm_cmd("${save-path}*${id}*.*"))
         )]),
         HashMap::from([(
             String::from("Delete saved file"),
-            String::from("run rm ${save-path}*${id}*.*")
+            rm_cmd("${save-path}*${id}*.*")
         )]),
     ]
 }
 
 fn playlist_default() -> Vec<HashMap<String, String>> {
+    #[cfg(target_os = "windows")]
+    let q = "\"";
+    #[cfg(not(target_os = "windows"))]
+    let q = "'";
+
     vec![
         HashMap::from([(String::from("Switch view"), String::from("%switch-view%"))]),
         HashMap::from([(
@@ -222,10 +239,6 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
             String::from("Shuffle play all (audio loop)"),
             String::from("mpv stop ;; resume ;; ${mpv-queuelist} ;; mpv sprop loop-playlist yes ;; mpv playlist-shuffle ;; mpv playlist-play-index 0 ;; echo mpv Player started"),
         )]),
-        // HashMap::from([(
-        //     String::from("Add all to queue"),
-        //     String::from("${mpv-queuelist} ;; echo mpv Queued playlist"),
-        // )]),
         HashMap::from([(
             String::from("View channel"),
             String::from("channel ${channel-id}"),
@@ -236,7 +249,7 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Open in browser"),
-            String::from("parrun ${browser} '${url}'"),
+            format!("parrun ${{browser}} {q}${{url}}{q}"),
         )]),
         HashMap::from([(
             String::from("Toggle bookmark"),
@@ -244,11 +257,21 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Save playlist videos to library"),
-            String::from("bookmark ${id} ;; run rm -rf '${save-path}*${id}*' ;; parrun ${terminal-emulator} bash -c \"${youtube-downloader} ${all-videos} -o '\"'${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s'\"'\"")
+            {
+                #[cfg(target_os = "windows")]
+                { String::from("bookmark ${id} ;; run cmd /c rd /s /q \"${save-path}*${id}*\" ;; parrun ${terminal-emulator} ${youtube-downloader} ${all-videos} -o \"${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s\"") }
+                #[cfg(not(target_os = "windows"))]
+                { String::from("bookmark ${id} ;; run rm -rf '${save-path}*${id}*' ;; parrun ${terminal-emulator} bash -c \"${youtube-downloader} ${all-videos} -o '\"'${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s'\"'\"") }
+            }
         )]),
         HashMap::from([(
             String::from("Save playlist audio to library"),
-            String::from("bookmark ${id} ;; run rm -rf '${save-path}*${id}*' ;; parrun ${terminal-emulator} bash -c \"${youtube-downloader} ${all-videos} -x -o '\"'${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s'\"'\"")
+            {
+                #[cfg(target_os = "windows")]
+                { String::from("bookmark ${id} ;; run cmd /c rd /s /q \"${save-path}*${id}*\" ;; parrun ${terminal-emulator} ${youtube-downloader} ${all-videos} -x -o \"${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s\"") }
+                #[cfg(not(target_os = "windows"))]
+                { String::from("bookmark ${id} ;; run rm -rf '${save-path}*${id}*' ;; parrun ${terminal-emulator} bash -c \"${youtube-downloader} ${all-videos} -x -o '\"'${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s'\"'\"") }
+            }
         )]),
         HashMap::from([(
             String::from("Mode: ${provider}"),
@@ -258,6 +281,11 @@ fn playlist_default() -> Vec<HashMap<String, String>> {
 }
 
 fn saved_playlist_default() -> Vec<HashMap<String, String>> {
+    #[cfg(target_os = "windows")]
+    let q = "\"";
+    #[cfg(not(target_os = "windows"))]
+    let q = "'";
+
     vec![
         HashMap::from([(String::from("Switch view"), String::from("%switch-view%"))]),
         HashMap::from([(
@@ -276,10 +304,6 @@ fn saved_playlist_default() -> Vec<HashMap<String, String>> {
             String::from("[Offline] Shuffle play all (audio loop)"),
             String::from("mpv stop ;; resume ;; ${offline-queuelist} ;; mpv sprop loop-playlist yes ;; mpv playlist-shuffle ;; mpv playlist-play-index 0 ;; echo mpv Player started"),
         )]),
-        // HashMap::from([(
-        //     String::from("[Offline] Add all to queue"),
-        //     String::from("${offline-queuelist} ;; echo mpv Queued playlist"),
-        // )]),
         HashMap::from([(
             String::from("View channel"),
             String::from("channel ${channel-id}"),
@@ -290,7 +314,7 @@ fn saved_playlist_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Open in browser"),
-            String::from("parrun ${browser} '${url}'"),
+            format!("parrun ${{browser}} {q}${{url}}{q}"),
         )]),
         HashMap::from([(
             String::from("Toggle bookmark"),
@@ -298,15 +322,30 @@ fn saved_playlist_default() -> Vec<HashMap<String, String>> {
         )]),
         HashMap::from([(
             String::from("Redownload playlist videos to library"),
-            String::from("bookmark ${id} ;; run rm -rf ${save-path}*${id}* ;; parrun ${terminal-emulator} bash -c \"${youtube-downloader} ${all-videos} -o '\"'${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s'\"'\"")
+            {
+                #[cfg(target_os = "windows")]
+                { String::from("bookmark ${id} ;; run cmd /c rd /s /q \"${save-path}*${id}*\" ;; parrun ${terminal-emulator} ${youtube-downloader} ${all-videos} -o \"${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s\"") }
+                #[cfg(not(target_os = "windows"))]
+                { String::from("bookmark ${id} ;; run rm -rf ${save-path}*${id}* ;; parrun ${terminal-emulator} bash -c \"${youtube-downloader} ${all-videos} -o '\"'${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s'\"'\"") }
+            }
         )]),
         HashMap::from([(
             String::from("Redownload playlist audio to library"),
-            String::from("bookmark ${id} ;; run rm -rf ${save-path}*${id}* ;; parrun ${terminal-emulator} bash -c \"${youtube-downloader} ${all-videos} -x -o '\"'${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s'\"'\"")
+            {
+                #[cfg(target_os = "windows")]
+                { String::from("bookmark ${id} ;; run cmd /c rd /s /q \"${save-path}*${id}*\" ;; parrun ${terminal-emulator} ${youtube-downloader} ${all-videos} -x -o \"${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s\"") }
+                #[cfg(not(target_os = "windows"))]
+                { String::from("bookmark ${id} ;; run rm -rf ${save-path}*${id}* ;; parrun ${terminal-emulator} bash -c \"${youtube-downloader} ${all-videos} -x -o '\"'${save-path}${title}[${id}]/%(title)s[%(id)s].%(ext)s'\"'\"") }
+            }
         )]),
         HashMap::from([(
             String::from("Delete saved files"),
-            String::from("run rm -rf ${save-path}*${id}*")
+            {
+                #[cfg(target_os = "windows")]
+                { String::from("run cmd /c rd /s /q \"${save-path}*${id}*\"") }
+                #[cfg(not(target_os = "windows"))]
+                { String::from("run rm -rf ${save-path}*${id}*") }
+            }
         )]),
     ]
 }

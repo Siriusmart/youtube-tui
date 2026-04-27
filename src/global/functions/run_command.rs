@@ -4,7 +4,6 @@ use crate::{
     load_configs,
 };
 use crossterm::event::{KeyEvent, KeyModifiers};
-use home::home_dir;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{
     env,
@@ -156,17 +155,14 @@ pub fn run_single_command(
         }
         ["rmcache", id] => {
             let res = LocalStore::rm_cache(id);
+            let data = paths::data_dir();
             let _ = fs::remove_file(
-                home_dir()
-                    .unwrap()
-                    .join(".local/share/youtube-tui/info/")
+                data.join("info")
                     .join(id)
                     .with_extension("json"),
             );
             let _ = fs::remove_file(
-                home_dir()
-                    .unwrap()
-                    .join(".local/share/youtube-tui/thumbnails/")
+                data.join("thumbnails")
                     .join(id),
             );
             if res {
@@ -351,9 +347,11 @@ pub fn run_single_command(
             let command = command[1..].join(" ");
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Success(command.clone());
+            let shell = &framework.data.global.get::<MainConfig>().unwrap().shell;
+            let shell_flag = shell_flag(shell);
             if let Ok(mut child) =
-                Command::new(&framework.data.global.get::<MainConfig>().unwrap().shell)
-                    .args(["-c", &command])
+                Command::new(shell)
+                    .args([shell_flag, &command])
                     .stdout(Stdio::null())
                     .stderr(Stdio::null())
                     .spawn()
@@ -365,8 +363,10 @@ pub fn run_single_command(
             let command = command[1..].join(" ");
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Success(command.clone());
-            let _ = Command::new(&framework.data.global.get::<MainConfig>().unwrap().shell)
-                .args(["-c", &command])
+            let shell = &framework.data.global.get::<MainConfig>().unwrap().shell;
+            let shell_flag = shell_flag(shell);
+            let _ = Command::new(shell)
+                .args([shell_flag, &command])
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
                 .spawn();
@@ -652,6 +652,30 @@ pub fn run_single_command(
             *framework.data.global.get_mut::<Message>().unwrap() =
                 Message::Error(format!("Unknown command: `{}`", command.join(" ")));
         }
+    }
+}
+
+/// Returns the appropriate shell flag for the given shell command.
+///
+/// On Windows, `cmd` and `cmd.exe` use `/C`, `powershell`/`pwsh` use `-Command`,
+/// and everything else (e.g., bash from Git for Windows) uses `-c`.
+/// On non-Windows platforms, always uses `-c`.
+fn shell_flag(shell: &str) -> &'static str {
+    #[cfg(target_os = "windows")]
+    {
+        let shell_lower = shell.to_lowercase();
+        if shell_lower == "cmd" || shell_lower == "cmd.exe" {
+            "/C"
+        } else if shell_lower.contains("powershell") || shell_lower.contains("pwsh") {
+            "-Command"
+        } else {
+            "-c"
+        }
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = shell;
+        "-c"
     }
 }
 

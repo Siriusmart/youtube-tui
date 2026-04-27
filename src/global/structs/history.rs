@@ -13,7 +13,7 @@ impl Key for WatchHistory {
 }
 
 impl Collection<Item> for WatchHistory {
-    const INDEX_PATH: &'static str = ".local/share/youtube-tui/watch_history.json";
+    const INDEX_PATH: &'static str = "watch_history.json";
 
     fn items(&self) -> &Vec<Item> {
         &self.0
@@ -36,7 +36,7 @@ impl Key for SearchHistory {
 }
 
 impl CollectionNoId<String> for SearchHistory {
-    const INDEX_PATH: &'static str = ".local/share/youtube-tui/search_history.json";
+    const INDEX_PATH: &'static str = "search_history.json";
 
     fn items(&self) -> &Vec<String> {
         &self.0
@@ -59,7 +59,7 @@ impl Key for CommandHistory {
 }
 
 impl CollectionNoId<String> for CommandHistory {
-    const INDEX_PATH: &'static str = ".local/share/youtube-tui/command_history.json";
+    const INDEX_PATH: &'static str = "command_history.json";
 
     fn items(&self) -> &Vec<String> {
         &self.0
@@ -83,7 +83,7 @@ impl Key for ChannelHistory {
 }
 
 impl CollectionNoId<String> for ChannelHistory {
-    const INDEX_PATH: &'static str = ".local/share/youtube-tui/channel_history.json";
+    const INDEX_PATH: &'static str = "channel_history.json";
 
     fn items(&self) -> &Vec<String> {
         &self.0

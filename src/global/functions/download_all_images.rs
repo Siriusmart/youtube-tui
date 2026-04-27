@@ -46,9 +46,7 @@ pub fn download_all_images(downloads: Vec<Option<DownloadRequest>>) {
         return;
     }
 
-    let path = home::home_dir()
-        .expect("Cannot get your home directory")
-        .join(".local/share/youtube-tui/thumbnails/");
+    let path = super::paths::data_dir().join("thumbnails");
 
     downloads.into_iter().flatten().for_each(|req| {
         LocalStore::add_image(req.id.clone());

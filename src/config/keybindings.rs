@@ -3,11 +3,11 @@ use super::{
     WriteConfig,
 };
 use crate::global::{
+    functions::paths,
     structs::KeyAction,
     traits::{ConfigTrait, EXTENSION},
 };
 use crossterm::event::{KeyCode, KeyEvent};
-use home::home_dir;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -174,8 +174,8 @@ impl KeyBindingsConfig {
             return Ok(keybindings);
         }
 
-        let config_path = home_dir().unwrap().join(format!(
-            ".config/youtube-tui/{}.{}",
+        let config_path = paths::config_dir().join(format!(
+            "{}.{}",
             KeyBindingsConfigSerde::LABEL,
             EXTENSION
         ));

@@ -24,7 +24,7 @@ impl Default for RustyPipeWrapper {
     fn default() -> Self {
         Self(
             RustyPipe::builder()
-                .storage_dir(home::home_dir().unwrap().join(".local/share/rustypipe"))
+                .storage_dir(crate::global::functions::paths::rustypipe_dir())
                 .build()
                 .unwrap(),
         )

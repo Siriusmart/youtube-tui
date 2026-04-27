@@ -6,11 +6,13 @@ use std::{
 };
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use home::home_dir;
 use serde::{Deserialize, Serialize};
 use typemap::Key;
 
-use crate::global::traits::{ConfigTrait, EXTENSION};
+use crate::global::{
+    functions::paths,
+    traits::{ConfigTrait, EXTENSION},
+};
 
 use super::{serde::KeyCodeSerde, WriteConfig};
 
@@ -86,8 +88,8 @@ impl RemapConfig {
             return Ok(keybindings);
         }
 
-        let config_path = home_dir().unwrap().join(format!(
-            ".config/youtube-tui/{}.{}",
+        let config_path = paths::config_dir().join(format!(
+            "{}.{}",
             RemapConfigSerde::LABEL,
             EXTENSION
         ));

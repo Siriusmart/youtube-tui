@@ -1,4 +1,4 @@
-use crossterm::event::{self, Event, MouseButton, MouseEventKind};
+use crossterm::event::{self, Event, KeyEventKind, MouseButton, MouseEventKind};
 use ratatui::{backend::CrosstermBackend, Terminal};
 #[cfg(feature = "mpv")]
 use std::time::{Duration, Instant};
@@ -272,7 +272,11 @@ pub fn run(
                         .push(Task::RenderAll);
                 }
             }
-            Event::Key(key) => key_input(key, framework, terminal),
+            // Only handle Press events; ignore Release/Repeat to avoid
+            // duplicate key actions on Windows terminals that send enhanced key events.
+            Event::Key(key) if key.kind == KeyEventKind::Press => {
+                key_input(key, framework, terminal)
+            }
             // always render if there is a screen resize event
             Event::Resize(_, _) => {
                 framework

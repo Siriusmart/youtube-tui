@@ -12,7 +12,7 @@ impl Key for Library {
 }
 
 impl Collection<Item> for Library {
-    const INDEX_PATH: &'static str = ".local/share/youtube-tui/library.json";
+    const INDEX_PATH: &'static str = "library.json";
 
     fn items(&self) -> &Vec<Item> {
         &self.0

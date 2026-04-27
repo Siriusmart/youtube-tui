@@ -6,13 +6,12 @@
 // this needs to change
 use std::{
     collections::{HashMap, HashSet},
-    env::home_dir,
     fs::{self, OpenOptions},
     io::Write,
     sync::OnceLock,
 };
 
-use crate::global::structs::Item;
+use crate::global::{functions::paths, structs::Item};
 
 static mut LOCALSTORE: OnceLock<LocalStore> = OnceLock::new();
 
@@ -48,10 +47,9 @@ impl LocalStore {
             .unwrap()
             .downloaded_images
             .remove(id);
-        let info_path = home_dir().unwrap().join(".local/share/youtube-tui/info/");
-        let thumbnail_path = home_dir()
-            .unwrap()
-            .join(".local/share/youtube-tui/thumbnails/");
+        let data = paths::data_dir();
+        let info_path = data.join("info");
+        let thumbnail_path = data.join("thumbnails");
         let _ = fs::remove_file(info_path.join(id).with_extension("json"));
         let _ = fs::remove_file(thumbnail_path.join(id));
 
@@ -64,9 +62,8 @@ impl LocalStore {
         match localstore.info.get(id) {
             Some(LocalRecord { item, .. }) => Some(item.clone()),
             None => {
-                let path = home_dir()
-                    .unwrap()
-                    .join(format!(".local/share/youtube-tui/info/{id}.json"));
+                let path = paths::data_dir()
+                    .join(format!("info/{id}.json"));
 
                 if path.exists() {
                     serde_json::from_str(&fs::read_to_string(path).ok()?).ok()?
@@ -83,7 +80,7 @@ impl LocalStore {
     }
 
     pub fn save_only(ids: &HashSet<String>) {
-        let info_path = home_dir().unwrap().join(".local/share/youtube-tui/info/");
+        let info_path = paths::data_dir().join("info");
 
         for (id, LocalRecord { item, is_new }) in unsafe { LOCALSTORE.get() }.unwrap().info.iter() {
             let info = info_path.join(id).with_extension("json");

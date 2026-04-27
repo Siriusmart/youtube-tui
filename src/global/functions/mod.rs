@@ -35,3 +35,4 @@ mod key_input;
 pub use key_input::*;
 mod find_library;
 pub use find_library::*;
+pub mod paths;
