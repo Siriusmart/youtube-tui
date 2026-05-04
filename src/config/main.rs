@@ -287,10 +287,9 @@ const fn write_to_config_default() -> WriteConfig {
 }
 
 fn default_env() -> HashMap<String, String> {
-    use crate::global::functions::paths;
-
     #[cfg(target_os = "windows")]
     {
+        use crate::global::functions::paths;
         HashMap::from([
             (String::from("video-player"), String::from("mpv")),
             (String::from("browser"), String::from("explorer")),
