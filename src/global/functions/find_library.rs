@@ -9,7 +9,7 @@ pub fn find_library_item(id: &str, mainconfig: &MainConfig) -> Option<PathBuf> {
 
     // Resolve save-path: handle tilde expansion for backward compatibility
     let save_path = if save_path_str.starts_with("~/") || save_path_str.starts_with("~\\") {
-        home::home_dir()
+        dirs::home_dir()
             .unwrap()
             .join(&save_path_str[2..])
     } else {
