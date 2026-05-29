@@ -1,0 +1,29 @@
+name: "Release Crates Tarball"
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release-tarball:
+    name: Generate and Upload Vendor Tarball
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Vendor Dependencies
+        run: |
+          # Generate the vendor directory
+          cargo vendor
+          # Archive it into a tarball
+          tar -cJf youtube-tui-${{ github.ref_name }}-crates.tar.xz vendor/
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: youtube-tui-${{ github.ref_name }}-crates.tar.xz
