@@ -53,7 +53,7 @@ environment.systemPackages = [
 Use the `cargo` command:
 
 ```sh
-cargo install --git https://github.com/siriusmart/youtube-tui
+cargo install --locked --git https://github.com/siriusmart/youtube-tui
 ```
 
 ### Confirm YouTube TUI has been installed
